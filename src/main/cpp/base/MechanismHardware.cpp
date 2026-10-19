@@ -26,7 +26,7 @@ class TalonMotorIO final : public MotorIO {
     auto& motor=*motors_.front();
     auto position=motor.GetPosition(); auto velocity=motor.GetVelocity();
     auto voltage=motor.GetMotorVoltage(); auto supply=motor.GetSupplyVoltage(); auto current=motor.GetSupplyCurrent();
-    position.Refresh(); velocity.Refresh(); voltage.Refresh(); supply.Refresh(); current.Refresh();
+    // Phoenix getters refresh by default; retain those value/status snapshots.
     double direction=config_.reversed.front() ? -1 : 1;
     return {direction*position.GetValueAsDouble()/config_.gearRatio,
             direction*velocity.GetValueAsDouble()/config_.gearRatio,
