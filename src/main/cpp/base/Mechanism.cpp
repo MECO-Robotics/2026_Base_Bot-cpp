@@ -44,14 +44,20 @@ Mechanism::Mechanism(std::string name, std::unique_ptr<MotorIO> io, Gains gains,
 void Mechanism::SetGains(Gains gains) { gains.Validate(joint_); gains_=gains; maxVelocity_=gains.maxVelocity; maxAcceleration_=gains.maxAcceleration; }
 void Mechanism::SetVelocity(double velocity) {
   Finite(velocity);
-  if(control_!=Control::Velocity) profiledVelocity_=Velocity();
+  if(control_!=Control::Velocity) {
+    profiledVelocity_=Velocity(); integral_=0; previousError_=0;
+  }
+  maxAcceleration_=gains_.maxAcceleration;
   target_=joint_ ? std::clamp(velocity,-gains_.maxVelocity,gains_.maxVelocity) : velocity; control_=Control::Velocity;
 }
 void Mechanism::SetPosition(double position) { SetPositionDynamic(position,gains_.maxVelocity,gains_.maxAcceleration); }
 void Mechanism::SetPositionDynamic(double position,double maxVelocity,double maxAcceleration) {
   Finite(position); Finite(maxVelocity); Finite(maxAcceleration);
   if(!joint_ || maxVelocity<=0 || maxAcceleration<=0) throw std::invalid_argument("Invalid joint request");
-  if(control_!=Control::Position) { profiledPosition_=physicalPosition_; profiledVelocity_=Velocity(); }
+  if(control_!=Control::Position) {
+    profiledPosition_=physicalPosition_; profiledVelocity_=Velocity();
+    integral_=0; previousError_=0;
+  }
   target_=std::clamp(position+zeroOffset_,gains_.minimum,gains_.maximum);
   maxVelocity_=maxVelocity; maxAcceleration_=maxAcceleration; control_=Control::Position;
 }

@@ -207,3 +207,40 @@ TEST(MechanismSafety, DisconnectedFeedbackStopsAndCannotReportAtSetpoint) {
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
 }
+
+TEST(MechanismControl, SwitchingToPositionHoldClearsVelocityPidHistory) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  for(bool derivative:{false,true}) {
+    auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+    observed->inputs.connected=true; observed->inputs.position=.5;
+    base::Gains gains; gains.maxAcceleration=1000;
+    if(derivative) gains.d=1; else gains.i=1;
+    base::PositionJoint joint("ModeTransition",std::move(io),gains);
+    joint.Periodic();
+    for(int n=0;n<100;++n) { joint.SetVelocity(.5); joint.Periodic(); }
+    // Repeated requests in one mode retain integral history and a settled derivative.
+    EXPECT_NEAR(observed->requestedVoltage,derivative ? 0 : 1,1e-12);
+    joint.SetPosition(.5); joint.Periodic();
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  }
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}
+TEST(MechanismProfile, VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true; observed->inputs.position=.5;
+  base::Gains gains; gains.a=1; gains.maxAcceleration=1;
+  base::PositionJoint joint("ModeConstraints",std::move(io),gains);
+  joint.Periodic(); joint.SetPositionDynamic(.5,1,1000);
+  joint.SetVelocity(.5); joint.Periodic();
+  // kA-only voltage equals acceleration: the position request's override is over.
+  EXPECT_NEAR(observed->requestedVoltage,1,1e-12);
+  joint.Stop();
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}
