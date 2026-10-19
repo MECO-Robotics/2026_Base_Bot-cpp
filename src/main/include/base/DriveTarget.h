@@ -27,13 +27,16 @@ class DriveTarget {
     // Capture the epoch before authorization: a disable between either check and
     // the write must invalidate this packet, including across a fast re-enable.
     value.epoch = epoch_.load();
-    if (!enabled()) return;
+    if (!enabled()) { Invalidate(); return; }
     std::scoped_lock lock(mutex_);
     pending_ = value;
   }
+  // May be called by the robot thread even if no native tick observes disable.
+  // Only the consumer mutates cached_; invalidation itself is atomic.
+  void Invalidate() { epoch_.fetch_add(1); }
   Value Consume(double now, bool enabled) {
     if (!enabled) {
-      epoch_.fetch_add(1);
+      Invalidate();
       cached_ = {};
       return {};
     }

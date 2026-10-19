@@ -42,6 +42,7 @@ struct Drive::ControlRequest final : s::requests::SwerveRequest {
     const bool enabled = frc::DriverStation::IsEnabled();
     const auto value = target.Consume(frc::Timer::GetFPGATimestamp().value(), enabled);
     if (!enabled || (value.teleopOnly && !frc::DriverStation::IsTeleopEnabled())) {
+      target.Invalidate();
       for (const auto& module : modules)
         module->Apply(p::controls::NeutralOut{}, p::controls::NeutralOut{});
       return ctre::phoenix::StatusCode::OK;

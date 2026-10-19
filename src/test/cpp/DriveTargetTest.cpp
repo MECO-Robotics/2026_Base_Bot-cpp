@@ -64,3 +64,16 @@ TEST(DriveTarget, DisableRacingAuthorizationInvalidatesOldEpoch) {
   target.Publish(value, []{return false;});
   EXPECT_EQ(target.Consume(1.02, true).speeds.vx, 0_mps);
 }
+
+TEST(DriveTarget, RobotThreadDisableInvalidatesWithoutNativeDisabledTick) {
+  base::DriveTarget target;
+  base::DriveTarget::Value value; value.timestamp=1; value.speeds.vx=2_mps;
+  target.Publish(value,[]{return true;});
+  EXPECT_EQ(target.Consume(1,true).speeds.vx,2_mps);
+  // Stop publication while disabled; a fast mode transition may occur between
+  // native callbacks. A prior enabled packet must not survive that transition.
+  target.Publish({},[]{return false;});
+  EXPECT_EQ(target.Consume(1.01,true).speeds.vx,0_mps);
+  value.timestamp=1.02; target.Publish(value,[]{return true;});
+  EXPECT_EQ(target.Consume(1.02,true).speeds.vx,2_mps);
+}
