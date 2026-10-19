@@ -93,15 +93,40 @@ class SimMotorIO final : public MotorIO {
     if(!std::isfinite(inertia_) || inertia_<=0) throw std::invalid_argument("Invalid output inertia");
   }
   MotorInputs Read() override {
-    // Integrate in 1 ms steps for stability at high gear ratios.
-    for(int step=0;step<20;++step) {
-      double rotorSpeed=velocity_*config_.gearRatio;
-      double current=std::clamp((voltage_-rotorSpeed/kv_)/resistance_,
-                               -static_cast<double>(config_.currentLimit),static_cast<double>(config_.currentLimit));
-      if(!brake_ && std::abs(voltage_)<1e-9) current=0;
-      current_=current;
-      velocity_+=(kt_*current*config_.ids.size()*config_.gearRatio-.0001*velocity_)/inertia_*.001;
-      position_+=velocity_*.001;
+    // Exact integration of the scalar motor model avoids Euler instability at
+    // high gearing. At constant voltage the speed is monotonic, so a current-
+    // limited interval can cross into the linear region at most once.
+    constexpr double dt=.02;
+    const double drag=.0001/inertia_;
+    const double torque=kt_*config_.ids.size()*config_.gearRatio/inertia_;
+    const double emf=config_.gearRatio/kv_;
+    const double limit=config_.currentLimit;
+    auto advance=[&](double duration,double decay,double equilibrium) {
+      const double integral=-std::expm1(-decay*duration)/decay;
+      position_+=equilibrium*duration+(velocity_-equilibrium)*integral;
+      velocity_+=(equilibrium-velocity_)*(-std::expm1(-decay*duration));
+    };
+    if(!brake_ && std::abs(voltage_)<1e-9) {
+      advance(dt,drag,0);
+      current_=0;
+    } else {
+      double remaining=dt;
+      const double initialCurrent=(voltage_-emf*velocity_)/resistance_;
+      if(std::abs(initialCurrent)>limit) {
+        const double current=std::copysign(limit,initialCurrent);
+        const double equilibrium=torque*current/drag;
+        const double boundary=(voltage_-resistance_*current)/emf;
+        const double fraction=(boundary-velocity_)/(velocity_-equilibrium);
+        const double crossing=fraction>-1 ? -std::log1p(fraction)/drag : dt;
+        const double duration=std::isfinite(crossing) && crossing>0 ? std::min(dt,crossing) : dt;
+        advance(duration,drag,equilibrium);
+        remaining-=duration;
+      }
+      if(remaining>0) {
+        const double decay=torque*emf/resistance_+drag;
+        advance(remaining,decay,torque*voltage_/resistance_/decay);
+      }
+      current_=std::clamp((voltage_-emf*velocity_)/resistance_,-limit,limit);
     }
     return {position_/(2*std::numbers::pi),velocity_/(2*std::numbers::pi),voltage_,12,std::abs(current_)*config_.ids.size(),true};
   }
