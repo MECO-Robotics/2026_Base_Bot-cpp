@@ -24,9 +24,9 @@ class TalonMotorIO final : public MotorIO {
   }
   MotorInputs Read() override {
     auto& motor=*motors_.front();
-    auto position=motor.GetPosition(); auto velocity=motor.GetVelocity();
-    auto voltage=motor.GetMotorVoltage(); auto supply=motor.GetSupplyVoltage(); auto current=motor.GetSupplyCurrent();
-    // Phoenix getters refresh by default; retain those value/status snapshots.
+    const auto& position=motor.GetPosition(); const auto& velocity=motor.GetVelocity();
+    const auto& voltage=motor.GetMotorVoltage(); const auto& supply=motor.GetSupplyVoltage(); const auto& current=motor.GetSupplyCurrent();
+    // Phoenix getters refresh their motor-owned cached signals by default.
     double direction=config_.reversed.front() ? -1 : 1;
     return {direction*position.GetValueAsDouble()/config_.gearRatio,
             direction*velocity.GetValueAsDouble()/config_.gearRatio,
