@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <units/time.h>
 #include <wpi/DataLog.h>
 #include <frc/DigitalInput.h>
 #include <frc2/command/SubsystemBase.h>
@@ -41,7 +42,9 @@ struct MotorInputs {
 class MotorIO {
  public:
   virtual ~MotorIO() = default;
+  // Sampling is observational. Only the simulation owner advances physics.
   virtual MotorInputs Read()=0;
+  virtual void AdvanceSimulation(units::second_t dt) {}
   virtual void SetVoltage(double volts)=0;
   virtual void SetBrake(bool brake)=0;
 };
@@ -65,6 +68,8 @@ class Mechanism : public frc2::SubsystemBase {
             Gravity gravity=Gravity::Constant,
             std::function<double()> externalEncoder={}, EncoderCalibration calibration={});
   void Periodic() override;
+  void SimulationPeriodic() override;
+  void AdvanceSimulation(units::second_t dt);
   void SetVelocity(double velocity);
   void SetPosition(double position);
   void SetPositionDynamic(double position, double maxVelocity, double maxAcceleration);

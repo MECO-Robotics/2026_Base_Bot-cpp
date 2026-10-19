@@ -105,6 +105,8 @@ void Mechanism::ResetPosition() {
 bool Mechanism::AtSetpoint() const {
   return std::abs((control_==Control::Position ? physicalPosition_ : Velocity())-target_)<=gains_.tolerance;
 }
+void Mechanism::SimulationPeriodic() { AdvanceSimulation(units::second_t{.02}); }
+void Mechanism::AdvanceSimulation(units::second_t dt) { io_->AdvanceSimulation(dt); }
 void Mechanism::Periodic() {
   constexpr double dt=.02;
   UpdateLiveTuning();

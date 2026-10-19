@@ -82,7 +82,7 @@ class SparkMotorIO final : public MotorIO {
   MotorConfig config_;
   std::vector<std::unique_ptr<rev::spark::SparkMax>> motors_;
 };
-// Deterministic 20 ms electrical/mechanical model for a NEO (Spark) or Kraken (Talon).
+// Explicit-time electrical/mechanical model for a NEO (Spark) or Kraken (Talon).
 class SimMotorIO final : public MotorIO {
  public:
   SimMotorIO(MotorConfig config,Vendor vendor,double inertia)
@@ -92,16 +92,19 @@ class SimMotorIO final : public MotorIO {
         kv_(vendor==Vendor::SparkMax ? 5676*2*std::numbers::pi/60/12 : 6000*2*std::numbers::pi/60/12) {
     if(!std::isfinite(inertia_) || inertia_<=0) throw std::invalid_argument("Invalid output inertia");
   }
-  MotorInputs Read() override {
+  void AdvanceSimulation(units::second_t elapsed) override {
+    const double duration=elapsed.value();
+    if(!std::isfinite(duration) || duration<=0 || duration>.1)
+      throw std::invalid_argument("Simulation step must be in (0,100ms]");
     // Back-EMF damping grows with gearing squared. Bound alpha*dt to .25;
     // a fixed 1 ms Euler step diverges for the 105:1 hood's output inertia.
     const double alpha=(kt_*config_.ids.size()*config_.gearRatio*config_.gearRatio/
                         (resistance_*kv_)+.0001)/inertia_;
-    const double requestedSteps=std::max(20.,std::ceil(.02*alpha/.25));
+    const double requestedSteps=std::max(std::ceil(duration/.001),std::ceil(duration*alpha/.25));
     if(!std::isfinite(requestedSteps) || requestedSteps>100000)
       throw std::invalid_argument("Motor simulation stiffness exceeds supported substep bound");
     const int steps=static_cast<int>(requestedSteps);
-    const double dt=.02/steps;
+    const double dt=duration/steps;
     for(int step=0;step<steps;++step) {
       double rotorSpeed=velocity_*config_.gearRatio;
       double current=std::clamp((voltage_-rotorSpeed/kv_)/resistance_,
@@ -111,6 +114,8 @@ class SimMotorIO final : public MotorIO {
       velocity_+=(kt_*current*config_.ids.size()*config_.gearRatio-.0001*velocity_)/inertia_*dt;
       position_+=velocity_*dt;
     }
+  }
+  MotorInputs Read() override {
     return {position_/(2*std::numbers::pi),velocity_/(2*std::numbers::pi),voltage_,12,std::abs(current_)*config_.ids.size(),true};
   }
   void SetVoltage(double volts) override { voltage_=std::clamp(volts,-12.,12.); }

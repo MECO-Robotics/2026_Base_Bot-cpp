@@ -52,7 +52,7 @@ TEST(MechanismIO, ReplayDoesNotConstructHardwareAndSimulationMoves) {
   ASSERT_NE(dynamic_cast<base::InjectedMotorIO*>(replay.get()),nullptr);
   auto sim=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,config);
   sim->SetVoltage(4);
-  for(int n=0;n<20;++n) sim->Read();
+  for(int n=0;n<20;++n) sim->AdvanceSimulation(units::second_t{.02});
   EXPECT_GT(sim->Read().position,0);
   EXPECT_GT(sim->Read().velocity,0);
 }
@@ -64,7 +64,7 @@ TEST(MechanismSimulation, ClosedLoopVelocityConverges) {
   base::Gains gains; gains.p=.8; gains.v=.127; gains.maxVelocity=50; gains.maxAcceleration=100;
   base::Flywheel wheel("SimControl",base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,config),gains);
   wheel.SetVelocity(20);
-  for(int n=0;n<500;++n) wheel.Periodic();
+  for(int n=0;n<500;++n) { wheel.Periodic(); wheel.SimulationPeriodic(); }
   EXPECT_NEAR(wheel.Velocity(),20,1);
   wheel.Stop();
   frc::sim::DriverStationSim::SetEnabled(false);
@@ -162,10 +162,37 @@ TEST(MechanismSimulation, HighReductionConvergesToMotorFreeSpeedWithoutNumerical
   base::MotorConfig config{{1},{false},105,40,""};
   auto simulation=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,config,.01);
   simulation->SetVoltage(6);
-  for(int i=0;i<200;++i) simulation->Read();
+  for(int i=0;i<200;++i) simulation->AdvanceSimulation(units::second_t{.02});
   // Ideal half-voltage NEO free speed, expressed at the 105:1 output.
   // Model viscous drag shifts equilibrium by <3 ppm; 0.1% allows that drag
   // while rejecting the oscillating fixed-1ms Euler result.
   constexpr double expected=5676./60*.5/105;
   EXPECT_NEAR(simulation->Read().velocity,expected,expected*.001);
+}
+
+TEST(MechanismSimulation, PollingFrequencyDoesNotAdvancePhysics) {
+  auto run=[](int hz) {
+    auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,{{1},{false},2,40,""});
+    io->SetVoltage(4);
+    EXPECT_DOUBLE_EQ(io->Read().position,0);
+    for(int ms=0;ms<1000;++ms) {
+      if(ms%(1000/hz)==0) {
+        const auto first=io->Read();
+        EXPECT_DOUBLE_EQ(io->Read().position,first.position);
+        EXPECT_DOUBLE_EQ(io->Read().velocity,first.velocity);
+      }
+      io->AdvanceSimulation(units::second_t{.001});
+    }
+    return io->Read();
+  };
+  const auto reference=run(50);
+  for(int hz:{100,250}) {
+    const auto sample=run(hz);
+    EXPECT_DOUBLE_EQ(sample.position,reference.position);
+    EXPECT_DOUBLE_EQ(sample.velocity,reference.velocity);
+    EXPECT_DOUBLE_EQ(sample.current,reference.current);
+  }
+  EXPECT_GT(reference.position,1);
+  RecordProperty("position_rotations",reference.position);
+  RecordProperty("velocity_rotations_per_second",reference.velocity);
 }
