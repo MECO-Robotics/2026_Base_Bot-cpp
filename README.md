@@ -8,7 +8,7 @@ For architecture-aware Codex assistance, use the repository skill [`frc-base-pro
 
 For device configuration, commissioning, and diagnosis, use [`frc-hardware`](.agents/skills/frc-hardware/SKILL.md) or invoke `$frc-hardware`.
 
-Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. From this folder:
+Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. The build selects C++23 mode; the pinned roboRIO GCC 12 implements only a subset, so new code must compile on both targets. From this folder:
 
 ```sh
 ./gradlew build
@@ -50,7 +50,9 @@ application control-loop latency guarantee.
 Mechanism simulation advances exactly once per `Read()` by 20 ms. It integrates
 the current-limited motor model analytically, including brake/coast drag; additional
 reads advance time. Replay instead consumes caller-injected snapshots without
-stepping physics. Whole-robot log playback and vendor-independent drivetrain
+stepping physics. Its current clamp models winding current; the real Talon adapter
+configures supply current, so electrical current-limit parity is not established.
+Whole-robot log playback and vendor-independent drivetrain
 replay are not implemented. Systemcore requires a supported future toolchain and
 vendor adapters; this checkout retains the pinned 2026 APIs.
 
