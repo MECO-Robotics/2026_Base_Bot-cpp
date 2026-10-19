@@ -6,6 +6,7 @@
 #include <set>
 #include <stdexcept>
 #include <frc/DriverStation.h>
+#include <frc/RobotBase.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc2/command/Commands.h>
 #include <networktables/NetworkTableInstance.h>
@@ -129,6 +130,8 @@ void Mechanism::Control(units::second_t elapsed, bool enabled) {
     Stop();
     throw std::invalid_argument("Control step must be in (0,100ms]");
   }
+  // Explicit enable injection is for desktop replay/tests, never a hardware bypass.
+  enabled=enabled && (frc::RobotBase::IsSimulation() || frc::DriverStation::IsEnabled());
   inputs_=io_->Read();
   if(externalEncoder_) {
     const double raw=externalEncoder_();
