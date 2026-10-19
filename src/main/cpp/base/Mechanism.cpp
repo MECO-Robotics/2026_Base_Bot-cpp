@@ -83,19 +83,19 @@ void Mechanism::UpdateLiveTuning() {
 }
 void Mechanism::SetVelocity(double velocity) {
   Finite(velocity);
-  if(control_!=Control::Velocity) profiledVelocity_=Velocity();
-  target_=joint_ ? std::clamp(velocity,-gains_.maxVelocity,gains_.maxVelocity) : velocity; control_=Control::Velocity;
+  if(control_!=ControlMode::Velocity) profiledVelocity_=Velocity();
+  target_=joint_ ? std::clamp(velocity,-gains_.maxVelocity,gains_.maxVelocity) : velocity; control_=ControlMode::Velocity;
 }
 void Mechanism::SetPosition(double position) { SetPositionDynamic(position,gains_.maxVelocity,gains_.maxAcceleration); }
 void Mechanism::SetPositionDynamic(double position,double maxVelocity,double maxAcceleration) {
   Finite(position); Finite(maxVelocity); Finite(maxAcceleration);
   if(!joint_ || maxVelocity<=0 || maxAcceleration<=0) throw std::invalid_argument("Invalid joint request");
-  if(control_!=Control::Position) { profiledPosition_=physicalPosition_; profiledVelocity_=Velocity(); }
+  if(control_!=ControlMode::Position) { profiledPosition_=physicalPosition_; profiledVelocity_=Velocity(); }
   target_=std::clamp(position+zeroOffset_,gains_.minimum,gains_.maximum);
-  maxVelocity_=maxVelocity; maxAcceleration_=maxAcceleration; control_=Control::Position;
+  maxVelocity_=maxVelocity; maxAcceleration_=maxAcceleration; control_=ControlMode::Position;
 }
-void Mechanism::SetVoltage(double volts) { Finite(volts); voltage_=std::clamp(volts,-12.,12.); control_=Control::Voltage; }
-void Mechanism::Stop() { control_=Control::Stopped; integral_=0; previousError_=0; io_->SetVoltage(0); }
+void Mechanism::SetVoltage(double volts) { Finite(volts); voltage_=std::clamp(volts,-12.,12.); control_=ControlMode::Voltage; }
+void Mechanism::Stop() { control_=ControlMode::Stopped; integral_=0; previousError_=0; io_->SetVoltage(0); }
 void Mechanism::SetBrake(bool enabled) { io_->SetBrake(enabled); }
 void Mechanism::ResetPosition() {
   zeroOffset_=physicalPosition_; target_=physicalPosition_; profiledPosition_=physicalPosition_;
@@ -103,37 +103,49 @@ void Mechanism::ResetPosition() {
   if(joint_) SetPosition(0);
 }
 bool Mechanism::AtSetpoint() const {
-  return std::abs((control_==Control::Position ? physicalPosition_ : Velocity())-target_)<=gains_.tolerance;
+  return std::abs((control_==ControlMode::Position ? physicalPosition_ : Velocity())-target_)<=gains_.tolerance;
 }
-void Mechanism::SimulationPeriodic() { AdvanceSimulation(units::second_t{.02}); }
+void Mechanism::SimulationPeriodic() { if(!externalScheduling_) AdvanceSimulation(units::second_t{.02}); }
 void Mechanism::AdvanceSimulation(units::second_t dt) { io_->AdvanceSimulation(dt); }
 void Mechanism::Periodic() {
-  constexpr double dt=.02;
   UpdateLiveTuning();
-  inputs_=io_->Read();
+  if(!externalScheduling_) Control(units::second_t{.02});
+  PublishTelemetry();
+}
+void Mechanism::PublishTelemetry() {
+  // Snapshot consumers only. No sensor refresh, plant step, or actuator write.
   if(inputLog_) inputLog_->Append(EncodeMotorInputs(inputs_));
-  physicalPosition_=externalEncoder_ ? calibration_.Apply(externalEncoder_()) : inputs_.position*units_;
-  if(!std::isfinite(physicalPosition_) || !std::isfinite(Velocity())) { Stop(); return; }
-  auto publish=[this]{
-  auto prefix=GetName()+"/";
+  const auto prefix=GetName()+"/";
   frc::SmartDashboard::PutNumber(prefix+"Position",Position());
   frc::SmartDashboard::PutNumber(prefix+"Velocity",Velocity());
   frc::SmartDashboard::PutNumber(prefix+"Voltage",inputs_.voltage);
   frc::SmartDashboard::PutNumber(prefix+"Target",joint_ ? DesiredPosition() : target_);
   frc::SmartDashboard::PutBoolean(prefix+"Connected",inputs_.connected);
-  };
-  if(frc::DriverStation::IsDisabled()) {
+}
+void Mechanism::Control(units::second_t dt) { Control(dt,frc::DriverStation::IsEnabled()); }
+void Mechanism::Control(units::second_t elapsed, bool enabled) {
+  const double dt=elapsed.value();
+  if(!std::isfinite(dt) || dt<=0 || dt>.1) {
+    Stop();
+    throw std::invalid_argument("Control step must be in (0,100ms]");
+  }
+  inputs_=io_->Read();
+  if(externalEncoder_) {
+    const double raw=externalEncoder_();
+    physicalPosition_=std::isfinite(raw) ? calibration_.Apply(raw) : raw;
+  } else physicalPosition_=inputs_.position*units_;
+  if(!std::isfinite(physicalPosition_) || !std::isfinite(Velocity())) { Stop(); return; }
+  if(!enabled) {
     integral_=0; previousError_=0;
     profiledPosition_=physicalPosition_; profiledVelocity_=Velocity();
     io_->SetVoltage(0);
-    publish();
     return;
   }
   double volts=0;
-  if(control_==Control::Voltage) volts=voltage_;
-  else if(control_==Control::Velocity || control_==Control::Position) {
+  if(control_==ControlMode::Voltage) volts=voltage_;
+  else if(control_==ControlMode::Velocity || control_==ControlMode::Position) {
     double previousVelocity=profiledVelocity_;
-    if(control_==Control::Position) {
+    if(control_==ControlMode::Position) {
       double distance=target_-profiledPosition_;
       double desired=std::copysign(std::min(maxVelocity_,std::sqrt(2*maxAcceleration_*std::abs(distance))),distance);
       profiledVelocity_+=std::clamp(desired-profiledVelocity_,-maxAcceleration_*dt,maxAcceleration_*dt);
@@ -141,7 +153,7 @@ void Mechanism::Periodic() {
       if(step*distance>=0 && std::abs(step)>=std::abs(distance)) { profiledPosition_=target_; profiledVelocity_=0; }
       else profiledPosition_+=step;
     } else profiledVelocity_+=std::clamp(target_-profiledVelocity_,-maxAcceleration_*dt,maxAcceleration_*dt);
-    double error=control_==Control::Position ? profiledPosition_-physicalPosition_ : profiledVelocity_-Velocity();
+    double error=control_==ControlMode::Position ? profiledPosition_-physicalPosition_ : profiledVelocity_-Velocity();
     integral_=std::clamp(integral_+error*dt,-12.,12.);
     volts=gains_.p*error+gains_.i*integral_+gains_.d*(error-previousError_)/dt;
     previousError_=error;
@@ -154,7 +166,6 @@ void Mechanism::Periodic() {
   }
   if(joint_ && ((physicalPosition_<=gains_.minimum && volts<0) || (physicalPosition_>=gains_.maximum && volts>0))) volts=0;
   io_->SetVoltage(std::clamp(volts,-12.,12.));
-  publish();
 }
 frc2::CommandPtr Mechanism::VelocityCommand(std::function<double()> supplier) {
   return frc2::cmd::RunEnd([this,supplier]{SetVelocity(supplier());},[this]{Stop();},{this});

@@ -70,6 +70,12 @@ class Mechanism : public frc2::SubsystemBase {
   void Periodic() override;
   void SimulationPeriodic() override;
   void AdvanceSimulation(units::second_t dt);
+  // Single-threaded owner only: scheduler/commands, explicit control, and telemetry
+  // must not race. External scheduling suppresses automatic control/plant ticks.
+  void UseExternalScheduling(bool enabled=true) { externalScheduling_=enabled; }
+  void Control(units::second_t dt);
+  void Control(units::second_t dt, bool enabled);
+  void PublishTelemetry();
   void SetVelocity(double velocity);
   void SetPosition(double position);
   void SetPositionDynamic(double position, double maxVelocity, double maxAcceleration);
@@ -85,7 +91,7 @@ class Mechanism : public frc2::SubsystemBase {
   void EnableInputLogging(wpi::log::DataLog& log);
   const Gains& GetGains() const { return gains_; }
   bool AtSetpoint() const;
-  bool VelocityControlActive() const { return control_==Control::Velocity; }
+  bool VelocityControlActive() const { return control_==ControlMode::Velocity; }
   double VelocitySetpoint() const { return target_; }
   double Position() const { return physicalPosition_ - zeroOffset_; }
   double Velocity() const { return inputs_.velocity * units_; }
@@ -96,7 +102,7 @@ class Mechanism : public frc2::SubsystemBase {
   frc2::CommandPtr PositionCommand(std::function<double()> position);
   frc2::CommandPtr VoltageCommand(std::function<double()> voltage);
  private:
-  enum class Control { Stopped, Voltage, Velocity, Position };
+  enum class ControlMode { Stopped, Voltage, Velocity, Position };
   std::unique_ptr<MotorIO> io_;
   Gains gains_;
   bool joint_;
@@ -108,9 +114,9 @@ class Mechanism : public frc2::SubsystemBase {
   EncoderCalibration calibration_;
   MotorInputs inputs_;
   std::unique_ptr<wpi::log::DoubleArrayLogEntry> inputLog_;
-  bool liveTuning_=false;
+  bool liveTuning_=false, externalScheduling_=false;
   void UpdateLiveTuning();
-  Control control_=Control::Stopped;
+  ControlMode control_=ControlMode::Stopped;
 };
 class Flywheel final : public Mechanism {
  public:

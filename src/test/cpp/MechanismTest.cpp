@@ -196,3 +196,38 @@ TEST(MechanismSimulation, PollingFrequencyDoesNotAdvancePhysics) {
   RecordProperty("position_rotations",reference.position);
   RecordProperty("velocity_rotations_per_second",reference.velocity);
 }
+
+TEST(MechanismControl, ExplicitTimestepScalesIntegralDerivativeAndFeedforward) {
+  for(double dt:{.02,.01,.004}) {
+    auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+    base::Gains gains; gains.p=.3; gains.i=.4; gains.d=.002;
+    gains.v=.2; gains.a=.1; gains.maxAcceleration=2;
+    base::Flywheel wheel("TimestepTest",std::move(io),gains);
+    wheel.SetVelocity(1);
+    wheel.Control(units::second_t{dt},true);
+    const double profiledVelocity=2*dt;
+    const double expected=.3*profiledVelocity+.4*profiledVelocity*dt+
+      .002*profiledVelocity/dt+.2*profiledVelocity+.1*2;
+    EXPECT_NEAR(observed->requestedVoltage,expected,1e-12);
+    wheel.PublishTelemetry();
+    EXPECT_NEAR(observed->requestedVoltage,expected,1e-12);
+    EXPECT_THROW(wheel.Control(units::second_t{0},true),std::invalid_argument);
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  }
+}
+
+TEST(MechanismControl, ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNotControl) {
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  base::Gains gains; gains.p=1; gains.maxAcceleration=2;
+  base::Flywheel wheel("ExternalTickTest",std::move(io),gains);
+  wheel.UseExternalScheduling();
+  wheel.SetVelocity(1);
+  wheel.Control(units::second_t{.004},true);
+  const double voltage=observed->requestedVoltage;
+  observed->inputs.velocity=100;
+  wheel.Periodic();
+  EXPECT_DOUBLE_EQ(wheel.Velocity(),0);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,voltage);
+  wheel.Control(units::second_t{.004},false);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+}
