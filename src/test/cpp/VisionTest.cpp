@@ -2,6 +2,9 @@
 #include <gtest/gtest.h>
 #include <networktables/NetworkTableInstance.h>
 #include <vector>
+#include <limits>
+#include <photon/serde/PhotonPipelineResultSerde.h>
+#include <photon/networktables/NTTopicSet.h>
 
 namespace {
 std::vector<double> SingleTagPose(double ambiguity) {
@@ -42,5 +45,58 @@ TEST(VisionLimelight, MegaTag2DoesNotUseSingleTagAmbiguity) {
       ->GetDoubleArrayTopic("botpose_orb_wpiblue").Publish();
   publisher.Set(SingleTagPose(.9));
   vision.Periodic();
+  EXPECT_EQ(observations, 1);
+}
+
+TEST(VisionLimelight, RejectsOverflowingCovariance) {
+  base::VisionConfig config;
+  config.name = "test-limelight-covariance";
+  int observations = 0;
+  base::Vision vision(config, [&](const auto&) { ++observations; });
+  auto publisher = nt::NetworkTableInstance::GetDefault().GetTable(config.name)
+      ->GetDoubleArrayTopic("botpose_wpiblue").Publish();
+  auto pose = SingleTagPose(0);
+  pose[9] = std::numeric_limits<double>::max();
+  publisher.Set(pose);
+  vision.Periodic();
+  EXPECT_EQ(observations, 0);
+}
+
+TEST(VisionPhoton, RejectsInvalidDistanceWithFiniteCoprocPose) {
+  using namespace units::literals;
+  base::VisionConfig config;
+  config.name = "test-photon-covariance";
+  int observations = 0;
+  frc::AprilTagFieldLayout layout{{{1, frc::Pose3d{1_m, 2_m, 0_m, frc::Rotation3d{}}},
+                                  {2, frc::Pose3d{2_m, 2_m, 0_m, frc::Rotation3d{}}}}, 17_m, 8_m};
+  base::PhotonVision vision(config, layout, [&](const auto&) { ++observations; });
+  auto publisher = nt::NetworkTableInstance::GetDefault().GetTable("photonvision")
+      ->GetSubTable(config.name)->GetRawTopic("rawBytes")
+      .Publish(photon::PhotonPipelineResult_TYPE_STRING);
+  photon::PhotonPipelineResult result;
+  result.metadata = photon::PhotonPipelineMetadata{1, 1000, 1000, 0};
+  photon::PhotonTrackedTarget target{};
+  target.fiducialId = 1;
+  target.poseAmbiguity = .1;
+  target.bestCameraToTarget = frc::Transform3d{2_m, 0_m, 0_m, frc::Rotation3d{}};
+  result.targets = {target};
+  target.fiducialId = 2;
+  result.targets.push_back(target);
+  photon::MultiTargetPNPResult multitag{photon::PnpResult{}, std::vector<int16_t>{1, 2}};
+  multitag.estimatedPose.best = frc::Transform3d{1_m, 1_m, 0_m, frc::Rotation3d{}};
+  result.multitagResult = multitag;
+  auto publish = [&] {
+    photon::Packet packet;
+    packet.Pack(result);
+    publisher.Set(packet.GetData());
+    vision.Periodic();
+  };
+  publish();
+  ASSERT_EQ(observations, 1);
+  result.targets[0].bestCameraToTarget = frc::Transform3d{
+      units::meter_t{std::numeric_limits<double>::quiet_NaN()}, 0_m, 0_m, frc::Rotation3d{}};
+  ++result.metadata.sequenceID;
+  ++result.metadata.captureTimestampMicros;
+  publish();
   EXPECT_EQ(observations, 1);
 }

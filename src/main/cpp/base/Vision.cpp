@@ -40,6 +40,7 @@ void Vision::Periodic() {
     if (!config_.megatag2 && v[7] == 1 &&
         (v.size() <= 17 || v[17] < 0 || v[17] > config_.maxSingleTagAmbiguity)) continue;
     const double scale = v[9] * v[9] / v[7];
+    if (!std::isfinite(scale) || scale <= 0) continue;
     VisionObservation observation{
       frc::Pose2d{units::meter_t{v[0]}, units::meter_t{v[1]}, frc::Rotation2d{units::degree_t{v[5]}}},
       units::second_t{sample.time * 1e-6 - v[6] * 1e-3},
@@ -65,13 +66,17 @@ void PhotonVision::Periodic() {
         std::abs(pose.Z().value()) > config_.maxZ || pose.X().value() < 0 ||
         pose.Y().value() < 0 || pose.X().value() > config_.fieldLength ||
         pose.Y().value() > config_.fieldWidth) continue;
-    if (estimate->targetsUsed.size() == 1 &&
-        (estimate->targetsUsed[0].GetPoseAmbiguity() < 0 ||
-         estimate->targetsUsed[0].GetPoseAmbiguity() > config_.maxSingleTagAmbiguity)) continue;
+    if (!std::isfinite(estimate->timestamp.value())) continue;
+    if (estimate->targetsUsed.size() == 1) {
+      const double ambiguity = estimate->targetsUsed[0].GetPoseAmbiguity();
+      if (!std::isfinite(ambiguity) || ambiguity < 0 ||
+          ambiguity > config_.maxSingleTagAmbiguity) continue;
+    }
     double distance = 0;
     for (const auto& target : estimate->targetsUsed) distance += target.GetBestCameraToTarget().Translation().Norm().value();
     distance /= estimate->targetsUsed.size();
     const double scale = distance * distance / estimate->targetsUsed.size();
+    if (!std::isfinite(scale) || scale <= 0) continue;
     if (consumer_) consumer_({pose.ToPose2d(), estimate->timestamp, {0.02 * scale, 0.02 * scale, 0.06 * scale}});
   }
 }
