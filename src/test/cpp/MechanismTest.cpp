@@ -144,3 +144,25 @@ TEST(MechanismSafety, OverflowingControlOutputStopsInsteadOfSaturating) {
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
 }
+
+TEST(MechanismProfile, CloseTargetDoesNotViolateAccelerationAtCrossing) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  base::Gains gains; gains.a=1; gains.minimum=0; gains.maximum=2;
+  base::PositionJoint joint("ProfileCloseTarget",std::move(io),gains);
+  observed->inputs.position=.5; observed->inputs.velocity=.9;
+  joint.Periodic(); joint.SetPosition(.501);
+  // With only kA enabled, requested volts numerically equal profile acceleration.
+  // The nearby target requires overshoot before the initial speed can be stopped.
+  for(int n=0;n<200;++n) {
+    joint.Periodic();
+    EXPECT_LE(std::abs(observed->requestedVoltage),1+1e-12);
+  }
+  // Verify that allowing overshoot still converges to the requested position.
+  gains.a=0; gains.p=1; joint.SetGains(gains); joint.Periodic();
+  EXPECT_NEAR(observed->requestedVoltage,.001,1e-9);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}

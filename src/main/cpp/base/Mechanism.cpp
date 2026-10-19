@@ -90,7 +90,12 @@ void Mechanism::Periodic() {
       double desired=std::copysign(std::min(maxVelocity_,std::sqrt(2*maxAcceleration_*std::abs(distance))),distance);
       profiledVelocity_+=std::clamp(desired-profiledVelocity_,-maxAcceleration_*dt,maxAcceleration_*dt);
       double step=profiledVelocity_*dt;
-      if(step*distance>=0 && std::abs(step)>=std::abs(distance)) { profiledPosition_=target_; profiledVelocity_=0; }
+      // A close goal may require overshoot: snapping a moving profile to rest
+      // must not violate the acceleration bound or spike acceleration feedforward.
+      if(step*distance>=0 && std::abs(step)>=std::abs(distance) &&
+          std::abs(previousVelocity)<=maxAcceleration_*dt) {
+        profiledPosition_=target_; profiledVelocity_=0;
+      }
       else profiledPosition_+=step;
     } else profiledVelocity_+=std::clamp(target_-profiledVelocity_,-maxAcceleration_*dt,maxAcceleration_*dt);
     double error=control_==Control::Position ? profiledPosition_-physicalPosition_ : profiledVelocity_-Velocity();
