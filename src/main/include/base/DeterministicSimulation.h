@@ -5,6 +5,7 @@
 #include <optional>
 #include <span>
 #include <stdexcept>
+#include <utility>
 #include "base/Mechanism.h"
 
 namespace base {
@@ -15,9 +16,18 @@ class DeterministicSimulation {
   static constexpr std::int64_t kTickMicroseconds=4000;
   template<class Commands, class Control, class Physics>
   void Step(Commands&& commands, Control&& control, Physics&& physics) {
-    if(tick_%5==0) commands(tick_*kTickMicroseconds);
-    control(tick_*kTickMicroseconds);
-    physics(tick_*kTickMicroseconds);
+    StepWithSensors([](auto){}, std::forward<Commands>(commands),
+                    std::forward<Control>(control), std::forward<Physics>(physics));
+  }
+  // Deliver delayed inputs and DS/config events before scheduling at this tick.
+  // The caller owns its HAL clock; physics completes the interval [t,t+4ms).
+  template<class Sensors, class Commands, class Control, class Physics>
+  void StepWithSensors(Sensors&& sensors, Commands&& commands, Control&& control, Physics&& physics) {
+    const auto time=tick_*kTickMicroseconds;
+    sensors(time);
+    if(tick_%5==0) commands(time);
+    control(time);
+    physics(time);
     ++tick_;
   }
   std::int64_t Tick() const { return tick_; }
