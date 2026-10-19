@@ -35,8 +35,10 @@ void Vision::Periodic() {
     for (double value : v) finite &= std::isfinite(value);
     if (!finite || v[7] < 1 || v[9] <= 0 || v[6] < 0 || std::abs(v[2]) > config_.maxZ ||
         v[0] < 0 || v[0] > config_.fieldLength || v[1] < 0 || v[1] > config_.fieldWidth) continue;
-    // Raw fiducials are seven numbers per tag; first ambiguity is element 17.
-    if (v[7] == 1 && v.size() > 17 && v[17] > config_.maxSingleTagAmbiguity) continue;
+    // MT1 needs usable single-tag ambiguity (raw fiducial element 17).
+    // MT2 resolves this ambiguity using the supplied robot heading.
+    if (!config_.megatag2 && v[7] == 1 &&
+        (v.size() <= 17 || v[17] < 0 || v[17] > config_.maxSingleTagAmbiguity)) continue;
     const double scale = v[9] * v[9] / v[7];
     VisionObservation observation{
       frc::Pose2d{units::meter_t{v[0]}, units::meter_t{v[1]}, frc::Rotation2d{units::degree_t{v[5]}}},
