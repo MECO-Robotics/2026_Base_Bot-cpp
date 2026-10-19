@@ -61,7 +61,9 @@ void Drive::FieldDrive(double x,double y,double omega) {
   if (!frc::DriverStation::IsTeleopEnabled()) { Stop(); return; }
   auto alliance=frc::DriverStation::GetAlliance();
   double sign=alliance && *alliance==frc::DriverStation::Alliance::kRed ? -1 : 1;
-  RunVelocity(frc::ChassisSpeeds::FromFieldRelativeSpeeds(units::meters_per_second_t{x*sign},units::meters_per_second_t{y*sign},units::radians_per_second_t{omega},Pose().Rotation()));
+  const auto robotSpeeds=frc::ChassisSpeeds::FromFieldRelativeSpeeds(units::meters_per_second_t{x*sign},units::meters_per_second_t{y*sign},units::radians_per_second_t{omega},Pose().Rotation());
+  // Operator commands update every 20 ms; ApplyRobotSpeeds does not discretize.
+  RunVelocity(frc::ChassisSpeeds::Discretize(robotSpeeds,.02_s));
 }
 void Drive::Stop() { RunVelocity(frc::ChassisSpeeds{}); }
 void Drive::StopWithX() { native_->SetControl(s::requests::SwerveDriveBrake{}); }
