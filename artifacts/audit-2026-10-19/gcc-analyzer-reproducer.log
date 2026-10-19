@@ -1,0 +1,82 @@
+/tmp/base-audit-function-analyzer.cpp: In function ‘frc2::CommandPtr MakeCommand(base::Mechanism*, std::function<double()>)’:
+/tmp/base-audit-function-analyzer.cpp:5:71: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+    5 |                            [mechanism]{mechanism->Stop();},{mechanism});
+      |                                                                       ^
+  ‘frc2::CommandPtr MakeCommand(base::Mechanism*, std::function<double()>)’: events 1-4
+    │
+    │    3 | frc2::CommandPtr MakeCommand(base::Mechanism* mechanism, std::function<double()> supplier) {
+    │      | ~~~~             ^~~~~~~~~~~
+    │      | |                |
+    │      | |                (1) entry to ‘MakeCommand’
+    │      | (2) region created on stack here
+    │      | (3) capacity: 8 bytes
+    │    4 |   return frc2::cmd::RunEnd([mechanism,supplier]{mechanism->SetVelocity(supplier());},
+    │      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                           |
+    │      |                           (4) calling ‘frc2::Requirements::Requirements’ from ‘MakeCommand’
+    │    5 |                            [mechanism]{mechanism->Stop();},{mechanism});
+    │      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └──> ‘frc2::Requirements::Requirements(std::initializer_list<frc2::Subsystem*>)’: events 5-7
+           │
+           │/home/brian/.gradle/caches/8.11/transforms/ef59dda9052943fb09747df67afabbff/transformed/wpilibNewCommands-cpp-2026.2.1-headers/frc2/command/Requirements.h:23:16:
+           │   23 |   /*implicit*/ Requirements(std::initializer_list<Subsystem*> requirements)
+           │      |                ^~~~~~~~~~~~
+           │      |                |
+           │      |                (5) entry to ‘frc2::Requirements::Requirements’
+           │   24 |       : m_subsystems{requirements.begin(), requirements.end()} {}
+           │      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           │      |         |
+           │      |         (6) calling ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’ from ‘frc2::Requirements::Requirements’
+           │      |         (7) returning to ‘frc2::Requirements::Requirements’ from ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr MakeCommand(base::Mechanism*, std::function<double()>)’: events 8-9
+    │
+    │/tmp/base-audit-function-analyzer.cpp:4:27:
+    │    4 |   return frc2::cmd::RunEnd([mechanism,supplier]{mechanism->SetVelocity(supplier());},
+    │      |          ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                           ||
+    │      |                           |(9) calling ‘std::function<double()>::function’ from ‘MakeCommand’
+    │      |                           (8) returning to ‘MakeCommand’ from ‘frc2::Requirements::Requirements’
+    │    5 |                            [mechanism]{mechanism->Stop();},{mechanism});
+    │      |                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │
+    └──> ‘std::function<_Res(_ArgTypes ...)>::function(const std::function<_Res(_ArgTypes ...)>&) [with _Res = double; _ArgTypes = {}]’: events 10-12
+           │
+           │/usr/include/c++/15/bits/std_function.h:388:7:
+           │  388 |       function(const function& __x)
+           │      |       ^~~~~~~~
+           │      |       |
+           │      |       (10) entry to ‘std::function<double()>::function’
+           │......
+           │  391 |         if (static_cast<bool>(__x))
+           │      |         ~~
+           │      |         |
+           │      |         (11) following ‘false’ branch... ─>─┐
+           │      |                                             │
+           │......
+           │      |                                             │
+           │      |┌────────────────────────────────────────────┘
+           │  397 |│      }
+           │      |│      ~
+           │      |│      |
+           │      |└─────>(12) ...to here
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr MakeCommand(base::Mechanism*, std::function<double()>)’: events 13-16
+    │
+    │/tmp/base-audit-function-analyzer.cpp:4:28:
+    │    4 |   return frc2::cmd::RunEnd([mechanism,supplier]{mechanism->SetVelocity(supplier());},
+    │      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                            |
+    │      |                            (13) returning to ‘MakeCommand’ from ‘std::function<double()>::function’
+    │      |                            (14) calling ‘std::function<void()>::function<MakeCommand(base::Mechanism*, std::function<double()>)::<lambda()> >’ from ‘MakeCommand’
+    │      |                            (15) returning to ‘MakeCommand’ from ‘std::function<void()>::function<MakeCommand(base::Mechanism*, std::function<double()>)::<lambda()> >’
+    │    5 |                            [mechanism]{mechanism->Stop();},{mechanism});
+    │      |                                                                       ~
+    │      |                                                                       |
+    │      |                                                                       (16) ⚠️  use of uninitialized value ‘<unknown>’ here
+    │

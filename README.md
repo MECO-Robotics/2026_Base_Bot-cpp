@@ -20,7 +20,7 @@ Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. The build selects 
 
 ## Verified simulation check
 
-`./gradlew build --max-workers=2` passed for desktop and roboRIO in debug and release, including nine mechanism tests in both configurations. A real desktop `frcUserProgram` was exercised through local HAL simulation and NetworkTables: forward/reverse motion, rotation, pose changes, and stationary disabled behavior passed. The captured result is in `artifacts/sim-smoke.json`. This verifies runtime behavior; it does not establish physical calibration or hardware acceptance.
+`./gradlew build --max-workers=2` passed for desktop and roboRIO in debug and release, including 25 native test cases in both configurations. A real desktop `frcUserProgram` was exercised through local HAL simulation and NetworkTables: forward/reverse motion, rotation, pose changes, and stationary disabled behavior passed. The captured result is in `artifacts/sim-smoke.json`. This verifies runtime behavior; it does not establish physical calibration or hardware acceptance.
 
 For the regular graphical simulator use `./gradlew simulateNative`. For a repeatable Linux headless check, run these in separate terminals:
 
@@ -72,3 +72,5 @@ Motor simulation exercises control logic with output inertia; it does not reprod
 Mechanism IO must supply `connected=true` with valid feedback, including injected replay snapshots. Disconnected or nonfinite feedback stops the mechanism, and control must be requested again after feedback recovers. `AtSetpoint()` only reports success for connected, active position or velocity control.
 
 No deployment, hardware motion, sensor calibration, or field acceptance was performed as part of this port. See `docs/port-contract.md` for provenance and verification boundaries.
+
+The latest independent audit, commit list, validation evidence, numerical analysis, and remaining risks are recorded in [the 2026-10-19 audit report](artifacts/audit-2026-10-19/REPORT.md).

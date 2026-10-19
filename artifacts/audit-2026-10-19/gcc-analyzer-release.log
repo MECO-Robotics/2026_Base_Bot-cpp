@@ -1,0 +1,225 @@
+src/main/cpp/base/Mechanism.cpp: In member function ‘frc2::CommandPtr base::Mechanism::VelocityCommand(std::function<double()>)’:
+src/main/cpp/base/Mechanism.cpp:132:92: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+  132 |   return frc2::cmd::RunEnd([this,supplier]{SetVelocity(supplier());},[this]{Stop();},{this});
+      |                                                                                            ^
+  ‘frc2::CommandPtr base::Mechanism::VelocityCommand(std::function<double()>)’: events 1-4
+    │
+    │  131 | frc2::CommandPtr Mechanism::VelocityCommand(std::function<double()> supplier) {
+    │      | ~~~~             ^~~~~~~~~
+    │      | |                |
+    │      | |                (1) entry to ‘base::Mechanism::VelocityCommand’
+    │      | (2) region created on stack here
+    │      | (3) capacity: 8 bytes
+    │  132 |   return frc2::cmd::RunEnd([this,supplier]{SetVelocity(supplier());},[this]{Stop();},{this});
+    │      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                           |
+    │      |                           (4) calling ‘frc2::Requirements::Requirements’ from ‘base::Mechanism::VelocityCommand’
+    │
+    └──> ‘frc2::Requirements::Requirements(std::initializer_list<frc2::Subsystem*>)’: events 5-7
+           │
+           │/home/brian/.gradle/caches/8.11/transforms/ef59dda9052943fb09747df67afabbff/transformed/wpilibNewCommands-cpp-2026.2.1-headers/frc2/command/Requirements.h:23:16:
+           │   23 |   /*implicit*/ Requirements(std::initializer_list<Subsystem*> requirements)
+           │      |                ^~~~~~~~~~~~
+           │      |                |
+           │      |                (5) entry to ‘frc2::Requirements::Requirements’
+           │   24 |       : m_subsystems{requirements.begin(), requirements.end()} {}
+           │      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           │      |         |
+           │      |         (6) calling ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’ from ‘frc2::Requirements::Requirements’
+           │      |         (7) returning to ‘frc2::Requirements::Requirements’ from ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr base::Mechanism::VelocityCommand(std::function<double()>)’: events 8-9
+    │
+    │src/main/cpp/base/Mechanism.cpp:132:27:
+    │  132 |   return frc2::cmd::RunEnd([this,supplier]{SetVelocity(supplier());},[this]{Stop();},{this});
+    │      |          ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                           ||
+    │      |                           |(9) calling ‘std::function<double()>::function’ from ‘base::Mechanism::VelocityCommand’
+    │      |                           (8) returning to ‘base::Mechanism::VelocityCommand’ from ‘frc2::Requirements::Requirements’
+    │
+    └──> ‘std::function<_Res(_ArgTypes ...)>::function(const std::function<_Res(_ArgTypes ...)>&) [with _Res = double; _ArgTypes = {}]’: events 10-12
+           │
+           │/usr/include/c++/15/bits/std_function.h:388:7:
+           │  388 |       function(const function& __x)
+           │      |       ^~~~~~~~
+           │      |       |
+           │      |       (10) entry to ‘std::function<double()>::function’
+           │......
+           │  391 |         if (static_cast<bool>(__x))
+           │      |         ~~
+           │      |         |
+           │      |         (11) following ‘false’ branch... ─>─┐
+           │      |                                             │
+           │......
+           │      |                                             │
+           │      |┌────────────────────────────────────────────┘
+           │  397 |│      }
+           │      |│      ~
+           │      |│      |
+           │      |└─────>(12) ...to here
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr base::Mechanism::VelocityCommand(std::function<double()>)’: events 13-16
+    │
+    │src/main/cpp/base/Mechanism.cpp:132:28:
+    │  132 |   return frc2::cmd::RunEnd([this,supplier]{SetVelocity(supplier());},[this]{Stop();},{this});
+    │      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                       ~
+    │      |                            |                                                               |
+    │      |                            |                                                               (16) ⚠️  use of uninitialized value ‘<unknown>’ here
+    │      |                            (13) returning to ‘base::Mechanism::VelocityCommand’ from ‘std::function<double()>::function’
+    │      |                            (14) calling ‘std::function<void()>::function<base::Mechanism::VelocityCommand(std::function<double()>)::<lambda()> >’ from ‘base::Mechanism::VelocityCommand’
+    │      |                            (15) returning to ‘base::Mechanism::VelocityCommand’ from ‘std::function<void()>::function<base::Mechanism::VelocityCommand(std::function<double()>)::<lambda()> >’
+    │
+src/main/cpp/base/Mechanism.cpp: In member function ‘frc2::CommandPtr base::Mechanism::PositionCommand(std::function<double()>)’:
+src/main/cpp/base/Mechanism.cpp:135:109: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+  135 |   return frc2::cmd::Run([this,supplier]{SetPosition(supplier());},{this}).Until([this]{return AtSetpoint();});
+      |                                                                                                             ^
+  ‘frc2::CommandPtr base::Mechanism::PositionCommand(std::function<double()>)’: events 1-4
+    │
+    │  134 | frc2::CommandPtr Mechanism::PositionCommand(std::function<double()> supplier) {
+    │      | ~~~~             ^~~~~~~~~
+    │      | |                |
+    │      | |                (1) entry to ‘base::Mechanism::PositionCommand’
+    │      | (2) region created on stack here
+    │      | (3) capacity: 8 bytes
+    │  135 |   return frc2::cmd::Run([this,supplier]{SetPosition(supplier());},{this}).Until([this]{return AtSetpoint();});
+    │      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                        |
+    │      |                        (4) calling ‘frc2::Requirements::Requirements’ from ‘base::Mechanism::PositionCommand’
+    │
+    └──> ‘frc2::Requirements::Requirements(std::initializer_list<frc2::Subsystem*>)’: events 5-7
+           │
+           │/home/brian/.gradle/caches/8.11/transforms/ef59dda9052943fb09747df67afabbff/transformed/wpilibNewCommands-cpp-2026.2.1-headers/frc2/command/Requirements.h:23:16:
+           │   23 |   /*implicit*/ Requirements(std::initializer_list<Subsystem*> requirements)
+           │      |                ^~~~~~~~~~~~
+           │      |                |
+           │      |                (5) entry to ‘frc2::Requirements::Requirements’
+           │   24 |       : m_subsystems{requirements.begin(), requirements.end()} {}
+           │      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           │      |         |
+           │      |         (6) calling ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’ from ‘frc2::Requirements::Requirements’
+           │      |         (7) returning to ‘frc2::Requirements::Requirements’ from ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr base::Mechanism::PositionCommand(std::function<double()>)’: events 8-9
+    │
+    │src/main/cpp/base/Mechanism.cpp:135:24:
+    │  135 |   return frc2::cmd::Run([this,supplier]{SetPosition(supplier());},{this}).Until([this]{return AtSetpoint();});
+    │      |          ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                        ||
+    │      |                        |(9) calling ‘std::function<double()>::function’ from ‘base::Mechanism::PositionCommand’
+    │      |                        (8) returning to ‘base::Mechanism::PositionCommand’ from ‘frc2::Requirements::Requirements’
+    │
+    └──> ‘std::function<_Res(_ArgTypes ...)>::function(const std::function<_Res(_ArgTypes ...)>&) [with _Res = double; _ArgTypes = {}]’: events 10-12
+           │
+           │/usr/include/c++/15/bits/std_function.h:388:7:
+           │  388 |       function(const function& __x)
+           │      |       ^~~~~~~~
+           │      |       |
+           │      |       (10) entry to ‘std::function<double()>::function’
+           │......
+           │  391 |         if (static_cast<bool>(__x))
+           │      |         ~~
+           │      |         |
+           │      |         (11) following ‘false’ branch... ─>─┐
+           │      |                                             │
+           │......
+           │      |                                             │
+           │      |┌────────────────────────────────────────────┘
+           │  397 |│      }
+           │      |│      ~
+           │      |│      |
+           │      |└─────>(12) ...to here
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr base::Mechanism::PositionCommand(std::function<double()>)’: events 13-16
+    │
+    │src/main/cpp/base/Mechanism.cpp:135:25:
+    │  135 |   return frc2::cmd::Run([this,supplier]{SetPosition(supplier());},{this}).Until([this]{return AtSetpoint();});
+    │      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                           ~
+    │      |                         |                                                                                   |
+    │      |                         |                                                                                   (16) ⚠️  use of uninitialized value ‘<unknown>’ here
+    │      |                         (13) returning to ‘base::Mechanism::PositionCommand’ from ‘std::function<double()>::function’
+    │      |                         (14) calling ‘std::function<void()>::function<base::Mechanism::PositionCommand(std::function<double()>)::<lambda()> >’ from ‘base::Mechanism::PositionCommand’
+    │      |                         (15) returning to ‘base::Mechanism::PositionCommand’ from ‘std::function<void()>::function<base::Mechanism::PositionCommand(std::function<double()>)::<lambda()> >’
+    │
+src/main/cpp/base/Mechanism.cpp: In member function ‘frc2::CommandPtr base::Mechanism::VoltageCommand(std::function<double()>)’:
+src/main/cpp/base/Mechanism.cpp:138:91: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+  138 |   return frc2::cmd::RunEnd([this,supplier]{SetVoltage(supplier());},[this]{Stop();},{this});
+      |                                                                                           ^
+  ‘frc2::CommandPtr base::Mechanism::VoltageCommand(std::function<double()>)’: events 1-4
+    │
+    │  137 | frc2::CommandPtr Mechanism::VoltageCommand(std::function<double()> supplier) {
+    │      | ~~~~             ^~~~~~~~~
+    │      | |                |
+    │      | |                (1) entry to ‘base::Mechanism::VoltageCommand’
+    │      | (2) region created on stack here
+    │      | (3) capacity: 8 bytes
+    │  138 |   return frc2::cmd::RunEnd([this,supplier]{SetVoltage(supplier());},[this]{Stop();},{this});
+    │      |          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                           |
+    │      |                           (4) calling ‘frc2::Requirements::Requirements’ from ‘base::Mechanism::VoltageCommand’
+    │
+    └──> ‘frc2::Requirements::Requirements(std::initializer_list<frc2::Subsystem*>)’: events 5-7
+           │
+           │/home/brian/.gradle/caches/8.11/transforms/ef59dda9052943fb09747df67afabbff/transformed/wpilibNewCommands-cpp-2026.2.1-headers/frc2/command/Requirements.h:23:16:
+           │   23 |   /*implicit*/ Requirements(std::initializer_list<Subsystem*> requirements)
+           │      |                ^~~~~~~~~~~~
+           │      |                |
+           │      |                (5) entry to ‘frc2::Requirements::Requirements’
+           │   24 |       : m_subsystems{requirements.begin(), requirements.end()} {}
+           │      |         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           │      |         |
+           │      |         (6) calling ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’ from ‘frc2::Requirements::Requirements’
+           │      |         (7) returning to ‘frc2::Requirements::Requirements’ from ‘std::vector<frc2::Subsystem*>::vector<frc2::Subsystem* const*>’
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr base::Mechanism::VoltageCommand(std::function<double()>)’: events 8-9
+    │
+    │src/main/cpp/base/Mechanism.cpp:138:27:
+    │  138 |   return frc2::cmd::RunEnd([this,supplier]{SetVoltage(supplier());},[this]{Stop();},{this});
+    │      |          ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    │      |                           ||
+    │      |                           |(9) calling ‘std::function<double()>::function’ from ‘base::Mechanism::VoltageCommand’
+    │      |                           (8) returning to ‘base::Mechanism::VoltageCommand’ from ‘frc2::Requirements::Requirements’
+    │
+    └──> ‘std::function<_Res(_ArgTypes ...)>::function(const std::function<_Res(_ArgTypes ...)>&) [with _Res = double; _ArgTypes = {}]’: events 10-12
+           │
+           │/usr/include/c++/15/bits/std_function.h:388:7:
+           │  388 |       function(const function& __x)
+           │      |       ^~~~~~~~
+           │      |       |
+           │      |       (10) entry to ‘std::function<double()>::function’
+           │......
+           │  391 |         if (static_cast<bool>(__x))
+           │      |         ~~
+           │      |         |
+           │      |         (11) following ‘false’ branch... ─>─┐
+           │      |                                             │
+           │......
+           │      |                                             │
+           │      |┌────────────────────────────────────────────┘
+           │  397 |│      }
+           │      |│      ~
+           │      |│      |
+           │      |└─────>(12) ...to here
+           │
+    <──────┘
+    │
+  ‘frc2::CommandPtr base::Mechanism::VoltageCommand(std::function<double()>)’: events 13-16
+    │
+    │src/main/cpp/base/Mechanism.cpp:138:28:
+    │  138 |   return frc2::cmd::RunEnd([this,supplier]{SetVoltage(supplier());},[this]{Stop();},{this});
+    │      |                            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                       ~
+    │      |                            |                                                              |
+    │      |                            |                                                              (16) ⚠️  use of uninitialized value ‘<unknown>’ here
+    │      |                            (13) returning to ‘base::Mechanism::VoltageCommand’ from ‘std::function<double()>::function’
+    │      |                            (14) calling ‘std::function<void()>::function<base::Mechanism::VoltageCommand(std::function<double()>)::<lambda()> >’ from ‘base::Mechanism::VoltageCommand’
+    │      |                            (15) returning to ‘base::Mechanism::VoltageCommand’ from ‘std::function<void()>::function<base::Mechanism::VoltageCommand(std::function<double()>)::<lambda()> >’
+    │

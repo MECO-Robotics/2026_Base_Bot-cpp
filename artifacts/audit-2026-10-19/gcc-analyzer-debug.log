@@ -1,0 +1,82 @@
+In member function ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::allocator_type std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::get_allocator() const [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’:
+cc1plus: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+  ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::allocator_type std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::get_allocator() const [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: events 1-2
+/usr/include/c++/15/bits/basic_string.h:2906:7:
+ 2906 |       allocator_type
+      |       ^~~~~~~~~~~~~~
+      |       |
+      |       (1) region created on stack here
+      |       (2) capacity: 8 bytes
+  ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::allocator_type std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::get_allocator() const [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: event 3
+cc1plus:
+ (3): use of uninitialized value ‘<unknown>’ here
+cc1plus: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+  ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc> std::operator+(const __cxx11::basic_string<_CharT, _Traits, _Alloc>&, const _CharT*) [with _CharT = char; _Traits = char_traits<char>; _Alloc = allocator<char>]’: events 1-2
+    │
+    │ 3892 |     operator+(const basic_string<_CharT, _Traits, _Alloc>& __lhs,
+    │      |     ^~~~~~~~
+    │      |     |
+    │      |     (1) entry to ‘std::operator+<char, char_traits<char>, allocator<char> >’
+    │......
+    │ 3899 |                                      __lhs.get_allocator());
+    │      |                                      ~~~~~~~~~~~~~~~~~~~~~
+    │      |                                                         |
+    │      |                                                         (2) calling ‘std::__cxx11::basic_string<char>::get_allocator’ from ‘std::operator+<char, char_traits<char>, allocator<char> >’
+    │
+    └──> ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::allocator_type std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::get_allocator() const [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: events 3-5
+           │
+           │ 2906 |       allocator_type
+           │      |       ~~~~~~~~~~~~~~
+           │      |       |
+           │      |       (4) region created on stack here
+           │      |       (5) capacity: 8 bytes
+           │ 2907 |       get_allocator() const _GLIBCXX_NOEXCEPT
+           │      |       ^~~~~~~~~~~~~
+           │      |       |
+           │      |       (3) entry to ‘std::__cxx11::basic_string<char>::get_allocator’
+           │
+         ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::allocator_type std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::get_allocator() const [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: event 6
+           │
+           │cc1plus:
+           │ (6): use of uninitialized value ‘<unknown>’ here
+           │
+In constructor ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const _Alloc&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’:
+cc1plus: warning: use of uninitialized value ‘<unknown>’ [CWE-457] [-Wanalyzer-use-of-uninitialized-value]
+  ‘constexpr _Str std::__str_concat(const typename _Str::value_type*, typename _Str::size_type, const typename _Str::value_type*, typename _Str::size_type, const typename _Str::allocator_type&) [with _Str = __cxx11::basic_string<char>]’: events 1-2
+    │
+    │ 3813 |     __str_concat(typename _Str::value_type const* __lhs,
+    │      |     ^~~~~~~~~~~~
+    │      |     |
+    │      |     (1) entry to ‘std::__str_concat<__cxx11::basic_string<char> >’
+    │......
+    │ 3821 |       _Str __str(_Alloc_traits::_S_select_on_copy(__a));
+    │      |            ~~~~~
+    │      |            |
+    │      |            (2) calling ‘std::__cxx11::basic_string<char>::basic_string’ from ‘std::__str_concat<__cxx11::basic_string<char> >’
+    │
+    └──> ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const _Alloc&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: event 3
+           │
+           │  601 |       basic_string(const _Alloc& __a) _GLIBCXX_NOEXCEPT
+           │      |       ^~~~~~~~~~~~
+           │      |       |
+           │      |       (3) entry to ‘std::__cxx11::basic_string<char>::basic_string’
+           │
+         ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const _Alloc&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: event 4
+           │
+           │  601 |       basic_string(const _Alloc& __a) _GLIBCXX_NOEXCEPT
+           │      |                                       ^~~~~~~~~~~~~~~~~
+           │      |                                       |
+           │      |                                       (4) region created on stack here
+           │
+         ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const _Alloc&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: event 5
+           │
+           │  601 |       basic_string(const _Alloc& __a) _GLIBCXX_NOEXCEPT
+           │      |                                       ^~~~~~~~~~~~~~~~~
+           │      |                                       |
+           │      |                                       (5) capacity: 8 bytes
+           │
+         ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(const _Alloc&) [with _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’: event 6
+           │
+           │cc1plus:
+           │ (6): use of uninitialized value ‘<unknown>’ here
+           │
