@@ -69,7 +69,11 @@ bool Mechanism::AtSetpoint() const {
 void Mechanism::Periodic() {
   constexpr double dt=.02;
   inputs_=io_->Read();
-  physicalPosition_=externalEncoder_ ? calibration_.Apply(externalEncoder_()) : inputs_.position*units_;
+  if(externalEncoder_) {
+    const double raw=externalEncoder_();
+    if(!std::isfinite(raw)) { Stop(); return; }
+    physicalPosition_=calibration_.Apply(raw);
+  } else physicalPosition_=inputs_.position*units_;
   if(!std::isfinite(physicalPosition_) || !std::isfinite(Velocity())) { Stop(); return; }
   if(frc::DriverStation::IsDisabled()) {
     integral_=0; previousError_=0;
@@ -100,6 +104,7 @@ void Mechanism::Periodic() {
       volts+=gains_.gravity*(gravity_==Gravity::Constant ? 1 : gravity_==Gravity::Cosine ? std::cos(angle) : std::sin(angle));
     }
   }
+  if(!std::isfinite(volts)) { Stop(); return; }
   if(joint_ && ((physicalPosition_<=gains_.minimum && volts<0) || (physicalPosition_>=gains_.maximum && volts>0))) volts=0;
   io_->SetVoltage(std::clamp(volts,-12.,12.));
   auto prefix=GetName()+"/";

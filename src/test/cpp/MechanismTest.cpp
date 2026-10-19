@@ -1,5 +1,6 @@
 #include "base/Mechanism.h"
 #include <gtest/gtest.h>
+#include <limits>
 #include <frc/simulation/DriverStationSim.h>
 #include <hal/HAL.h>
 
@@ -103,4 +104,43 @@ TEST(MechanismFlywheel, VelocityTargetHasNoJointProfileSpeedCap) {
   base::Flywheel wheel("FlywheelTarget",std::move(io),base::Gains{});
   wheel.SetVelocity(30);
   EXPECT_DOUBLE_EQ(wheel.VelocitySetpoint(),30);
+}
+
+TEST(MechanismSafety, InvalidExternalFeedbackStopsPreviousOutput) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  double sensor=.5;
+  base::PositionJoint joint("InvalidEncoder",std::move(io),base::Gains{},1,
+                            base::Gravity::Constant,[&sensor]{return sensor;});
+  for(double invalid:{std::numeric_limits<double>::quiet_NaN(),
+                      std::numeric_limits<double>::infinity()}) {
+    sensor=.5; joint.SetVoltage(4); joint.Periodic();
+    ASSERT_DOUBLE_EQ(observed->requestedVoltage,4);
+    sensor=invalid;
+    EXPECT_NO_THROW(joint.Periodic());
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+    sensor=.5; joint.Periodic();
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  }
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}
+TEST(MechanismSafety, OverflowingControlOutputStopsInsteadOfSaturating) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  base::Gains gains; gains.p=std::numeric_limits<double>::max();
+  gains.maxAcceleration=1000;
+  base::Flywheel wheel("OverflowControl",std::move(io),gains);
+  wheel.SetVoltage(4); wheel.Periodic();
+  ASSERT_DOUBLE_EQ(observed->requestedVoltage,4);
+  wheel.SetVelocity(10); wheel.Periodic();
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  wheel.Periodic();
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
 }
