@@ -3,6 +3,7 @@
 #include <limits>
 #include <frc/simulation/DriverStationSim.h>
 #include <hal/HAL.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 
 TEST(MechanismConfig, RejectsInvalidMappingAndLimits) {
   base::MotorConfig valid{{1,2},{false,true},2,40,""};
@@ -22,6 +23,7 @@ TEST(MechanismControl, DisabledAndSoftLimitsPreventVoltage) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   base::Gains gains; gains.minimum=0; gains.maximum=1; gains.p=5;
   base::PositionJoint joint("LimitTest",std::move(io),gains);
   observed->inputs.position=1;
@@ -38,6 +40,7 @@ TEST(MechanismControl, DisabledAndSoftLimitsPreventVoltage) {
 TEST(MechanismReference, ResetRetainsPhysicalSoftLimits) {
   HAL_Initialize(500,0);
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   base::Gains gains; gains.minimum=0; gains.maximum=1;
   base::PositionJoint joint("ResetTest",std::move(io),gains);
   observed->inputs.position=.75; joint.Periodic(); joint.ResetPosition();
@@ -74,6 +77,7 @@ TEST(MechanismJoint, VelocityModeUsesVelocityErrorAndPhysicalLimits) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   base::Gains gains; gains.minimum=0; gains.maximum=1; gains.p=5;
   base::PositionJoint joint("JointVelocity",std::move(io),gains);
   observed->inputs.position=.5; joint.Periodic();
@@ -90,6 +94,7 @@ TEST(MechanismProfile, ReversingDeceleratesBeforeChangingDirection) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   base::Gains gains; gains.p=100; gains.minimum=0; gains.maximum=1;
   base::PositionJoint joint("ProfileReverse",std::move(io),gains);
   observed->inputs.position=.5; observed->inputs.velocity=.9;
@@ -111,6 +116,7 @@ TEST(MechanismSafety, InvalidExternalFeedbackStopsPreviousOutput) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   double sensor=.5;
   base::PositionJoint joint("InvalidEncoder",std::move(io),base::Gains{},1,
                             base::Gravity::Constant,[&sensor]{return sensor;});
@@ -121,7 +127,14 @@ TEST(MechanismSafety, InvalidExternalFeedbackStopsPreviousOutput) {
     sensor=invalid;
     EXPECT_NO_THROW(joint.Periodic());
     EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+    joint.SetPosition(.5);
+    EXPECT_FALSE(joint.AtSetpoint());
+    const double offset=joint.PositionOffset();
+    EXPECT_NO_THROW(joint.ResetPosition());
+    EXPECT_DOUBLE_EQ(joint.PositionOffset(),offset);
     sensor=.5; joint.Periodic();
+    EXPECT_TRUE(std::isfinite(joint.Position()));
+    EXPECT_DOUBLE_EQ(joint.PositionOffset(),offset);
     EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
   }
   frc::sim::DriverStationSim::SetEnabled(false);
@@ -132,6 +145,7 @@ TEST(MechanismSafety, OverflowingControlOutputStopsInsteadOfSaturating) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   base::Gains gains; gains.p=std::numeric_limits<double>::max();
   gains.maxAcceleration=1000;
   base::Flywheel wheel("OverflowControl",std::move(io),gains);
@@ -150,6 +164,7 @@ TEST(MechanismProfile, CloseTargetDoesNotViolateAccelerationAtCrossing) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
   base::Gains gains; gains.a=1; gains.minimum=0; gains.maximum=2;
   base::PositionJoint joint("ProfileCloseTarget",std::move(io),gains);
   observed->inputs.position=.5; observed->inputs.velocity=.9;
@@ -163,6 +178,32 @@ TEST(MechanismProfile, CloseTargetDoesNotViolateAccelerationAtCrossing) {
   // Verify that allowing overshoot still converges to the requested position.
   gains.a=0; gains.p=1; joint.SetGains(gains); joint.Periodic();
   EXPECT_NEAR(observed->requestedVoltage,.001,1e-9);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}
+
+TEST(MechanismSafety, DisconnectedFeedbackStopsAndCannotReportAtSetpoint) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true; observed->inputs.position=.5;
+  base::PositionJoint joint("DisconnectedFeedback",std::move(io),base::Gains{});
+  joint.Periodic(); joint.SetPosition(.5);
+  ASSERT_TRUE(joint.AtSetpoint());
+  observed->inputs.connected=false; joint.Periodic();
+  EXPECT_FALSE(frc::SmartDashboard::GetBoolean("DisconnectedFeedback/Connected",true));
+  EXPECT_FALSE(joint.AtSetpoint());
+  joint.SetVoltage(4); joint.Periodic();
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  EXPECT_FALSE(joint.AtSetpoint());
+  observed->inputs.connected=true; joint.Periodic();
+  EXPECT_TRUE(frc::SmartDashboard::GetBoolean("DisconnectedFeedback/Connected",false));
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  EXPECT_FALSE(joint.AtSetpoint());
+  joint.SetVoltage(4); joint.Periodic();
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,4);
+  joint.Stop();
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
 }

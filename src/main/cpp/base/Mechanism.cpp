@@ -59,19 +59,24 @@ void Mechanism::SetVoltage(double volts) { Finite(volts); voltage_=std::clamp(vo
 void Mechanism::Stop() { control_=Control::Stopped; integral_=0; previousError_=0; io_->SetVoltage(0); }
 void Mechanism::SetBrake(bool enabled) { io_->SetBrake(enabled); }
 void Mechanism::ResetPosition() {
+  if(!inputs_.connected || !std::isfinite(physicalPosition_) || !std::isfinite(Velocity())) { Stop(); return; }
   zeroOffset_=physicalPosition_; target_=physicalPosition_; profiledPosition_=physicalPosition_;
   profiledVelocity_=0; integral_=0; SetBrake(true); Stop();
   if(joint_) SetPosition(0);
 }
 bool Mechanism::AtSetpoint() const {
+  if(!inputs_.connected || !std::isfinite(physicalPosition_) || !std::isfinite(Velocity()) ||
+      (control_!=Control::Position && control_!=Control::Velocity)) return false;
   return std::abs((control_==Control::Position ? physicalPosition_ : Velocity())-target_)<=gains_.tolerance;
 }
 void Mechanism::Periodic() {
   constexpr double dt=.02;
   inputs_=io_->Read();
+  frc::SmartDashboard::PutBoolean(GetName()+"/Connected",inputs_.connected);
+  if(!inputs_.connected) { Stop(); return; }
   if(externalEncoder_) {
     const double raw=externalEncoder_();
-    if(!std::isfinite(raw)) { Stop(); return; }
+    if(!std::isfinite(raw)) { physicalPosition_=raw; Stop(); return; }
     physicalPosition_=calibration_.Apply(raw);
   } else physicalPosition_=inputs_.position*units_;
   if(!std::isfinite(physicalPosition_) || !std::isfinite(Velocity())) { Stop(); return; }
@@ -116,7 +121,6 @@ void Mechanism::Periodic() {
   frc::SmartDashboard::PutNumber(prefix+"Position",Position());
   frc::SmartDashboard::PutNumber(prefix+"Velocity",Velocity());
   frc::SmartDashboard::PutNumber(prefix+"Target",joint_ ? DesiredPosition() : target_);
-  frc::SmartDashboard::PutBoolean(prefix+"Connected",inputs_.connected);
 }
 frc2::CommandPtr Mechanism::VelocityCommand(std::function<double()> supplier) {
   return frc2::cmd::RunEnd([this,supplier]{SetVelocity(supplier());},[this]{Stop();},{this});

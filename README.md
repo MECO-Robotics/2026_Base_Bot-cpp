@@ -38,6 +38,22 @@ python3 -m venv /tmp/frc-cpp-sim-venv
 
 The script controls only the local desktop HAL simulator and leaves it disabled. The headless HAL server is a development tool; stop the process after testing. Example base tuning is not hardware calibration.
 
+## Timing and replay contracts
+
+The robot scheduler, mechanism control, and simulation advance at 20 ms (50 Hz).
+Changing the robot period also requires updating mechanism/profile and simulation
+steps and teleop discretization. Phoenix owns its synchronized native swerve loop:
+the pinned 26.1.2 library defaults to 250 Hz on CAN FD and 100 Hz on CAN 2.0,
+including the default `rio` bus. The framework does not establish a 250 Hz
+application control-loop latency guarantee.
+
+Mechanism simulation advances exactly once per `Read()` by 20 ms. It integrates
+the current-limited motor model analytically, including brake/coast drag; additional
+reads advance time. Replay instead consumes caller-injected snapshots without
+stepping physics. Whole-robot log playback and vendor-independent drivetrain
+replay are not implemented. Systemcore requires a supported future toolchain and
+vendor adapters; this checkout retains the pinned 2026 APIs.
+
 ## Reusable code
 
 - `base/Drive.h`: configurable four-module TalonFX/CANcoder/Pigeon swerve, Phoenix native odometry, field driving, heading hold, X brake, vision fusion, PathPlanner autos and wheel-force feedforwards.
@@ -50,5 +66,7 @@ The script controls only the local desktop HAL simulator and leaves it disabled.
 This is a native implementation, with intentional framework replacements. WPILib DataLog/NetworkTables replaces AdvantageKit; it does not read Java AdvantageKit replay logs. Phoenix's native swerve replaces Java's custom odometry/setpoint implementation and currently supports TalonFX modules, rather than the optional SparkMax/NavX drivetrain combinations. Mechanisms use software voltage PID/feedforward rather than vendor onboard motion profiles. The default base container instantiates only drive, as in Java; other subsystems are reusable library components.
 
 Motor simulation exercises control logic with output inertia; it does not reproduce MapleSim field contacts, fuel dynamics, or arm/elevator gravity loading. QuestNav pose tracking, Java URCL logging, custom AD* telemetry, piece detection localization, and the Java browser system-check dashboard are not implemented by these adapters. These gaps must not be treated as verified parity. External joint sensors are supplied through callbacks, with explicit calibration; they are not constructed automatically from Java encoder enum values.
+
+Mechanism IO must supply `connected=true` with valid feedback, including injected replay snapshots. Disconnected or nonfinite feedback stops the mechanism, and control must be requested again after feedback recovers. `AtSetpoint()` only reports success for connected, active position or velocity control.
 
 No deployment, hardware motion, sensor calibration, or field acceptance was performed as part of this port. See `docs/port-contract.md` for provenance and verification boundaries.
