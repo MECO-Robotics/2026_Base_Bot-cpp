@@ -1,0 +1,44 @@
+HAL Extensions: Attempting to load: libhalsim_ws_server
+Websocket WS Server Initializing.
+Listening at http://localhost:3300
+WebSocket URI: /wpilibws
+No WS Message Filters specifiedWebsocket WS Server Initialized!
+HAL Extensions: Successfully loaded extension
+
+********** Robot program starting **********
+Not loading CameraServerShared
+NT: Listening on NT3 port 1735, NT4 port 5810
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+Warning: Joystick Button 1 missing (max 0), check if all controllers are plugged in
+	at frc::ReportErrorV(int, char const*, int, char const*, fmt::v11::basic_string_view<char>, fmt::v11::basic_format_args<fmt::v11::context>) + 0x152 [0x76493c5dd472]
+	at  + 0x1820e6 [0x76493c6840e6]
+	at frc::DriverStation::GetStickButton(int, int) + 0x10b [0x76493c68522b]
+	at frc2::Trigger::AddBinding(wpi::unique_function<void (bool, bool)>&&) + 0x93 [0x76493cedd1f3]
+	at frc2::Trigger::WhileTrue(frc2::CommandPtr&&) + 0xd0 [0x76493cedde00]
+	at RobotContainer::RobotContainer() + 0x4cc [0x5e3a9a22f28c]
+	at Robot::Robot() + 0x37 [0x5e3a9a231c17]
+	at void frc::impl::RunRobot<Robot>(std::mutex&, Robot**) + 0x9c [0x5e3a9a23217c]
+	at int frc::StartRobot<Robot>() + 0x233 [0x5e3a9a232543]
+	at  + 0x2a601 [0x76493b42a601]
+	at __libc_start_main + 0x88 [0x76493b42a718]
+	at _start + 0x25 [0x5e3a9a228f65]
+
+
+********** Robot program startup complete **********
+DataLog: Logging to '/home/brian/Documents/FRC/2026_Base_Bot-cpp-finalize/logs/FRC_TBD_888b0219bf5c006b.wpilog' (53.1 GiB free space)
+Default DisabledPeriodic() method... Override me!
+Default SimulationPeriodic() method... Override me!
+NT: Got a NT4 connection from 127.0.0.1 port 47888
+NT: CONNECTED NT4 client 'base-cpp-sim-smoke@1' (from 127.0.0.1:47888)
+GET /wpilibws HTTP/1.1 200
+HALWebSim: websocket connected
+DataLog: Renamed log file from 'FRC_TBD_888b0219bf5c006b.wpilog' to 'FRC_20261019_164638.wpilog'
+Default TeleopPeriodic() method... Override me!
+[phoenix] Library initialization is complete.
+	
+[phoenix-diagnostics] Server 2026.1.2 (Mar 11 2026, 19:44:59) running on port: 1250
+	
+HALWebSim: websocket disconnected
+NT: DISCONNECTED NT4 client 'base-cpp-sim-smoke@1' (from 127.0.0.1:47888): remote end closed connection
+NT: NT4 socket error: operation canceled

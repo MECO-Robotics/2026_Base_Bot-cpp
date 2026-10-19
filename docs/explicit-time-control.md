@@ -39,3 +39,7 @@ Explicit timestep/plant boundaries and private vendor drivetrain implementation 
 A separate version-matched 2027 target must establish WPILib import, compiler/ABI, each vendor's supported Systemcore artifacts, DriverStation/mode semantics, Quest/NT schema compatibility and native simulation tests before deployment. No 2027 binary or hardware validation is claimed.
 
 Official references: [2027 changes](https://docs.wpilib.org/en/latest/docs/yearly-overview/yearly-changelog.html), [WPILib simulation](https://docs.wpilib.org/en/stable/docs/software/wpilib-tools/robot-simulation/introduction.html), and [Phoenix swerve](https://v6.docs.ctr-electronics.com/en/stable/docs/api-reference/mechanisms/swerve/swerve-overview.html). Pinned installed headers remain the API authority.
+
+## Fresh validation
+
+The base desktop and roboRIO debug/release builds passed; both native test configurations passed all 35 tests. See [the validation manifest](../artifacts/time-step-validation.json) for validated source revision, binary hashes, scoped commit inventory and individual smoke/parser evidence. The mechanism polling fixture reports 4.427188857282438 rotations and 7.9241196115787 rotations/s after one second, equal at 50/100/250 Hz polling. The delayed-feedback fixture repeats 500 actuator samples over two virtual seconds and disables at 1.6 s. These values describe the numerical fixtures, not robot hardware.
