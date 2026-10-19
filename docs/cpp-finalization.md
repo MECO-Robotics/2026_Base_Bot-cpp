@@ -63,3 +63,7 @@ Commit inventories through the validated source revisions are stored in `artifac
 ## AdvantageScope follow-up
 
 Standard WPILib struct topics now identify Pose2d, planar Pose3d, ChassisSpeeds and measured/target SwerveModuleState arrays. The season adds Pose3d arrays for numerical floor/hopper/projectile positions. Publication is capped at 10 Hz on the robot thread; the native telemetry callback only copies fixed-size state and module arrays with a capture timestamp. Legacy topics remain intact. NT4 values and their schemas are automatically captured by DataLogManager into standard WPILOG files. See `docs/advantagescope.md` for the parser-backed check and version-matched layout workflow. This closes visualization compatibility; it does not close the separate whole-robot replay, sensor-physics or physical-validation gaps above.
+
+## Explicit-time follow-up
+
+The later [explicit-time audit](explicit-time-control.md) supersedes the mechanism timing assumptions in this historical review. Motor reads are now observational; explicit control and plant intervals support deterministic mechanism/scheduler/latency integration. Whole-robot replay and live Phoenix virtual-time determinism remain open and are not implied by these mechanism tests. Fresh evidence is recorded under `artifacts/time-step-*`.

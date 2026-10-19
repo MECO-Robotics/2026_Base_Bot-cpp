@@ -69,3 +69,7 @@ Call `EnableInputLogging(frc::DataLogManager::GetLog())` during initialization t
 ## AdvantageScope
 
 Native NT4 and WPILOG visualization uses standard WPILib structs for 2D/3D robot pose, chassis speeds, and measured/target swerve states under `/AdvantageScope/Drive`. Existing scalar mechanism telemetry remains graphable. Metadata identifies the native project without requiring AdvantageKit. See [the AdvantageScope guide](docs/advantagescope.md) for live simulation, recorded logs, an installed-parser validation command and an importable layout. This supports log viewing; it does not turn MotorIO replay into whole-robot deterministic re-execution.
+
+## Explicit-time mechanism control
+
+Mechanism IO reads no longer advance physics. The default scheduler retains 20 ms control and a separate 20 ms simulation callback. Manual multirate owners use `UseExternalScheduling()`, `Control(dt)`, and `AdvanceSimulation(dt)` on one thread; telemetry uses cached state. See [the explicit-time audit](docs/explicit-time-control.md) for timing, validation, concurrency and unresolved whole-robot replay/Phoenix/Systemcore boundaries.
