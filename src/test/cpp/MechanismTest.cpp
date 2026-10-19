@@ -1,5 +1,6 @@
 #include "base/Mechanism.h"
 #include <array>
+#include <limits>
 #include <gtest/gtest.h>
 #include <frc/simulation/DriverStationSim.h>
 #include <hal/HAL.h>
@@ -230,4 +231,15 @@ TEST(MechanismControl, ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNot
   EXPECT_DOUBLE_EQ(observed->requestedVoltage,voltage);
   wheel.Control(units::second_t{.004},false);
   EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+}
+
+TEST(MechanismEncoder, NonfiniteExternalFeedbackStopsWithoutEscapingCalibration) {
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  base::Gains gains; gains.minimum=0; gains.maximum=1;
+  base::PositionJoint joint("ExternalFault",std::move(io),gains,1,base::Gravity::Constant,
+      []{return std::numeric_limits<double>::quiet_NaN();});
+  joint.SetVoltage(4);
+  EXPECT_NO_THROW(joint.Control(units::second_t{.004},true));
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  EXPECT_TRUE(std::isnan(joint.Position()));
 }
