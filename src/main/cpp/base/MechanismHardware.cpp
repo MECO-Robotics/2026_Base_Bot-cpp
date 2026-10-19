@@ -62,10 +62,18 @@ class SparkMotorIO final : public MotorIO {
   MotorInputs Read() override {
     auto& motor=*motors_.front(); auto encoder=motor.GetEncoder();
     double direction=config_.reversed.front() ? -1 : 1;
-    double position=encoder.GetPosition(); double velocity=encoder.GetVelocity();
+    double position=encoder.GetPosition();
+    bool connected=motor.GetLastError()==rev::REVLibError::kOk;
+    double velocity=encoder.GetVelocity();
+    connected=(motor.GetLastError()==rev::REVLibError::kOk) && connected;
+    double appliedOutput=motor.GetAppliedOutput();
+    connected=(motor.GetLastError()==rev::REVLibError::kOk) && connected;
+    double supplyVoltage=motor.GetBusVoltage();
+    connected=(motor.GetLastError()==rev::REVLibError::kOk) && connected;
+    double current=motor.GetOutputCurrent();
+    connected=(motor.GetLastError()==rev::REVLibError::kOk) && connected;
     return {direction*position/config_.gearRatio,direction*velocity/(60*config_.gearRatio),
-            direction*motor.GetAppliedOutput()*motor.GetBusVoltage(),motor.GetBusVoltage(),motor.GetOutputCurrent(),
-            motor.GetLastError()==rev::REVLibError::kOk};
+            direction*appliedOutput*supplyVoltage,supplyVoltage,current,connected};
   }
   void SetVoltage(double volts) override {
     for(size_t i=0;i<motors_.size();++i) {
