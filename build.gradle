@@ -160,6 +160,13 @@ model {
 
 tasks.configureEach { task ->
     if (task.name.startsWith("link") && !task.name.toLowerCase().contains("linuxathena")) {
-        task.dependsOn task.name.toLowerCase().contains("debug") ? "buildJoltDebug" : "buildJoltRelease"
+        def configuration = task.name.toLowerCase().contains("debug") ? 'Debug' : 'Release'
+        task.dependsOn "buildJolt${configuration}"
+        def directory = file("build/jolt/${configuration}/lib")
+        def windows = System.getProperty('os.name').toLowerCase().contains('windows')
+        // Raw linker arguments are not native dependency inputs. Track both
+        // archives so physics edits relink executables and invalidate test results.
+        task.inputs.files(new File(directory, windows ? 'frc_jolt.lib' : 'libfrc_jolt.a'),
+                          new File(directory, windows ? 'Jolt.lib' : 'libJolt.a'))
     }
 }
