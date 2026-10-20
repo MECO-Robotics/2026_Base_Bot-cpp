@@ -5,6 +5,23 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
 }
 
+// CI transports these exact pinned vendor artifacts from a verified upstream
+// download when the Windows runner cannot reach the vendor Maven host.
+def vendorCache = providers.environmentVariable('FRC_VENDOR_CACHE').orNull
+if (vendorCache) {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url = uri(file(vendorCache))
+                    metadataSources { mavenPom(); artifact() }
+                }
+            }
+            filter { includeGroup('com.studica.frc') }
+        }
+    }
+}
+
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
 deploy {

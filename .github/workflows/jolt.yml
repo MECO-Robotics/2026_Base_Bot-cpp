@@ -30,6 +30,15 @@ jobs:
           git rev-parse HEAD > artifacts/revision.txt
           cmake --version > artifacts/toolchain.txt
           python -c "import platform,json; print(json.dumps(platform.uname()._asdict(),indent=2))" > artifacts/machine.json
+      - name: Fetch pinned official Windows vendor artifacts
+        if: runner.os == 'Linux' && matrix.config == 'Release'
+        run: python scripts/prepare_vendor_cache.py --output build/vendor-cache
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux' && matrix.config == 'Release'
+        with:
+          name: studica-windows-maven-2026.0.0
+          path: build/vendor-cache/
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -58,6 +67,22 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         if: runner.os == 'Windows'
       - uses: lukka/get-cmake@latest
+      - uses: actions/download-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: studica-windows-maven-2026.0.0
+          path: build/vendor-cache
+      - name: Verify transferred official vendor cache
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          python scripts/prepare_vendor_cache.py --output build/vendor-cache --verify-only
+          python - <<'PYTHON'
+          import os, pathlib
+          cache = pathlib.Path('build/vendor-cache').resolve()
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'FRC_VENDOR_CACHE={cache}\n')
+          PYTHON
       - name: Install roboRIO toolchain
         if: runner.os == 'Linux'
         shell: bash

@@ -91,11 +91,28 @@ Windows and Linux are supported. Jolt 5.3.0 is source-pinned and built by CMake
 through Gradle for desktop targets only; install CMake 3.24+ and Ninja, plus the
 WPILib C++ compiler (MSVC on Windows). The roboRIO does not link Jolt.
 
+Windows CI receives the exact pinned Studica 2026.0.0 Windows archives from the
+Linux gate because some Windows runners cannot reach the official Studica Maven
+server. `scripts/prepare_vendor_cache.py --output build/vendor-cache` downloads
+only official artifacts and validates the committed SHA256 manifest, ZIP contents,
+and POM coordinates. After transfer, `--verify-only` checks the cache again;
+`FRC_VENDOR_CACHE` selects that local Maven repository exclusively for Studica dependencies.
+Vendordep versions remain unchanged and binary archives are not stored in Git.
+
+
 Set `FRC_SIM_PHYSICS` before launching: `phoenix` retains the vendor diagnostic
 plant, `jolt-planar` constrains chassis movement to X/Y/yaw, and `jolt-3d` enables
 wheel suspension, ramps, pitch, roll, and tipping. Desktop simulation defaults to
 `jolt-planar`. Physics runs on the robot thread in five fixed 4 ms substeps;
 Phoenix control and estimator updates retain their vendor timing.
+
+For example, select 3D practice in a Linux shell with
+`FRC_SIM_PHYSICS=jolt-3d ./gradlew simulateNative`. In Windows PowerShell:
+
+```powershell
+$env:FRC_SIM_PHYSICS = 'jolt-3d'
+.\gradlew.bat simulateNative
+```
 
 For an owned, automatically stopped local simulator and smoke check:
 
@@ -105,6 +122,7 @@ python scripts/sim_headless.py --backend jolt-3d --smoke-output artifacts/smoke-
 ```
 
 Run `./gradlew prepareHeadlessSimulation` to resolve the pinned HAL websocket archive.
+Use `.\gradlew.bat prepareHeadlessSimulation` in Windows PowerShell.
 The launcher rejects occupied local ports, verifies a per-run process identity,
 snapshots runtime libraries, and loads only the HAL websocket extension. It
 controls localhost. Install `pyntcore>=2026,<2027` and `websockets>=14,<17`
@@ -121,6 +139,8 @@ and a ramp in 3D mode, with no season scoring rules.
 Connect AdvantageScope to the simulator NT server. Under `/Simulation`, add
 `RobotTruth`, `RobotEstimated`, and `Pieces` to a 3D field view. These are native
 WPILib `Pose3d` struct topics. `Truth` is a planar [x, y, yaw] diagnostic array;
+`RobotTruth` uses the chassis body origin, while `RobotEstimated` lifts the 2D
+estimator to z=0; match the viewer model's origin or offsets accordingly.
 `Velocity` contains world [vx, vy, vz, yaw rate], `Slip` contains per-module
 longitudinal slip, and `Held`, `IntakeActive`, `Time`, `StepSeconds`, `MaximumStepSeconds`,
 and `DeadlineMisses` expose state and timing. Existing `/SmartDashboard/Drive`
@@ -144,3 +164,6 @@ build configuration, compiler, and revision alongside results. A p99 below 4 ms
 on the intended practice machine is enforced by the benchmark wrapper, not a hardware latency
 or MapleSim performance claim. CI builds/tests Windows and Linux and uploads
 benchmark, smoke, and test evidence.
+
+Recorded revisions, review dispositions, local measurements, and platform checks
+are in [the Jolt verification record](artifacts/jolt/STATUS.md).

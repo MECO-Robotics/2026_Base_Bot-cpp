@@ -10,6 +10,23 @@ TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
   auto& clock=base::sim::GetSimulationRuntime();
   if(!clock.World()) GTEST_SKIP()<<"Phoenix diagnostic backend has no Jolt world";
   frc::sim::DriverStationSim::SetDsAttached(true);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  // Phoenix initializes its desktop transport asynchronously. A fresh firmware
+  // status proves device transactions are available before module constructors
+  // issue their one-time configuration writes. CI can start the test before
+  // that initialization finishes; delaying only the motion interval cannot
+  // recover configuration writes that already failed.
+  ctre::phoenix6::hardware::TalonFX startupProbe{60,"rio"};
+  startupProbe.GetSimState().SetSupplyVoltage(units::volt_t{12});
+  auto& version=startupProbe.GetVersion(false);
+  const auto readyDeadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+  bool ready=false;
+  do {
+    version.WaitForUpdate(units::second_t{.1},false);
+    ready=version.GetStatus().IsOK()&&version.GetValue()>0;
+  } while(!ready&&std::chrono::steady_clock::now()<readyDeadline);
+  ASSERT_TRUE(ready)<<"Phoenix desktop transport did not produce a fresh device firmware status: "<<version.GetStatus().GetName();
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   struct DisableOnExit {
