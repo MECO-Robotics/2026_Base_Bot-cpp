@@ -45,11 +45,13 @@ bool Finite(Vec3 v) {
 }
 } // namespace
 Arena::Arena(SimulationClock &clock, std::function<BodyState()> truth,
-             bool scene, uint32_t seed)
+             bool scene, uint32_t seed, Vec3 robotCenterOfMass)
     : clock_(clock), world_(RequireWorld(clock)), robotTruth_(std::move(truth)),
-      practiceScene_(scene), seed_(seed) {
+      robotCenterOfMass_(robotCenterOfMass), practiceScene_(scene), seed_(seed) {
   if (!robotTruth_)
     throw std::invalid_argument("Arena requires robot truth");
+  if (!Finite(robotCenterOfMass_))
+    throw std::invalid_argument("Invalid robot center of mass");
   try {
     if (scene)
       BuildScene();
@@ -155,11 +157,13 @@ std::optional<PieceId> Arena::Launch(IntakeId intakeId, Pose muzzle,
                          [id](const Piece &p) { return p.id == id; });
   auto robot = robotTruth_();
   auto offset = Rotate(robot.pose.rotation, muzzle.position);
+  auto com = Rotate(robot.pose.rotation, robotCenterOfMass_);
+  Vec3 lever{offset.x - com.x, offset.y - com.y, offset.z - com.z};
   BodyState state;
   state.pose = {Add(robot.pose.position, offset),
                 Mul(robot.pose.rotation, muzzle.rotation)};
   state.linearVelocity =
-      Add(Add(robot.linearVelocity, Cross(robot.angularVelocity, offset)),
+      Add(Add(robot.linearVelocity, Cross(robot.angularVelocity, lever)),
           Rotate(state.pose.rotation, velocity));
   auto body = CreatePiece(it->spec, true, &state);
   it->body = body;

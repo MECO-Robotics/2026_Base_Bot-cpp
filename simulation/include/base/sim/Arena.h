@@ -29,8 +29,10 @@ struct IntakeConfig {
 // arena.
 class Arena {
 public:
+  // Truth reports body-origin pose and COM velocity; COM is local to that origin.
   Arena(SimulationClock &, std::function<BodyState()> robotTruth,
-        bool practiceScene = true, uint32_t seed = 2026);
+        bool practiceScene = true, uint32_t seed = 2026,
+        Vec3 robotCenterOfMass = {});
   ~Arena();
   Arena(const Arena &) = delete;
   Arena &operator=(const Arena &) = delete;
@@ -66,6 +68,7 @@ private:
   SimulationClock &clock_;
   SimulationWorld &world_;
   std::function<BodyState()> robotTruth_;
+  Vec3 robotCenterOfMass_;
   bool practiceScene_;
   uint32_t seed_;
   PieceId nextId_{1};

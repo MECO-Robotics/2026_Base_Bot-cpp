@@ -37,6 +37,8 @@ struct BodySpec {
 };
 struct BodyState {
   Pose pose{};
+  // Pose is the body origin; linear velocity is at the center of mass.
+  // Both velocity vectors are expressed in world coordinates.
   Vec3 linearVelocity{}, angularVelocity{};
   bool enabled{true};
 };

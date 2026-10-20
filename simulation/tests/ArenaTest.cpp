@@ -93,7 +93,7 @@ int main() {
       robot.pose.rotation = {0, 0, std::sqrt(0.5), std::sqrt(0.5)};
       robot.linearVelocity = {1, 2, 0};
       robot.angularVelocity = {0, 0, 2};
-      Arena arena(clock, [&] { return robot; }, false);
+      Arena arena(clock, [&] { return robot; }, false, 2026, {.25, -.5, .1});
       IntakeConfig intake;
       intake.localPose.position = {0, 0, 0.12};
       intake.halfExtents = {1, 1, 1};
@@ -116,8 +116,8 @@ int main() {
       Check(!pieces[0].held && pieces[1].held && pieces[1].id == id2,
             "launch only releases owner piece");
       auto v = pieces[0].state.linearVelocity;
-      Check(std::abs(v.x + 1) < 1e-5 && std::abs(v.y - 5) < 1e-5,
-            "launch includes rotated velocity and angular offset");
+      Check(std::abs(v.x + .5) < 1e-5 && std::abs(v.y - 4) < 1e-5,
+            "launch includes rotated velocity and muzzle offset from robot COM");
     }
     {
       SimulationClock clock(Backend::Planar);

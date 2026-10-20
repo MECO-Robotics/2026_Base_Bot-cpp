@@ -18,9 +18,11 @@ RobotContainer::RobotContainer()
 #ifndef __FRC_ROBORIO__
   if (drive_.SimulationTruth()) {
     auto &clock = base::sim::GetSimulationRuntime();
+    const auto &sim = drive_.Config().simulation;
     arena_ = std::make_unique<base::sim::Arena>(clock, [this] {
       return drive_.SimulationTruth().value().body;
-    });
+    }, true, 2026, base::sim::Vec3{sim.centerOfMassX, sim.centerOfMassY,
+                                 sim.centerOfMassZ});
     base::sim::IntakeConfig intake;
     intake.localPose.position = {.65, 0, -.18};
     arena_->SetIntake(intake);
