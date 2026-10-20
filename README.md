@@ -18,6 +18,26 @@ Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. The build selects 
 
 `deploy` writes to the team's roboRIO; review hardware configuration before deploying. Desktop tests run with `./gradlew check`. Both desktop and roboRIO targets are enabled. Native dependencies retain the source project's pinned versions.
 
+## IDE configuration
+
+The workspace uses C/C++ compile-command configurations rather than the WPILib
+configuration provider, so IntelliSense can use the same target-specific flags
+and simulation include directories as the build. Generate the databases with:
+
+```sh
+./gradlew generateCompileCommands
+```
+
+In **C/C++: Edit Configurations (UI)**, select the compiler and C++23, then set
+**Compile commands** to the desired database under
+`build/TargetedCompileCommands/` (for example,
+`linuxx86-64debug/compile_commands.json` for Linux desktop or
+`linuxathenarelease/compile_commands.json` for roboRIO). Machine-specific
+`.vscode/c_cpp_properties.json` is ignored by Git. Regenerate the databases after
+changing dependencies or compiler flags. To use WPILib's toolchain selector
+instead, set `C_Cpp.default.configurationProvider` to
+`wpilibsuite.vscode-wpilib` in workspace settings.
+
 ## Verified simulation check
 
 `./gradlew build --max-workers=2` passed for desktop and roboRIO in debug and release, including 25 native test cases in both configurations. A real desktop `frcUserProgram` was exercised through local HAL simulation and NetworkTables: forward/reverse motion, rotation, pose changes, and stationary disabled behavior passed. The captured result is in `artifacts/sim-smoke.json`. This verifies runtime behavior; it does not establish physical calibration or hardware acceptance.
