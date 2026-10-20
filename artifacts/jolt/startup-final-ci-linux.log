@@ -1,0 +1,71 @@
+654-2026-10-20T18:18:45.2155017Z [----------] 1 test from VisionPhoton (11 ms total)
+655-2026-10-20T18:18:45.2155556Z
+656:2026-10-20T18:18:45.2155665Z [----------] 1 test from DriveSimulation
+657:2026-10-20T18:18:45.2156109Z [ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+658:2026-10-20T18:18:45.2156697Z [DriveSim] Verified Phoenix configuration transport after 0.0521339 s, 1 attempt(s)
+659:2026-10-20T18:18:45.9131600Z [       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2639 ms)
+660:2026-10-20T18:18:45.9133121Z [----------] 1 test from DriveSimulation (2640 ms total)
+661-2026-10-20T18:18:45.9148378Z
+662-2026-10-20T18:18:45.9149364Z [----------] 2 tests from CommandLifecycle
+--
+787-2026-10-20T18:18:51.5614081Z [----------] 1 test from VisionPhoton (2 ms total)
+788-2026-10-20T18:18:51.5614473Z
+789:2026-10-20T18:18:51.5614586Z [----------] 1 test from DriveSimulation
+790:2026-10-20T18:18:51.5615381Z [ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+791-2026-10-20T18:18:51.5616215Z [phoenix] CANbus Connected: sim
+792-2026-10-20T18:18:51.5616557Z [phoenix] CANbus Network Up: sim
+793:2026-10-20T18:18:51.5616961Z [DriveSim] Verified Phoenix configuration transport after 0.0528691 s, 1 attempt(s)
+794:2026-10-20T18:18:52.1592557Z [       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2614 ms)
+795:2026-10-20T18:18:52.1593745Z [----------] 1 test from DriveSimulation (2614 ms total)
+796-2026-10-20T18:18:52.1594349Z
+797-2026-10-20T18:18:52.1594574Z [----------] 2 tests from CommandLifecycle
+--
+1018-2026-10-20T18:20:14.4067117Z HAL Extensions: Successfully loaded extension
+1019-2026-10-20T18:20:14.4076517Z
+1020:2026-10-20T18:20:14.4076816Z ********** Robot program starting **********
+1021-2026-10-20T18:20:14.4077316Z Not loading CameraServerShared
+1022-2026-10-20T18:20:14.4084445Z NT: could not open persistent file 'networktables.json': No such file or directory (this can be ignored if you aren't expecting persistent values)
+--
+1026-2026-10-20T18:20:14.5226160Z CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+1027-2026-10-20T18:20:14.5226848Z 	talon fx 31 ("rio") Refresh Config
+1028:2026-10-20T18:20:15.4916893Z [DriveSim] Verified Phoenix configuration transport after 1.0727 s, 6 attempt(s)
+1029-2026-10-20T18:20:15.5997518Z Could not transmit CAN Frame.
+1030:2026-10-20T18:20:15.5997986Z 	cancoder 22 ("rio") SetUpdateFrequency Position
+1031-2026-10-20T18:20:15.7351707Z Could not transmit CAN Frame.
+1032:2026-10-20T18:20:15.7352743Z 	ctre::phoenix6::BaseStatusSignal::SetUpdateFrequencyForAll
+1033-2026-10-20T18:20:16.2991696Z CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+1034:2026-10-20T18:20:16.2992996Z 	cancoder 23 ("rio") SetUpdateFrequency Position
+1035-2026-10-20T18:20:16.7806358Z Warning: Joystick Button 4 missing (max 0), check if all controllers are plugged in
+1036-2026-10-20T18:20:16.7833972Z 	at frc::ReportErrorV(int, char const*, int, char const*, fmt::v11::basic_string_view<char>, fmt::v11::basic_format_args<fmt::v11::context>) + 0x152 [0x7fa8288df472]
+--
+1049-2026-10-20T18:20:16.7946694Z DataLog: Logging to '/home/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/logs/FRC_TBD_d2925ad3511145ac.wpilog' (75.0 GiB free space)
+1050-2026-10-20T18:20:16.7953543Z
+1051:2026-10-20T18:20:16.7953800Z ********** Robot program startup complete **********
+1052-2026-10-20T18:20:16.7954378Z Default DisabledPeriodic() method... Override me!
+1053-2026-10-20T18:20:16.8730076Z NT: Got a NT4 connection from 127.0.0.1 port 39906
+--
+1058-2026-10-20T18:20:18.9566661Z [phoenix] Library initialization is complete.
+1059-2026-10-20T18:20:18.9567224Z
+1060:2026-10-20T18:20:19.0382428Z Default TeleopPeriodic() method... Override me!
+1061-2026-10-20T18:20:19.4824965Z [phoenix-diagnostics] Server 2026.1.2 (Mar 11 2026, 19:44:59) running on port: 1250
+1062-2026-10-20T18:20:19.4825428Z
+--
+5266-2026-10-20T18:20:38.3585293Z HAL Extensions: Successfully loaded extension
+5267-2026-10-20T18:20:38.3593676Z
+5268:2026-10-20T18:20:38.3593897Z ********** Robot program starting **********
+5269-2026-10-20T18:20:38.3594449Z Not loading CameraServerShared
+5270-2026-10-20T18:20:38.3600236Z NT: Listening on NT3 port 1735, NT4 port 5810
+5271-2026-10-20T18:20:38.3698330Z [phoenix] CANbus Connected: sim
+5272-2026-10-20T18:20:38.3698831Z [phoenix] CANbus Network Up: sim
+5273:2026-10-20T18:20:38.4240186Z [DriveSim] Verified Phoenix configuration transport after 0.0532277 s, 1 attempt(s)
+5274-2026-10-20T18:20:38.5370532Z NT: Got a NT4 connection from 127.0.0.1 port 56784
+5275-2026-10-20T18:20:38.5373327Z NT: CONNECTED NT4 client 'base-cpp-sim-smoke@1' (from 127.0.0.1:56784)
+--
+5292-2026-10-20T18:20:38.5573390Z DataLog: Logging to '/home/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/logs/FRC_TBD_de2e487b6dd36de4.wpilog' (75.0 GiB free space)
+5293-2026-10-20T18:20:38.5574442Z
+5294:2026-10-20T18:20:38.5574797Z ********** Robot program startup complete **********
+5295-2026-10-20T18:20:38.5575292Z Default DisabledPeriodic() method... Override me!
+5296-2026-10-20T18:20:39.7501025Z DataLog: Renamed log file from 'FRC_TBD_de2e487b6dd36de4.wpilog' to 'FRC_20261020_182039.wpilog'
+5297:2026-10-20T18:20:40.6899260Z Default TeleopPeriodic() method... Override me!
+5298-2026-10-20T18:20:41.3817839Z [phoenix] Library initialization is complete.
+5299-2026-10-20T18:20:41.3818216Z

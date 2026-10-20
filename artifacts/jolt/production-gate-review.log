@@ -1,0 +1,28 @@
+HAL Extensions: No extensions found
+Note: Google Test filter = DriveSimulation.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DriveSimulation
+[ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+[DriveSim] Verified Phoenix configuration transport after 0.0538908 s, 1 attempt(s)
+CAN message is stale, data is valid but old. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+	talon fx 44 ("rio") Status Signal Position
+CAN message is stale, data is valid but old. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+	talon fx 44 ("rio") Status Signal Velocity
+CAN message is stale, data is valid but old. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+	pigeon 2 0 ("rio") Status Signal Yaw
+CAN message is stale, data is valid but old. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+	pigeon 2 0 ("rio") Status Signal AngularVelocityZWorld
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+	ctre::phoenix6::BaseStatusSignal::WaitForAll
+[       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2640 ms)
+[----------] 1 test from DriveSimulation (2640 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2640 ms total)
+[  PASSED  ] 1 test.
+[phoenix-diagnostics] Server shutdown cleanly. (dur:0)
+
+[phoenix] Library shutdown cleanly

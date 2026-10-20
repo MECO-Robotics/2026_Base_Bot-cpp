@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "machine": {
+      "system": "Linux",
+      "node": "runnervm8k3b6",
+      "release": "6.17.0-1022-azure",
+      "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+      "machine": "x86_64",
+      "processor": "x86_64"
+    },
+    "cpu": "x86_64",
+    "compiler": "/usr/bin/c++",
+    "compilerVersion": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "buildType": "Release",
+    "cxxFlags": {
+      "CMAKE_CXX_FLAGS": "",
+      "CMAKE_CXX_FLAGS_DEBUG": "-g",
+      "CMAKE_CXX_FLAGS_MINSIZEREL": "-Os -DNDEBUG",
+      "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG",
+      "CMAKE_CXX_FLAGS-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_DEBUG-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_RELEASE-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED": "1"
+    },
+    "revision": "c890889c59551131a1427791b51b9d5793641f6f",
+    "workingTreeChanges": "",
+    "measurement": "Complete registered model/arena before -> Jolt -> after substep; excludes robot controls and telemetry"
+  },
+  "acceptance": {
+    "maximumP99Milliseconds": 4.0,
+    "passed": true
+  },
+  "results": [
+    {
+      "mode": "jolt-planar",
+      "scene": "empty",
+      "bodies": 2,
+      "peakContactManifolds": 0,
+      "samples": 5000,
+      "medianSeconds": 6.482e-06,
+      "p99Seconds": 6.682e-06,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-planar",
+      "scene": "typical",
+      "bodies": 16,
+      "peakContactManifolds": 3,
+      "samples": 5000,
+      "medianSeconds": 1.046e-05,
+      "p99Seconds": 2.2943e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-planar",
+      "scene": "dense",
+      "bodies": 316,
+      "peakContactManifolds": 908,
+      "samples": 5000,
+      "medianSeconds": 0.00060059,
+      "p99Seconds": 0.00178583,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "empty",
+      "bodies": 2,
+      "peakContactManifolds": 0,
+      "samples": 5000,
+      "medianSeconds": 8.265e-06,
+      "p99Seconds": 8.546e-06,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "typical",
+      "bodies": 17,
+      "peakContactManifolds": 4,
+      "samples": 5000,
+      "medianSeconds": 1.4287e-05,
+      "p99Seconds": 2.4106e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "dense",
+      "bodies": 317,
+      "peakContactManifolds": 743,
+      "samples": 5000,
+      "medianSeconds": 0.000895906,
+      "p99Seconds": 0.00129076,
+      "deadlineMisses": 0
+    }
+  ]
+}

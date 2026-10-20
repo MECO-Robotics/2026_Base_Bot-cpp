@@ -1,0 +1,3575 @@
+{
+  "transport": "localhost HAL websocket + NT4",
+  "scope": "Software simulation behavior; excludes physical calibration",
+  "samples": {
+    "disabled_initial": {
+      "speeds": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 0.6000000000000004,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 0.7000000000000005,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 0.8000000000000006,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 0.9000000000000007,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.0000000000000007,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.1000000000000008,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.2000000000000008,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.300000000000001,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.400000000000001,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.500000000000001,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 1.6000000000000012,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ]
+    },
+    "forward": {
+      "speeds": [
+        2.0488944669684734,
+        0.0,
+        0.0
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 2.2000000000000015,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515244.357185,
+          "poseTime": 1792515244.357123,
+          "truthTime": 0.0,
+          "simulationTime": 2.3000000000000016,
+          "estimated": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.725728,
+          "poseTime": 1792515246.725648,
+          "truthTime": 0.0,
+          "simulationTime": 2.4000000000000017,
+          "estimated": [
+            0.016657966099120635,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.5215404760864983,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.825043,
+          "poseTime": 1792515246.825026,
+          "truthTime": 0.0,
+          "simulationTime": 2.5000000000000018,
+          "estimated": [
+            0.11266288344654912,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            1.3888738957086761,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.925376,
+          "poseTime": 1792515246.925357,
+          "truthTime": 0.0,
+          "simulationTime": 2.600000000000002,
+          "estimated": [
+            0.29259733520153186,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.04583975898671,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.025033,
+          "truthTime": 0.0,
+          "simulationTime": 2.700000000000002,
+          "estimated": [
+            0.4975630532215223,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.125005,
+          "truthTime": 0.0,
+          "simulationTime": 2.800000000000002,
+          "estimated": [
+            0.7022711417034804,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.224986,
+          "truthTime": 0.0,
+          "simulationTime": 2.900000000000002,
+          "estimated": [
+            0.9096062698326353,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.325023,
+          "truthTime": 0.0,
+          "simulationTime": 3.000000000000002,
+          "estimated": [
+            1.1142954060390164,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.425042,
+          "truthTime": 0.0,
+          "simulationTime": 3.1000000000000023,
+          "estimated": [
+            1.3167783951275447,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.524998,
+          "truthTime": 0.0,
+          "simulationTime": 3.2000000000000024,
+          "estimated": [
+            1.5218510315433602,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.625039,
+          "truthTime": 0.0,
+          "simulationTime": 3.3000000000000025,
+          "estimated": [
+            1.7267291782644827,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.72503,
+          "truthTime": 0.0,
+          "simulationTime": 3.4000000000000026,
+          "estimated": [
+            1.935660038239888,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.825055,
+          "truthTime": 0.0,
+          "simulationTime": 3.5000000000000027,
+          "estimated": [
+            2.1366487157576763,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515247.924983,
+          "truthTime": 0.0,
+          "simulationTime": 3.6000000000000028,
+          "estimated": [
+            2.3416513328174107,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515248.024975,
+          "truthTime": 0.0,
+          "simulationTime": 3.700000000000003,
+          "estimated": [
+            2.5465812141241018,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515248.125009,
+          "truthTime": 0.0,
+          "simulationTime": 3.800000000000003,
+          "estimated": [
+            2.754543816183753,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515248.225005,
+          "truthTime": 0.0,
+          "simulationTime": 3.900000000000003,
+          "estimated": [
+            2.9561847096482503,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515248.32503,
+          "truthTime": 0.0,
+          "simulationTime": 4.000000000000003,
+          "estimated": [
+            3.161226255702992,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515248.425012,
+          "truthTime": 0.0,
+          "simulationTime": 4.099999999999992,
+          "estimated": [
+            3.3658491597806,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515246.985072,
+          "poseTime": 1792515248.525006,
+          "truthTime": 0.0,
+          "simulationTime": 4.199999999999981,
+          "estimated": [
+            3.571159111011002,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            2.0488944669684734,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ]
+    },
+    "reverse": {
+      "speeds": [
+        -2.0489962905678656,
+        0.0,
+        0.0
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515249.125078,
+          "poseTime": 1792515249.12506,
+          "truthTime": 0.0,
+          "simulationTime": 4.799999999999915,
+          "estimated": [
+            3.9805136033370556,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.125078,
+          "poseTime": 1792515249.12506,
+          "truthTime": 0.0,
+          "simulationTime": 4.8999999999999035,
+          "estimated": [
+            3.9805136033370556,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.325032,
+          "poseTime": 1792515249.325017,
+          "truthTime": 0.0,
+          "simulationTime": 4.9999999999998925,
+          "estimated": [
+            3.978718751011934,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -0.1637323478225477,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.425016,
+          "poseTime": 1792515249.425002,
+          "truthTime": 0.0,
+          "simulationTime": 5.0999999999998815,
+          "estimated": [
+            3.919646551057922,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -1.0080536339821036,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.525027,
+          "poseTime": 1792515249.525013,
+          "truthTime": 0.0,
+          "simulationTime": 5.1999999999998705,
+          "estimated": [
+            3.774775388717179,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -1.873350581616438,
+            0.0,
+            -1.649417656552008e-16
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515249.630803,
+          "truthTime": 0.0,
+          "simulationTime": 5.2999999999998595,
+          "estimated": [
+            3.5717347517400397,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515249.725007,
+          "truthTime": 0.0,
+          "simulationTime": 5.3999999999998485,
+          "estimated": [
+            3.36698671709728,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515249.826444,
+          "truthTime": 0.0,
+          "simulationTime": 5.4999999999998375,
+          "estimated": [
+            3.1561080855532437,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515249.925025,
+          "truthTime": 0.0,
+          "simulationTime": 5.5999999999998264,
+          "estimated": [
+            2.957336973091983,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.025005,
+          "truthTime": 0.0,
+          "simulationTime": 5.699999999999815,
+          "estimated": [
+            2.7525086719005456,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.125052,
+          "truthTime": 0.0,
+          "simulationTime": 5.799999999999804,
+          "estimated": [
+            2.5468549808968444,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.225009,
+          "truthTime": 0.0,
+          "simulationTime": 5.899999999999793,
+          "estimated": [
+            2.342458861368254,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.32504,
+          "truthTime": 0.0,
+          "simulationTime": 5.999999999999782,
+          "estimated": [
+            2.1370409614921435,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.425007,
+          "truthTime": 0.0,
+          "simulationTime": 6.099999999999771,
+          "estimated": [
+            1.9329163339712523,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.525042,
+          "truthTime": 0.0,
+          "simulationTime": 6.19999999999976,
+          "estimated": [
+            1.723984917707247,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.624989,
+          "truthTime": 0.0,
+          "simulationTime": 6.299999999999749,
+          "estimated": [
+            1.5229885952735267,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.725106,
+          "truthTime": 0.0,
+          "simulationTime": 6.399999999999738,
+          "estimated": [
+            1.3175439018923338,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.825027,
+          "truthTime": 0.0,
+          "simulationTime": 6.499999999999727,
+          "estimated": [
+            1.1112649113247806,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515250.92498,
+          "truthTime": 0.0,
+          "simulationTime": 6.599999999999716,
+          "estimated": [
+            0.9081524879730678,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515251.025006,
+          "truthTime": 0.0,
+          "simulationTime": 6.699999999999705,
+          "estimated": [
+            0.703497682661409,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515249.630827,
+          "poseTime": 1792515251.125012,
+          "truthTime": 0.0,
+          "simulationTime": 6.799999999999694,
+          "estimated": [
+            0.49830619687751176,
+            0.0,
+            0.0
+          ],
+          "truth": [],
+          "speeds": [
+            -2.0489962905678656,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ]
+    },
+    "turn": {
+      "speeds": [
+        -0.00012943088133876568,
+        5.248869144525159e-05,
+        3.1765404319575197
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515251.765059,
+          "poseTime": 1792515251.785059,
+          "truthTime": 0.0,
+          "simulationTime": 7.499999999999617,
+          "estimated": [
+            0.012672407933410155,
+            -0.0006212514324927473,
+            0.008820389530342436
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515251.765059,
+          "poseTime": 1792515251.785059,
+          "truthTime": 0.0,
+          "simulationTime": 7.599999999999606,
+          "estimated": [
+            0.012672407933410155,
+            -0.0006212514324927473,
+            0.008820389530342436
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.025001,
+          "poseTime": 1792515252.024993,
+          "truthTime": 0.0,
+          "simulationTime": 7.699999999999595,
+          "estimated": [
+            0.012621703300533572,
+            -0.0006229000198794351,
+            0.025254825305376764
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0007910790769919684,
+            1.3877787807814457e-17,
+            0.9122098036171207
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.128311,
+          "poseTime": 1792515252.128304,
+          "truthTime": 0.0,
+          "simulationTime": 7.799999999999584,
+          "estimated": [
+            0.012556464719519546,
+            -0.0006279311057709955,
+            0.1953881981582867
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0006394933421507432,
+            0.0,
+            2.806014653681411
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.224985,
+          "poseTime": 1792515252.22498,
+          "truthTime": 0.0,
+          "simulationTime": 7.899999999999573,
+          "estimated": [
+            0.012562094790753911,
+            -0.0006200441073706324,
+            0.49510318871651277
+          ],
+          "truth": [],
+          "speeds": [
+            1.9578263546593533e-05,
+            -4.892847904613973e-05,
+            3.142165310625416
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.325046,
+          "poseTime": 1792515252.32504,
+          "truthTime": 0.0,
+          "simulationTime": 7.999999999999562,
+          "estimated": [
+            0.012569160930779148,
+            -0.0006191109870451005,
+            0.8100839690980381
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            0.0,
+            3.1677807273248226
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.425035,
+          "poseTime": 1792515252.425032,
+          "truthTime": 0.0,
+          "simulationTime": 8.099999999999552,
+          "estimated": [
+            0.012570294931798894,
+            -0.0006132017341454271,
+            1.1277465180329498
+          ],
+          "truth": [],
+          "speeds": [
+            -3.7194265372408886e-05,
+            1.1102230246251565e-16,
+            3.1735369125919313
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.525016,
+          "poseTime": 1792515252.525009,
+          "truthTime": 0.0,
+          "simulationTime": 8.199999999999541,
+          "estimated": [
+            0.012567846099410957,
+            -0.0006065760179150336,
+            1.445331171148416
+          ],
+          "truth": [],
+          "speeds": [
+            -3.7033886043813524e-05,
+            0.0,
+            3.1772040349527146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.624983,
+          "poseTime": 1792515252.624978,
+          "truthTime": 0.0,
+          "simulationTime": 8.29999999999953,
+          "estimated": [
+            0.012514370870655947,
+            -0.0006755601821969418,
+            1.7625290832312737
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.725422,
+          "poseTime": 1792515252.725408,
+          "truthTime": 0.0,
+          "simulationTime": 8.399999999999519,
+          "estimated": [
+            0.012535572556607574,
+            -0.0006777766919466941,
+            2.0801495608015887
+          ],
+          "truth": [],
+          "speeds": [
+            0.00035131239220509425,
+            8.748115240875265e-05,
+            3.175685014185722
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.82499,
+          "poseTime": 1792515252.824982,
+          "truthTime": 0.0,
+          "simulationTime": 8.499999999999508,
+          "estimated": [
+            0.01255139008637661,
+            -0.0005765233155171709,
+            2.397808046187318
+          ],
+          "truth": [],
+          "speeds": [
+            1.8490125905490373e-05,
+            5.248869144525159e-05,
+            3.1775027769507904
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515252.945005,
+          "poseTime": 1792515252.944993,
+          "truthTime": 0.0,
+          "simulationTime": 8.619999999999495,
+          "estimated": [
+            0.012536314513095835,
+            -0.0005668110076346099,
+            2.7794755529086075
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0003143321403940025,
+            8.748115240886367e-05,
+            3.1765404319575197
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.045121,
+          "poseTime": 1792515253.045111,
+          "truthTime": 0.0,
+          "simulationTime": 8.719999999999484,
+          "estimated": [
+            0.012523457791974864,
+            -0.0005604931096549155,
+            3.09661297215209
+          ],
+          "truth": [],
+          "speeds": [
+            5.547037771647112e-05,
+            8.748115240875265e-05,
+            3.1765404319575197
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.144991,
+          "poseTime": 1792515253.144984,
+          "truthTime": 0.0,
+          "simulationTime": 8.819999999999473,
+          "estimated": [
+            0.012509490291427386,
+            -0.0005671348646414945,
+            -2.869040733714529
+          ],
+          "truth": [],
+          "speeds": [
+            0.0004992333994492393,
+            5.248869144525159e-05,
+            3.1761127230716215
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.22499,
+          "poseTime": 1792515253.224981,
+          "truthTime": 0.0,
+          "simulationTime": 8.899999999999464,
+          "estimated": [
+            0.012500945092477463,
+            -0.0005737177733613303,
+            -2.6150416487903554
+          ],
+          "truth": [],
+          "speeds": [
+            0.00020339138496072717,
+            5.248869144525159e-05,
+            3.176968140843418
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.34503,
+          "poseTime": 1792515253.345015,
+          "truthTime": 0.0,
+          "simulationTime": 9.01999999999945,
+          "estimated": [
+            0.012488105634191853,
+            -0.0005898976505947016,
+            -2.2335460546099113
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.425415,
+          "poseTime": 1792515253.425398,
+          "truthTime": 0.0,
+          "simulationTime": 9.099999999999442,
+          "estimated": [
+            0.012486765580608766,
+            -0.0005958847006942581,
+            -1.976579986998264
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0003143321403940025,
+            8.748115240886367e-05,
+            3.1765404319575197
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.545381,
+          "poseTime": 1792515253.545371,
+          "truthTime": 0.0,
+          "simulationTime": 9.219999999999429,
+          "estimated": [
+            0.0125565871452677,
+            -0.0005552406800854125,
+            -1.5983970114461674
+          ],
+          "truth": [],
+          "speeds": [
+            1.8490125905490373e-05,
+            5.248869144525159e-05,
+            3.1775027769507904
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.627323,
+          "poseTime": 1792515253.627307,
+          "truthTime": 0.0,
+          "simulationTime": 9.29999999999942,
+          "estimated": [
+            0.012492434773638117,
+            -0.0006370205541026032,
+            -1.343918095146399
+          ],
+          "truth": [],
+          "speeds": [
+            0.0004992333994492393,
+            5.248869144525159e-05,
+            3.1761127230716215
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.725095,
+          "poseTime": 1792515253.725078,
+          "truthTime": 0.0,
+          "simulationTime": 9.399999999999409,
+          "estimated": [
+            0.012519154560036104,
+            -0.0005594890787678403,
+            -1.026783824450692
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00016641113314985745,
+            -0.0002274509962628679,
+            3.1769681408434183
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.825427,
+          "poseTime": 1792515253.825399,
+          "truthTime": 0.0,
+          "simulationTime": 9.499999999999398,
+          "estimated": [
+            0.01250069590238362,
+            -0.0006598801728387367,
+            -0.7087888121796272
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ],
+      "estimatedHeadingChange": 5.565576105469616
+    },
+    "negative_turn": {
+      "speeds": [
+        0.00014792100724414503,
+        0.0,
+        -3.1762731139038323
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515253.825427,
+          "poseTime": 1792515253.825399,
+          "truthTime": 0.0,
+          "simulationTime": 9.499999999999398,
+          "estimated": [
+            0.01250069590238362,
+            -0.0006598801728387367,
+            -0.7087888121796272
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515253.946946,
+          "poseTime": 1792515253.946929,
+          "truthTime": 0.0,
+          "simulationTime": 9.619999999999385,
+          "estimated": [
+            0.012488327916435851,
+            -0.0006533567842275822,
+            -0.33717360543273794
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0010539371766151717,
+            8.748115240875265e-05,
+            2.268728321637925
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.045027,
+          "poseTime": 1792515254.045022,
+          "truthTime": 0.0,
+          "simulationTime": 9.719999999999374,
+          "estimated": [
+            0.01237751019850262,
+            -0.0006111185598499453,
+            -0.19483220068489107
+          ],
+          "truth": [],
+          "speeds": [
+            -0.001146387806142797,
+            0.0,
+            0.25929851207597354
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.144984,
+          "poseTime": 1792515254.144978,
+          "truthTime": 0.0,
+          "simulationTime": 9.819999999999363,
+          "estimated": [
+            0.012150542885619255,
+            -0.0005732987930121907,
+            -0.2402483092687666
+          ],
+          "truth": [],
+          "speeds": [
+            -0.002403716367718689,
+            0.0,
+            -1.515693364402856
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.245032,
+          "poseTime": 1792515254.245018,
+          "truthTime": 0.0,
+          "simulationTime": 9.919999999999352,
+          "estimated": [
+            0.011949306623327485,
+            -0.000497846718020024,
+            -0.4645308768202477
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0002958420144885121,
+            0.0,
+            -3.1466542735553604
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.345044,
+          "poseTime": 1792515254.345027,
+          "truthTime": 0.0,
+          "simulationTime": 10.01999999999934,
+          "estimated": [
+            0.011940703590415687,
+            -0.0004951503264631127,
+            -0.7813726794932959
+          ],
+          "truth": [],
+          "speeds": [
+            0.0005547037771657104,
+            0.0,
+            -3.1762731139038323
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.445024,
+          "poseTime": 1792515254.44501,
+          "truthTime": 0.0,
+          "simulationTime": 10.11999999999933,
+          "estimated": [
+            0.011948554847841785,
+            -0.0005080475615976709,
+            -1.098783355597557
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0004067827699216764,
+            0.0,
+            -3.176273113903832
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.544997,
+          "poseTime": 1792515254.54499,
+          "truthTime": 0.0,
+          "simulationTime": 10.219999999999319,
+          "estimated": [
+            0.011966787647868,
+            -0.000526714228627522,
+            -1.4171719615030771
+          ],
+          "truth": [],
+          "speeds": [
+            -3.6980251810980747e-05,
+            0.0,
+            -3.176273113903833
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.644995,
+          "poseTime": 1792515254.644988,
+          "truthTime": 0.0,
+          "simulationTime": 10.319999999999308,
+          "estimated": [
+            0.011969603522140314,
+            -0.0005474752806764275,
+            -1.7342877482068548
+          ],
+          "truth": [],
+          "speeds": [
+            0.00044376302173265714,
+            0.0,
+            -3.175952332239409
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.744974,
+          "poseTime": 1792515254.74497,
+          "truthTime": 0.0,
+          "simulationTime": 10.419999999999296,
+          "estimated": [
+            0.011960832278193312,
+            -0.0005704864542496328,
+            -2.052066953384221
+          ],
+          "truth": [],
+          "speeds": [
+            7.396050362207252e-05,
+            0.0,
+            -3.177663167783003
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.846383,
+          "poseTime": 1792515254.846365,
+          "truthTime": 0.0,
+          "simulationTime": 10.519999999999285,
+          "estimated": [
+            0.011954360037696123,
+            -0.0005612895808497244,
+            -2.3700464408821285
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0002218815108664396,
+            0.0,
+            -3.1757384777964597
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515254.945019,
+          "poseTime": 1792515254.945004,
+          "truthTime": 0.0,
+          "simulationTime": 10.619999999999274,
+          "estimated": [
+            0.011943749484545256,
+            -0.0005847512417802979,
+            -2.687704923813488
+          ],
+          "truth": [],
+          "speeds": [
+            0.0002588617626773093,
+            0.0,
+            -3.175417696132035
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.044994,
+          "poseTime": 1792515255.044982,
+          "truthTime": 0.0,
+          "simulationTime": 10.719999999999263,
+          "estimated": [
+            0.011851748135166323,
+            -0.0005316015598591578,
+            -3.0047122803051236
+          ],
+          "truth": [],
+          "speeds": [
+            -3.698025181109177e-05,
+            0.0,
+            -3.1773423861185797
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.145029,
+          "poseTime": 1792515255.14502,
+          "truthTime": 0.0,
+          "simulationTime": 10.819999999999252,
+          "estimated": [
+            0.01190595684469633,
+            -0.0005940710265127591,
+            2.9604842784257217
+          ],
+          "truth": [],
+          "speeds": [
+            0.00025886176267742034,
+            0.0,
+            -3.1771285316756304
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.24504,
+          "poseTime": 1792515255.245023,
+          "truthTime": 0.0,
+          "simulationTime": 10.919999999999241,
+          "estimated": [
+            0.011892384857403933,
+            -0.0005888550289948447,
+            2.6428601422124594
+          ],
+          "truth": [],
+          "speeds": [
+            7.396050362207252e-05,
+            0.0,
+            -3.1748830600246625
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.347873,
+          "poseTime": 1792515255.347856,
+          "truthTime": 0.0,
+          "simulationTime": 11.01999999999923,
+          "estimated": [
+            0.011868577050656807,
+            -0.000575058064355305,
+            2.3254404681839365
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00022188151086632857,
+            0.0,
+            -3.1768077500112057
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.445283,
+          "poseTime": 1792515255.445247,
+          "truthTime": 0.0,
+          "simulationTime": 11.11999999999922,
+          "estimated": [
+            0.011853249868416014,
+            -0.0005604783900960693,
+            2.0078804613665615
+          ],
+          "truth": [],
+          "speeds": [
+            0.00014792100724414503,
+            0.0,
+            -3.1768077500112057
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.548191,
+          "poseTime": 1792515255.548119,
+          "truthTime": 0.0,
+          "simulationTime": 11.219999999999208,
+          "estimated": [
+            0.01162428642450974,
+            -0.00040341498737332383,
+            1.687724144411397
+          ],
+          "truth": [],
+          "speeds": [
+            0.0005547037771657104,
+            0.0,
+            -3.1762731139038323
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.645019,
+          "poseTime": 1792515255.645005,
+          "truthTime": 0.0,
+          "simulationTime": 11.319999999999197,
+          "estimated": [
+            0.011624345063803297,
+            -0.0003851277022458556,
+            1.3708601100620672
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0004067827699216764,
+            0.0,
+            -3.176273113903832
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.745028,
+          "poseTime": 1792515255.745013,
+          "truthTime": 0.0,
+          "simulationTime": 11.419999999999186,
+          "estimated": [
+            0.011627565800847351,
+            -0.0003761872440887318,
+            1.0509203325601357
+          ],
+          "truth": [],
+          "speeds": [
+            -3.6980251810980747e-05,
+            0.0,
+            -3.176273113903833
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.845072,
+          "poseTime": 1792515255.845054,
+          "truthTime": 0.0,
+          "simulationTime": 11.519999999999175,
+          "estimated": [
+            0.011632412490649247,
+            -0.00037346342985177146,
+            0.736814058261165
+          ],
+          "truth": [],
+          "speeds": [
+            0.00044376302173265714,
+            0.0,
+            -3.175952332239409
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ],
+      "estimatedHeadingChange": -4.837582436738794
+    },
+    "spin_reversal": {
+      "speeds": [
+        -0.00012943088133876568,
+        -8.748115240875265e-05,
+        3.1765404319575197
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515255.845072,
+          "poseTime": 1792515255.845054,
+          "truthTime": 0.0,
+          "simulationTime": 11.519999999999175,
+          "estimated": [
+            0.011632412490649247,
+            -0.00037346342985177146,
+            0.736814058261165
+          ],
+          "truth": [],
+          "speeds": [
+            0.00044376302173265714,
+            0.0,
+            -3.175952332239409
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515255.945024,
+          "poseTime": 1792515255.945009,
+          "truthTime": 0.0,
+          "simulationTime": 11.619999999999164,
+          "estimated": [
+            0.012223669111276226,
+            -0.0005520745563626434,
+            0.4191428633318682
+          ],
+          "truth": [],
+          "speeds": [
+            0.0398277312005092,
+            -0.03761689553577796,
+            -3.062716404697777
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.045198,
+          "poseTime": 1792515256.045176,
+          "truthTime": 0.0,
+          "simulationTime": 11.719999999999153,
+          "estimated": [
+            0.016731384216868102,
+            -0.002806287268664701,
+            0.2023266241753697
+          ],
+          "truth": [],
+          "speeds": [
+            0.030730589254989116,
+            -0.029953546584768342,
+            -0.899151005380149
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.145007,
+          "poseTime": 1792515256.144997,
+          "truthTime": 0.0,
+          "simulationTime": 11.819999999999142,
+          "estimated": [
+            0.020209422656022137,
+            -0.005131143283234239,
+            0.184653355198039
+          ],
+          "truth": [],
+          "speeds": [
+            0.03006494472238999,
+            -0.029078735060680497,
+            0.8863197388031939
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.245079,
+          "poseTime": 1792515256.245059,
+          "truthTime": 0.0,
+          "simulationTime": 11.919999999999131,
+          "estimated": [
+            0.023947454019478495,
+            -0.007302086505422395,
+            0.34557919974379714
+          ],
+          "truth": [],
+          "speeds": [
+            0.030490217618217186,
+            -0.03035595988584866,
+            2.68328515929506
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.34504,
+          "poseTime": 1792515256.345025,
+          "truthTime": 0.0,
+          "simulationTime": 12.01999999999912,
+          "estimated": [
+            0.02478929819169949,
+            -0.007649883746654087,
+            0.6488818759512279
+          ],
+          "truth": [],
+          "speeds": [
+            -1.8490125905490373e-05,
+            -8.748115240875265e-05,
+            3.1767542864004685
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.445069,
+          "poseTime": 1792515256.445052,
+          "truthTime": 0.0,
+          "simulationTime": 12.11999999999911,
+          "estimated": [
+            0.02479552656790332,
+            -0.007646054614815171,
+            0.9664804059374774
+          ],
+          "truth": [],
+          "speeds": [
+            0.0004992333994492393,
+            -5.248869144525159e-05,
+            3.1761127230716206
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.545262,
+          "poseTime": 1792515256.545246,
+          "truthTime": 0.0,
+          "simulationTime": 12.219999999999098,
+          "estimated": [
+            0.024797271719493915,
+            -0.0076326982475929785,
+            1.2844248095235782
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00016641113314985745,
+            0.0002274509962628679,
+            3.1769681408434183
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.645126,
+          "poseTime": 1792515256.645096,
+          "truthTime": 0.0,
+          "simulationTime": 12.319999999999087,
+          "estimated": [
+            0.024801114152354812,
+            -0.007613421154909875,
+            1.6017528224038953
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            -8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.747506,
+          "poseTime": 1792515256.74749,
+          "truthTime": 0.0,
+          "simulationTime": 12.419999999999076,
+          "estimated": [
+            0.024794050047166092,
+            -0.007600855041074579,
+            1.9216349116605702
+          ],
+          "truth": [],
+          "speeds": [
+            0.00035131239220509425,
+            -8.748115240875265e-05,
+            3.1756850141857234
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.845039,
+          "poseTime": 1792515256.845026,
+          "truthTime": 0.0,
+          "simulationTime": 12.519999999999065,
+          "estimated": [
+            0.024781303192288204,
+            -0.007569219872418811,
+            2.2376352644428654
+          ],
+          "truth": [],
+          "speeds": [
+            1.8490125905490373e-05,
+            -5.248869144525159e-05,
+            3.177502776950791
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515256.945059,
+          "poseTime": 1792515256.94504,
+          "truthTime": 0.0,
+          "simulationTime": 12.619999999999054,
+          "estimated": [
+            0.024767648242588914,
+            -0.007562697119492754,
+            2.5554209818065137
+          ],
+          "truth": [],
+          "speeds": [
+            1.849012590537935e-05,
+            0.0002274509962628679,
+            3.1764335047360444
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.045121,
+          "poseTime": 1792515257.045092,
+          "truthTime": 0.0,
+          "simulationTime": 12.719999999999043,
+          "estimated": [
+            0.0247557665377481,
+            -0.007555770866042569,
+            2.873047936592923
+          ],
+          "truth": [],
+          "speeds": [
+            0.00016641113314974643,
+            -8.748115240875265e-05,
+            3.1751503780783494
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.152409,
+          "poseTime": 1792515257.152383,
+          "truthTime": 0.0,
+          "simulationTime": 12.819999999999032,
+          "estimated": [
+            0.02481645234703244,
+            -0.007618892630581955,
+            -3.092044057419196
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            -8.748115240875265e-05,
+            3.1770750680648927
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.245038,
+          "poseTime": 1792515257.24502,
+          "truthTime": 0.0,
+          "simulationTime": 12.919999999999021,
+          "estimated": [
+            0.024785847845637348,
+            -0.007608685719752964,
+            -2.7753098204089497
+          ],
+          "truth": [],
+          "speeds": [
+            0.00020339138496072717,
+            -5.248869144525159e-05,
+            3.1769681408434183
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.345166,
+          "poseTime": 1792515257.345141,
+          "truthTime": 0.0,
+          "simulationTime": 13.01999999999901,
+          "estimated": [
+            0.024685208170188138,
+            -0.0075934246764968434,
+            -2.4551342421085685
+          ],
+          "truth": [],
+          "speeds": [
+            0.00031433214039389146,
+            0.0002274509962628679,
+            3.175578086964248
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.445627,
+          "poseTime": 1792515257.4456,
+          "truthTime": 0.0,
+          "simulationTime": 13.119999999999,
+          "estimated": [
+            0.024677834495616998,
+            -0.007617673536927607,
+            -2.139319334993703
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0003143321403940025,
+            -8.748115240886367e-05,
+            3.1765404319575197
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.545162,
+          "poseTime": 1792515257.545144,
+          "truthTime": 0.0,
+          "simulationTime": 13.219999999998988,
+          "estimated": [
+            0.024677971924666243,
+            -0.007644381254869554,
+            -1.8224075110052236
+          ],
+          "truth": [],
+          "speeds": [
+            5.547037771647112e-05,
+            -8.748115240875265e-05,
+            3.1765404319575197
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.645208,
+          "poseTime": 1792515257.64519,
+          "truthTime": 0.0,
+          "simulationTime": 13.319999999998977,
+          "estimated": [
+            0.024673782754936098,
+            -0.007663750701490678,
+            -1.5041448070202703
+          ],
+          "truth": [],
+          "speeds": [
+            0.0004992333994492393,
+            -5.248869144525159e-05,
+            3.1761127230716206
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.745007,
+          "poseTime": 1792515257.745001,
+          "truthTime": 0.0,
+          "simulationTime": 13.419999999998966,
+          "estimated": [
+            0.024680819270384277,
+            -0.007675362346054413,
+            -1.1872678834811803
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00016641113314985745,
+            0.0002274509962628679,
+            3.1769681408434183
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.845095,
+          "poseTime": 1792515257.845075,
+          "truthTime": 0.0,
+          "simulationTime": 13.519999999998955,
+          "estimated": [
+            0.024695783050018183,
+            -0.0075936300959089246,
+            -0.8677867817109086
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            -8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ],
+      "estimatedHeadingChange": 4.6785844672075125
+    },
+    "stopping": {
+      "speeds": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515257.845095,
+          "poseTime": 1792515257.845075,
+          "truthTime": 0.0,
+          "simulationTime": 13.519999999998955,
+          "estimated": [
+            0.024695783050018183,
+            -0.0075936300959089246,
+            -0.8677867817109086
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00012943088133876568,
+            -8.748115240886367e-05,
+            3.176005795850146
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515257.945012,
+          "poseTime": 1792515257.945002,
+          "truthTime": 0.0,
+          "simulationTime": 13.619999999998944,
+          "estimated": [
+            0.024680276796383273,
+            -0.0076057130875357365,
+            -0.5520748374967365
+          ],
+          "truth": [],
+          "speeds": [
+            0.00035131239220509425,
+            -8.748115240875265e-05,
+            3.1756850141857234
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.045029,
+          "poseTime": 1792515258.045021,
+          "truthTime": 0.0,
+          "simulationTime": 13.719999999998933,
+          "estimated": [
+            0.024679919835164387,
+            -0.0076886376404879855,
+            -0.3238499644121727
+          ],
+          "truth": [],
+          "speeds": [
+            -0.0005362136512603588,
+            -5.24886914453071e-05,
+            0.9881679172577771
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.145247,
+          "poseTime": 1792515258.145231,
+          "truthTime": 0.0,
+          "simulationTime": 13.819999999998922,
+          "estimated": [
+            0.024655760415505257,
+            -0.007672238094987234,
+            -0.2842105552447357
+          ],
+          "truth": [],
+          "speeds": [
+            -0.00011094075543317383,
+            8.673617379884035e-19,
+            0.028549568133725754
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.251382,
+          "poseTime": 1792515258.251363,
+          "truthTime": 0.0,
+          "simulationTime": 13.919999999998911,
+          "estimated": [
+            0.02465576100616807,
+            -0.0076722343810332,
+            -0.2828272966595613
+          ],
+          "truth": [],
+          "speeds": [
+            -3.698025181105783e-05,
+            5.421010862427522e-20,
+            0.0026731805368657075
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.305078,
+          "poseTime": 1792515258.345009,
+          "truthTime": 0.0,
+          "simulationTime": 14.0199999999989,
+          "estimated": [
+            0.024655761319582425,
+            -0.00767223406083675,
+            -0.28268386461533557
+          ],
+          "truth": [],
+          "speeds": [
+            -3.698025181105783e-05,
+            1.3552527156068805e-20,
+            0.0005346361073731415
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.119999999998889,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.219999999998878,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.319999999998867,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.419999999998856,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.519999999998845,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.619999999998834,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.719999999998823,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.819999999998812,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 14.9199999999988,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.01999999999879,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.119999999998779,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.219999999998768,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.319999999998757,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.419999999998746,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.519999999998735,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ],
+      "estimatedHeadingChange": 0.5851028846433579
+    },
+    "disabled_final": {
+      "speeds": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "trajectory": [
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.519999999998735,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.619999999998724,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.719999999998713,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.819999999998702,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 15.91999999999869,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.01999999999869,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.119999999998722,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.219999999998755,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.31999999999879,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.419999999998822,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.519999999998856,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.61999999999889,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.719999999998922,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.819999999998956,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 16.91999999999899,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 17.019999999999023,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 17.119999999999056,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 17.21999999999909,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 17.319999999999123,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 17.419999999999156,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        },
+        {
+          "ntTime": 1792515258.365026,
+          "poseTime": 1792515258.385018,
+          "truthTime": 0.0,
+          "simulationTime": 17.51999999999919,
+          "estimated": [
+            0.0246557727870108,
+            -0.007672237337030583,
+            -0.2826838970675507
+          ],
+          "truth": [],
+          "speeds": [
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "structTimes": {
+            "RobotTruth": 0,
+            "RobotEstimated": 0,
+            "Pieces": 0
+          }
+        }
+      ]
+    }
+  },
+  "checks": {
+    "forward_pose_changes": true,
+    "initial_disabled_stationary": true,
+    "forward_speed_tracking": true,
+    "reverse_speed_tracking": true,
+    "turn_speed_tracking": true,
+    "negative_turn_velocity": true,
+    "spin_reversal_velocity": true,
+    "zero_input_stops": true,
+    "final_disabled_stationary": true,
+    "turn_heading_matches_rate": true,
+    "negative_turn_heading_matches_rate": true,
+    "spin_reversal_heading_matches_rate": true,
+    "stopping_heading_matches_rate": true
+  },
+  "runToken": "8e138ee850ec40038a53d3320c2ae705",
+  "passed": true
+}

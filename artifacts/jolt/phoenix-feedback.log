@@ -1,0 +1,17 @@
+HAL Extensions: No extensions found
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+Note: Google Test filter = DriveSimulation.*
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from DriveSimulation
+[ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+[       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2653 ms)
+[----------] 1 test from DriveSimulation (2653 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2653 ms total)
+[  PASSED  ] 1 test.
+[phoenix-diagnostics] Server shutdown cleanly. (dur:0)
+
+[phoenix] Library shutdown cleanly

@@ -121,10 +121,11 @@ python scripts/sim_headless.py --backend jolt-planar --smoke-output artifacts/sm
 python scripts/sim_headless.py --backend jolt-3d --smoke-output artifacts/smoke-3d.json
 ```
 
-Run `./gradlew prepareHeadlessSimulation` to resolve the pinned HAL websocket archive.
+Run `./gradlew prepareHeadlessSimulation` first to build/install the desktop release
+runtime and resolve the pinned HAL websocket archive.
 Use `.\gradlew.bat prepareHeadlessSimulation` in Windows PowerShell.
 The launcher rejects occupied local ports, verifies a per-run process identity,
-snapshots runtime libraries, and loads only the HAL websocket extension. It
+snapshots the application runtime libraries, and loads only the HAL websocket extension. It
 controls localhost. Install `pyntcore>=2026,<2027` and `websockets>=14,<17`
 in the Python environment. `WPILIB_ROOT` overrides the WPILib installation;
 the launcher also searches the Gradle archive cache.
@@ -164,6 +165,9 @@ build configuration, compiler, and revision alongside results. A p99 below 4 ms
 on the intended practice machine is enforced by the benchmark wrapper, not a hardware latency
 or MapleSim performance claim. CI builds/tests Windows and Linux and uploads
 benchmark, smoke, and test evidence.
+
+Model parameters, units, ownership, and fidelity limits are detailed in
+[the simulation configuration guide](docs/jolt-simulation.md).
 
 Recorded revisions, review dispositions, local measurements, and platform checks
 are in [the Jolt verification record](artifacts/jolt/STATUS.md).

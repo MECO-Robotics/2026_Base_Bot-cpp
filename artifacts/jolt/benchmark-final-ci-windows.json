@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "machine": {
+      "system": "Windows",
+      "node": "runnervmgnbhw",
+      "release": "2022Server",
+      "version": "10.0.20348",
+      "machine": "AMD64",
+      "processor": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD"
+    },
+    "cpu": "AMD64 Family 25 Model 1 Stepping 1, AuthenticAMD",
+    "compiler": "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe",
+    "compilerVersion": "C/C++ COMPILER OPTIONS\n\n\n                              -OPTIMIZATION-\n\n/O1 maximum optimizations (favor space) /O2 maximum optimizations (favor speed)\n/Ob<n> inline expansion (default n=0)   /Od disable optimizations (default)\n/Og enable global optimization          /Oi[-] enable intrinsic functions\n/Os favor code space                    /Ot favor code speed\n/Ox optimizations (favor speed)         \n/favor:<blend|AMD64|INTEL64|ATOM> select processor to optimize for, one of:\n    blend - a combination of optimizations for several different x64 processors\n    AMD64 - 64-bit AMD processors\n    INTEL64 - Intel(R)64 architecture processors\n    ATOM - Intel(R) Atom(TM) processors\n\n                             -CODE GENERATION-\n\n/Gu[-] ensure distinct functions have distinct addresses\n/Gw[-] separate global variables for linker\n/GF enable read-only string pooling     /Gy[-] separate functions for linker\n/GS[-] enable security checks           /GR[-] enable C++ RTTI\n/guard:cf[-] enable CFG (control flow guard)\n/guard:ehcont[-] enable EH continuation metadata (CET)\n/EHs enable C++ EH (no SEH exceptions)  /EHa enable C++ EH (w/ SEH exceptions)\n/EHc extern \"C\" defaults to nothrow     \n/EHr always generate noexcept runtime termination checks\n/fp:<contract|except[-]|fast|precise|strict> choose floating-point model:\n    contract - consider floating-point contractions when generating code\n    except[-] - consider floating-point exceptions when generating code\n    fast - \"fast\" floating-point model; results are less predictable\n    precise - \"precise\" floating-point model; results are predictable\n    strict - \"strict\" floating-point model (implies /fp:except)\n/Qfast_transcendentals generate inline FP intrinsics even with /fp:except\n/Qspectre[-] enable mitigations for CVE 2017-5753\n/Qpar[-] enable parallel code generation\n/Qpar-report:1 auto-parallelizer diagnostic; indicate parallelized loops\n/Qpar-report:2 auto-parallelizer diagnostic; indicate loops not parallelized\n/Qvec-report:1 auto-vectorizer diagnostic; indicate vectorized loops\n/Qvec-report:2 auto-vectorizer diagnostic; indicate loops not vectorized\n/GL[-] enable link-time code generation \n/volatile:<iso|ms> choose volatile model:\n    iso - Acquire/release semantics not guaranteed on volatile accesses\n    ms  - Acquire/release semantics guaranteed on volatile accesses\n/GA optimize for Windows Application    /Ge force stack checking for all funcs\n/Gs[num] control stack checking calls   /Gh enable _penter function call\n/GH enable _pexit function call         /GT generate fiber-safe TLS accesses\n/RTC1 Enable fast checks (/RTCsu)       /RTCc Convert to smaller type checks\n/RTCs Stack Frame runtime checking      /RTCu Uninitialized local usage checks\n/clr[:option] compile for common language runtime, where option is:\n    pure : produce IL-only output file (no native executable code)\n    safe : produce IL-only verifiable output file\n    netcore : produce assemblies targeting .NET Core runtime\n    noAssembly : do not produce an assembly\n    nostdlib : ignore the system .NET framework directory when searching for assemblies\n    nostdimport : do not import any required assemblies implicitly\n    initialAppDomain : enable initial AppDomain behavior of Visual C++ 2002\n    implicitKeepAlive- : turn off implicit emission of System::GC::KeepAlive(this)\n    char_t- : turn off metadata support for char8_t, char16_t and char32_t\n    ECMAParamArray : use rules specified in ECMA-372/14.6 for overloads with parameter arrays (implied by /clr)\n    ECMAParamArray- : use new rules for overloads with parameter arrays (implied by /clr:netcore)\n/fsanitize=address Enable address sanitizer codegen\n/homeparams Force parameters passed in registers to be written to the stack\n/GZ Enable stack checks (/RTCs)         /Gv __vectorcall calling convention\n(Preview) /dynamicdeopt Enable dynamic debugging; place deoptimized breakpoints and step in anywhere with on-demand function deoptimization\n(Preview) /dynamicdeopt:suffix <suffix> File extension suffix for deoptimized output (default: .alt)\n(Preview) /dynamicdeopt:sync Build deoptimized output after optimized output instead of in parallel\n/arch:<SSE2|SSE4.2|AVX|AVX2|AVX512|AVX10.x> minimum CPU architecture requirements, one of:\n   SSE2 - (default) enable use of instructions available with SSE2-enabled CPUs\n   SSE4.2 - enable use of instructions available with SSE 4.2-enabled CPUs\n   AVX - enable use of instructions available with AVX-enabled CPUs\n   AVX2 - enable use of instructions available with AVX2-enabled CPUs\n   AVX512 - enable use of instructions available with AVX-512-enabled CPUs\n   AVX10.x - enable use of instructions available with AVX10.x-enabled CPUs. Valid values of x are 1\n/QIntel-jcc-erratum enable mitigations for Intel JCC erratum\n/Qspectre-load Enable spectre mitigations for all instructions which load memory\n/Qspectre-load-cf Enable spectre mitigations for all control-flow instructions which load memory\n/Qspectre-jmp[-] Enable spectre mitigations for unconditional jump instructions\n/fpcvt:<IA|BC> FP to unsigned integer conversion compatibility\n   IA - results compatible with VCVTTSD2USI instruction\n   BC - results compatible with VS2017 and earlier compiler\n/jumptablerdata Place jump tables for switch case statements in .rdata section\n/vlen=<256|512> Choose vector length of either 256 or 512 for automatic code-generation\n/vlen Choose default vector length based on /arch setting\n\n                              -OUTPUT FILES-\n\n/Fa[file] name assembly listing file    /FA[scu] configure assembly listing\n/Fd[file] name .PDB file                /Fe<file> name executable file\n/Fm[file] name map file                 /Fo<file> name object file\n/Fp<file> name precompiled header file  /Fr[file] name source browser file\n/FR[file] name extended .SBR file       /Fi[file] name preprocessed file\n/Fd: <file> name .PDB file              /Fe: <file> name executable file\n/Fm: <file> name map file               /Fo: <file> name object file\n/Fp: <file> name .PCH file              /FR: <file> name extended .SBR file\n/Fi: <file> name preprocessed file      \n/Ft<dir> location of the header files generated for #import\n/doc[file] process XML documentation comments and optionally name the .xdc file\n\n                              -PREPROCESSOR-\n\n/AI<dir> add to assembly search path    /FU<file> import .NET assembly/module\n/FU:asFriend<file> import .NET assembly/module as friend\n/C don't strip comments                 /D<name>{=|#}<text> define macro\n/E preprocess to stdout                 /EP preprocess to stdout, no #line\n/P preprocess to file                   /Fx merge injected code to file\n/FI<file> name forced include file      /U<name> remove predefined macro\n/u remove all predefined macros         /I<dir> add to include search path\n/X ignore \"standard places\"             \n/PH generate #pragma file_hash when preprocessing\n/PD print all macro definitions         \n\n                                -LANGUAGE-\n\n/std:<c++14|c++17|c++20|c++latest> C++ standard version\n    c++14 - ISO/IEC 14882:2014 (default)\n    c++17 - ISO/IEC 14882:2017\n    c++20 - ISO/IEC 14882:2020\n    c++latest - latest draft standard (feature set subject to change)\n/std:<c11|c17|clatest> C standard version\n    c11 - ISO/IEC 9899:2011\n    c17 - ISO/IEC 9899:2018\n    clatest - latest draft standard (feature set subject to change)\n/permissive[-] enable some nonconforming code to compile\n               (feature set subject to change) (off by default in C++20 and later)\n/Za disable extensions (not recommended for C++)\n/ZW enable WinRT language extensions    /Zs syntax check only\n/await enable resumable functions extension\n/await:strict enable standard C++20 coroutine support with earlier language versions\n/constexpr:depth<N>     recursion depth limit for constexpr evaluation (default: 512)\n/constexpr:backtrace<N> show N constexpr evaluations in diagnostics (default: 10)\n/constexpr:steps<N>     terminate constexpr evaluation after N steps (default: 1048576)\n/Zi enable debugging information        /Z7 enable old-style debug info\n/Zo[-] generate richer debugging information for optimized code (on by default)\n/ZH:[MD5|SHA1|SHA_256] hash algorithm for calculation of file checksum in debug info (default: SHA_256)\n/Zp[n] pack structs on n-byte boundary  /Zl omit default library name in .OBJ\n/vd{0|1|2} disable/enable vtordisp      /vm<x> type of pointers to members\n/Zc:arg1[,arg2] language conformance, where arguments can be:\n  forScope[-]           enforce Standard C++ for scoping rules\n  wchar_t[-]            wchar_t is the native type, not a typedef\n  auto[-]               enforce the new Standard C++ meaning for auto\n  trigraphs[-]          enable trigraphs (off by default)\n  rvalueCast[-]         enforce Standard C++ explicit type conversion rules\n                        (on by default in C++20 or later, implied by /permissive-)\n  strictStrings[-]      disable string-literal to [char|wchar_t]*\n                        conversion (on by default in C++20 or later, implied by /permissive-)\n  implicitNoexcept[-]   enable implicit noexcept on required functions\n  threadSafeInit[-]     enable thread-safe local static initialization\n  inline[-]             remove unreferenced function or data if it is\n                        COMDAT or has internal linkage only (off by default)\n  sizedDealloc[-]       enable C++14 global sized deallocation\n                        functions (on by default)\n  throwingNew[-]        assume operator new throws on failure (off by default)\n  referenceBinding[-]   a temporary will not bind to a non-const\n                        lvalue reference (on by default in C++20 or later, implied by /permissive-)\n  twoPhase-             disable two-phase name lookup\n  ternary[-]            enforce C++11 rules for conditional operator\n                        (on by default in C++20 or later, implied by /permissive-)\n  noexceptTypes[-]      enforce C++17 noexcept rules (on by default in C++17 or later)\n  alignedNew[-]         enable C++17 alignment of dynamically allocated objects (on by default)\n  hiddenFriend[-]       enforce Standard C++ hidden friend rules\n                        (on by default in C++20 or later, implied by /permissive-)\n  externC[-]            enforce Standard C++ rules for 'extern \"C\"' functions\n                        (on by default in C++20 or later, implied by /permissive-)\n  lambda[-]             better lambda support by using the newer lambda processor\n                        (on by default in C++20 or later, implied by /permissive-)\n  tlsGuards[-]          generate runtime checks for TLS variable initialization (on by default)\n  zeroSizeArrayNew[-]   call member new/delete for 0-size arrays of objects (on by default)\n  static_assert[-]      strict handling of 'static_assert' (on by default in C++20 or later,\n                        implied by /permissive-)\n  gotoScope[-]          cannot jump past the initialization of a variable (implied by /permissive-)\n  templateScope[-]      enforce Standard C++ template parameter shadowing rules\n  enumTypes[-]          enable Standard C++ underlying enum types (off by default)\n  checkGwOdr[-]         enforce Standard C++ one definition rule violations\n                        when /Gw has been enabled (off by default)\n  nrvo[-]               enable optional copy and move elision (on by default in C++20 or later,\n                        implied by /permissive- or /O2)\n  __STDC__              define __STDC__ to 1 in C\n  __cplusplus[-]        __cplusplus macro reports the supported C++ standard (off by default)\n  char8_t[-]            enable C++20 native `u8` literal support as `const char8_t`\n                        (on by default in C++20 or later)\n  externConstexpr[-]    enable external linkage for constexpr variables in C++\n                        (on by default in C++20 or later, implied by /permissive-)\n  preprocessor[-]       enable standard conforming preprocessor in C/C++\n                        (on by default in C11 or later)\n/ZI enable Edit and Continue debug info \n/openmp enable OpenMP 2.0 language extensions\n/openmp:experimental enable OpenMP 2.0 language extensions plus select OpenMP 3.0+ language extensions\n/openmp:llvm OpenMP language extensions using LLVM runtime\n\n                              -MISCELLANEOUS-\n\n@<file> options response file           /?, /help print this help message\n/bigobj generate extended object format /c compile only, no link\n/FC use full pathnames in diagnostics   /H<num> max external name length\n/J default char type is unsigned        \n/MP[n] use up to 'n' processes for compilation\n/nologo suppress copyright message      /showIncludes show include file names\n/Tc<source file> compile file as .c     /Tp<source file> compile file as .cpp\n/TC compile all files as .c             /TP compile all files as .cpp\n/V<string> set version string           /Yc[file] create .PCH file\n/Yd put debug info in every .OBJ        /Yl[sym] inject .PCH ref for debug lib\n/Yu[file] use .PCH file                 /Y- disable all PCH options\n/Zm<n> max memory alloc (% of default)  /FS force to use MSPDBSRV.EXE\n/source-charset:<iana-name>|.nnnn set source character set\n/execution-charset:<iana-name>|.nnnn set execution character set\n/utf-8 set source and execution character set to UTF-8\n/validate-charset[-] validate UTF-8 files for only legal characters\n/fastfail[-] enable fast-fail mode      /JMC[-] enable native just my code\n/presetPadding[-] zero initialize padding for stack based class types\n/volatileMetadata[-] generate metadata on volatile memory accesses\n/sourcelink [file] file containing source link information\n\n                                -LINKING-\n\n/LD Create .DLL                         /LDd Create .DLL debug library\n/LN Create a .netmodule                 /F<num> set stack size\n/link [linker options and libraries]    /MD link with MSVCRT.LIB\n/MT link with LIBCMT.LIB                /MDd link with MSVCRTD.LIB debug lib\n/MTd link with LIBCMTD.LIB debug lib    \n\n                              -CODE ANALYSIS-\n\n/analyze[-] Enable native analysis      /analyze:quiet[-] No warning to console\n/analyze:log<name> Warnings to file     /analyze:autolog Log to *.pftlog\n/analyze:autolog:ext<ext> Log to *.<ext>/analyze:autolog- No log file\n/analyze:WX- Warnings not fatal         /analyze:stacksize<num> Max stack frame\n/analyze:max_paths<num> Max paths       /analyze:only Analyze, no code gen\n\n                              -DIAGNOSTICS-\n\n/diagnostics:<args,...> controls the format of diagnostic messages:\n             classic   - retains prior format\n             column[-] - prints column information\n             caret[-]  - prints column and the indicated line of source\n/Wall enable all warnings               /w   disable all warnings\n/W<n> set warning level (default n=1)   \n/Wv:xx[.yy[.zzzzz]] disable warnings introduced after version xx.yy.zzzzz\n/WX treat warnings as errors            /WL enable one line diagnostics\n/wd<n> disable warning n                /we<n> treat warning n as an error\n/wo<n> issue warning n once             /w<l><n> set warning level 1-4 for n\n/external:I <path>      - location of external headers\n/external:env:<var>     - environment variable with locations of external headers\n/external:anglebrackets - treat all headers included via <> as external\n/external:W<n>          - warning level for external headers\n/external:templates[-]  - evaluate warning level across template instantiation chain\n/sdl enable additional security features and warnings\n/options:strict unrecognized compiler options are an error\n\nMicrosoft (R) C/C++ Optimizing Compiler Version 19.44.35229 for x64\nCopyright (C) Microsoft Corporation.  All rights reserved.",
+    "buildType": "Release",
+    "cxxFlags": {
+      "CMAKE_CXX_FLAGS": "/DWIN32 /D_WINDOWS /EHsc",
+      "CMAKE_CXX_FLAGS_DEBUG": "/Zi /Ob0 /Od /RTC1",
+      "CMAKE_CXX_FLAGS_MINSIZEREL": "/O1 /Ob1 /DNDEBUG",
+      "CMAKE_CXX_FLAGS_RELEASE": "/O2 /Ob2 /DNDEBUG",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "/Zi /O2 /Ob1 /DNDEBUG",
+      "CMAKE_CXX_FLAGS-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_DEBUG-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_RELEASE-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED": "1"
+    },
+    "revision": "c890889c59551131a1427791b51b9d5793641f6f",
+    "workingTreeChanges": "",
+    "measurement": "Complete registered model/arena before -> Jolt -> after substep; excludes robot controls and telemetry"
+  },
+  "acceptance": {
+    "maximumP99Milliseconds": 4.0,
+    "passed": true
+  },
+  "results": [
+    {
+      "mode": "jolt-planar",
+      "scene": "empty",
+      "bodies": 2,
+      "peakContactManifolds": 0,
+      "samples": 5000,
+      "medianSeconds": 5e-06,
+      "p99Seconds": 5.6e-06,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-planar",
+      "scene": "typical",
+      "bodies": 16,
+      "peakContactManifolds": 3,
+      "samples": 5000,
+      "medianSeconds": 8.5e-06,
+      "p99Seconds": 1.17e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-planar",
+      "scene": "dense",
+      "bodies": 316,
+      "peakContactManifolds": 907,
+      "samples": 5000,
+      "medianSeconds": 0.0005687,
+      "p99Seconds": 0.0016461,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "empty",
+      "bodies": 2,
+      "peakContactManifolds": 0,
+      "samples": 5000,
+      "medianSeconds": 7.3e-06,
+      "p99Seconds": 7.9e-06,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "typical",
+      "bodies": 17,
+      "peakContactManifolds": 4,
+      "samples": 5000,
+      "medianSeconds": 1.37e-05,
+      "p99Seconds": 1.74e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "dense",
+      "bodies": 317,
+      "peakContactManifolds": 765,
+      "samples": 5000,
+      "medianSeconds": 0.0007827,
+      "p99Seconds": 0.001254,
+      "deadlineMisses": 0
+    }
+  ]
+}

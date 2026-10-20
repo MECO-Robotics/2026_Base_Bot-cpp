@@ -1,0 +1,57 @@
+992-2026-10-20T18:21:34.2300799Z [----------] 2 tests from CommandLifecycle (8 ms total)
+993-2026-10-20T18:21:34.2301039Z
+994:2026-10-20T18:21:34.2301180Z [----------] 1 test from DriveSimulation
+995:2026-10-20T18:21:34.2301679Z [ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+996:2026-10-20T18:21:34.2302341Z [DriveSim] Verified Phoenix configuration transport after 0.0683133 s, 1 attempt(s)
+997:2026-10-20T18:21:35.7395444Z [       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2894 ms)
+998:2026-10-20T18:21:35.7396921Z [----------] 1 test from DriveSimulation (2894 ms total)
+999-2026-10-20T18:21:35.7398108Z
+1000-2026-10-20T18:21:35.7400162Z [----------] 6 tests from MotorSimulation
+--
+1123-2026-10-20T18:21:41.9098546Z [----------] 2 tests from CommandLifecycle (1 ms total)
+1124-2026-10-20T18:21:41.9098938Z
+1125:2026-10-20T18:21:41.9099491Z [----------] 1 test from DriveSimulation
+1126:2026-10-20T18:21:41.9100247Z [ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+1127-2026-10-20T18:21:41.9101383Z DataLog: Logging to 'D:\a\2026_Base_Bot-cpp\2026_Base_Bot-cpp\build\test-results\frcUserProgramTest\windowsx86-64\release/logs\FRC_TBD_227896069d98958e.wpilog' (144.0 GiB free space)
+1128-2026-10-20T18:21:41.9102498Z [phoenix] CANbus Connected: sim
+1129-2026-10-20T18:21:41.9102776Z [phoenix] CANbus Network Up: sim
+1130:2026-10-20T18:21:41.9103163Z [DriveSim] Verified Phoenix configuration transport after 0.07033 s, 1 attempt(s)
+1131:2026-10-20T18:21:42.8675787Z [       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2751 ms)
+1132:2026-10-20T18:21:42.8676966Z [----------] 1 test from DriveSimulation (2751 ms total)
+1133-2026-10-20T18:21:42.8677585Z
+1134-2026-10-20T18:21:42.8677942Z [----------] 6 tests from MotorSimulation
+--
+1515-2026-10-20T18:21:58.3596944Z HAL Extensions: Successfully loaded extension
+1516-2026-10-20T18:21:58.3601720Z
+1517:2026-10-20T18:21:58.3602093Z ********** Robot program starting **********
+1518-2026-10-20T18:21:58.3602652Z Not loading CameraServerShared
+1519-2026-10-20T18:21:58.3613468Z NT: could not open persistent file 'networktables.json': no such file or directory (this can be ignored if you aren't expecting persistent values)
+--
+1521-2026-10-20T18:21:58.4397877Z [phoenix] CANbus Connected: sim
+1522-2026-10-20T18:21:58.4398386Z [phoenix] CANbus Network Up: sim
+1523:2026-10-20T18:21:58.4398946Z [DriveSim] Verified Phoenix configuration transport after 0.0675871 s, 1 attempt(s)
+1524-2026-10-20T18:21:58.6712652Z Warning: Joystick Button 4 missing (max 0), check if all controllers are plugged in
+1525-2026-10-20T18:21:59.1718112Z NT: Got a NT4 connection from 127.0.0.1 port 52224
+--
+1530-2026-10-20T18:22:01.4998974Z
+1531-2026-10-20T18:22:01.4999096Z
+1532:2026-10-20T18:22:01.4999241Z ********** Robot program startup complete **********
+1533-2026-10-20T18:22:01.4999724Z Default frc::IterativeRobotBase::DisabledPeriodic() method... Override me!
+1534-2026-10-20T18:22:01.5000386Z DataLog: Logging to 'D:\a\2026_Base_Bot-cpp\2026_Base_Bot-cpp/logs\FRC_TBD_a214122c28588b63.wpilog' (143.3 GiB free space)
+--
+5705-2026-10-20T18:22:31.5463523Z HAL Extensions: Successfully loaded extension
+5706-2026-10-20T18:22:31.5468361Z
+5707:2026-10-20T18:22:31.5468626Z ********** Robot program starting **********
+5708-2026-10-20T18:22:31.5469031Z Not loading CameraServerShared
+5709-2026-10-20T18:22:31.5481352Z NT: Listening on NT3 port 1735, NT4 port 5810
+5710-2026-10-20T18:22:31.6285327Z [phoenix] CANbus Connected: sim
+5711-2026-10-20T18:22:31.6285808Z [phoenix] CANbus Network Up: sim
+5712:2026-10-20T18:22:31.6286433Z [DriveSim] Verified Phoenix configuration transport after 0.0689718 s, 1 attempt(s)
+5713-2026-10-20T18:22:31.8590307Z Warning: Joystick Button 4 missing (max 0), check if all controllers are plugged in
+5714-2026-10-20T18:22:32.1540671Z NT: Got a NT4 connection from 127.0.0.1 port 52244
+--
+5719-2026-10-20T18:22:34.6935546Z
+5720-2026-10-20T18:22:34.6935656Z
+5721:2026-10-20T18:22:34.6935803Z ********** Robot program startup complete **********
+5722-2026-10-20T18:22:34.6936288Z Default frc::IterativeRobotBase::DisabledPeriodic() method... Override me!
+5723-2026-10-20T18:22:34.6936986Z DataLog: Logging to 'D:\a\2026_Base_Bot-cpp\2026_Base_Bot-cpp/logs\FRC_TBD_8b5b77541c3dd04e.wpilog' (143.3 GiB free space)

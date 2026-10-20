@@ -1,0 +1,153 @@
+
+> Task :buildJoltDebug
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/brian/Documents/FRC/2026_Base_Bot-cpp/build/jolt/Debug
+[ 95%] Built target Jolt
+[ 98%] Built target frc_jolt
+[100%] Built target simulation_benchmark
+
+> Task :compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramCpp UP-TO-DATE
+> Task :compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramTestCpp
+> Task :linkFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :frcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :installFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+
+> Task :runFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+HAL Extensions: No extensions found
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+[==========] Running 30 tests from 16 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from VisionLimelight
+[ RUN      ] VisionLimelight.SingleTagRequiresUsableAmbiguity
+[       OK ] VisionLimelight.SingleTagRequiresUsableAmbiguity (1 ms)
+[ RUN      ] VisionLimelight.MegaTag2DoesNotUseSingleTagAmbiguity
+[       OK ] VisionLimelight.MegaTag2DoesNotUseSingleTagAmbiguity (0 ms)
+[ RUN      ] VisionLimelight.RejectsOverflowingCovariance
+[       OK ] VisionLimelight.RejectsOverflowingCovariance (0 ms)
+[----------] 3 tests from VisionLimelight (1 ms total)
+
+[----------] 1 test from VisionPhoton
+[ RUN      ] VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose
+[       OK ] VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose (21 ms)
+[----------] 1 test from VisionPhoton (21 ms total)
+
+[----------] 1 test from DriveSimulation
+[ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+[DriveSimulation] Verified configuration transport after 0.0604537 s, 1 attempt(s); constructing modules
+[DriveSimulation] Module construction completed at 0.18313 s
+CAN frame not received/too-stale. Check the CAN bus wiring, CAN bus utilization, and power to the device.
+	ctre::phoenix6::BaseStatusSignal::WaitForAll
+[       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2725 ms)
+[----------] 1 test from DriveSimulation (2725 ms total)
+
+[----------] 2 tests from CommandLifecycle
+[ RUN      ] CommandLifecycle.CompletedPositionCommandRetainsPositionHold
+[       OK ] CommandLifecycle.CompletedPositionCommandRetainsPositionHold (45 ms)
+[ RUN      ] CommandLifecycle.SysIdReturnedCommandOwnsRoutineAndStopsOnCancellation
+DataLog: Logging to '/home/brian/Documents/FRC/2026_Base_Bot-cpp/build/test-results/frcUserProgramTest/linuxx86-64/debug/logs/FRC_TBD_9f4a8d12f5a74354.wpilog' (47.1 GiB free space)
+[       OK ] CommandLifecycle.SysIdReturnedCommandOwnsRoutineAndStopsOnCancellation (136 ms)
+[----------] 2 tests from CommandLifecycle (181 ms total)
+
+[----------] 6 tests from MotorSimulation
+[ RUN      ] MotorSimulation.HighReductionConvergesWithoutNumericalReversal
+[       OK ] MotorSimulation.HighReductionConvergesWithoutNumericalReversal (0 ms)
+[ RUN      ] MotorSimulation.CurrentLimitBoundsStartupAcceleration
+[       OK ] MotorSimulation.CurrentLimitBoundsStartupAcceleration (0 ms)
+[ RUN      ] MotorSimulation.ReadsDoNotAdvanceAndRuntimeOwnsLifetime
+[       OK ] MotorSimulation.ReadsDoNotAdvanceAndRuntimeOwnsLifetime (0 ms)
+[ RUN      ] MotorSimulation.GravityAndTravelStopsAllowMotionAway
+[       OK ] MotorSimulation.GravityAndTravelStopsAllowMotionAway (0 ms)
+[ RUN      ] MotorSimulation.RejectsInvalidConfigurationAndTime
+[       OK ] MotorSimulation.RejectsInvalidConfigurationAndTime (0 ms)
+[ RUN      ] MotorSimulation.HeldTravelStopReportsStallCurrent
+[       OK ] MotorSimulation.HeldTravelStopReportsStallCurrent (0 ms)
+[----------] 6 tests from MotorSimulation (1 ms total)
+
+[----------] 1 test from MechanismConfig
+[ RUN      ] MechanismConfig.RejectsInvalidMappingAndLimits
+[       OK ] MechanismConfig.RejectsInvalidMappingAndLimits (0 ms)
+[----------] 1 test from MechanismConfig (0 ms total)
+
+[----------] 1 test from MechanismEncoder
+[ RUN      ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale
+[       OK ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale (0 ms)
+[----------] 1 test from MechanismEncoder (0 ms total)
+
+[----------] 2 tests from MechanismControl
+[ RUN      ] MechanismControl.DisabledAndSoftLimitsPreventVoltage
+[       OK ] MechanismControl.DisabledAndSoftLimitsPreventVoltage (0 ms)
+[ RUN      ] MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory
+[       OK ] MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory (1 ms)
+[----------] 2 tests from MechanismControl (2 ms total)
+
+[----------] 1 test from MechanismReference
+[ RUN      ] MechanismReference.ResetRetainsPhysicalSoftLimits
+[       OK ] MechanismReference.ResetRetainsPhysicalSoftLimits (0 ms)
+[----------] 1 test from MechanismReference (0 ms total)
+
+[----------] 1 test from MechanismIO
+[ RUN      ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves
+[       OK ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves (0 ms)
+[----------] 1 test from MechanismIO (0 ms total)
+
+[----------] 1 test from MechanismSimulation
+[ RUN      ] MechanismSimulation.ClosedLoopVelocityConverges
+[       OK ] MechanismSimulation.ClosedLoopVelocityConverges (6 ms)
+[----------] 1 test from MechanismSimulation (6 ms total)
+
+[----------] 1 test from MechanismJoint
+[ RUN      ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits
+[       OK ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits (0 ms)
+[----------] 1 test from MechanismJoint (0 ms total)
+
+[----------] 3 tests from MechanismProfile
+[ RUN      ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection
+[       OK ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection (0 ms)
+[ RUN      ] MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing
+[       OK ] MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing (1 ms)
+[ RUN      ] MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition
+[       OK ] MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition (0 ms)
+[----------] 3 tests from MechanismProfile (2 ms total)
+
+[----------] 1 test from MechanismFlywheel
+[ RUN      ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap
+[       OK ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap (0 ms)
+[----------] 1 test from MechanismFlywheel (0 ms total)
+
+[----------] 3 tests from MechanismSafety
+[ RUN      ] MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput
+[       OK ] MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput (0 ms)
+[ RUN      ] MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating
+[       OK ] MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating (0 ms)
+[ RUN      ] MechanismSafety.DisconnectedFeedbackStopsAndCannotReportAtSetpoint
+[       OK ] MechanismSafety.DisconnectedFeedbackStopsAndCannotReportAtSetpoint (0 ms)
+[----------] 3 tests from MechanismSafety (0 ms total)
+
+[----------] 2 tests from VoltageAndVelocity/HeldMotorCommand
+[ RUN      ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/0
+[       OK ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/0 (0 ms)
+[ RUN      ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/1
+[       OK ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/1 (0 ms)
+[----------] 2 tests from VoltageAndVelocity/HeldMotorCommand (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 30 tests from 16 test suites ran. (2944 ms total)
+[  PASSED  ] 30 tests.
+[phoenix] Library initialization is complete.
+
+[phoenix-diagnostics] Server shutdown cleanly. (dur:0)
+
+[phoenix] Library shutdown cleanly
+
+[Incubating] Problems report is available at: file:///home/brian/Documents/FRC/2026_Base_Bot-cpp/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.11/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 22s
+6 actionable tasks: 5 executed, 1 up-to-date

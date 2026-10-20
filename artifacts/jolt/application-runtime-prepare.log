@@ -1,0 +1,22 @@
+
+> Task :buildJoltRelease
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/brian/Documents/FRC/2026_Base_Bot-cpp/build/jolt/Release
+ninja: no work to do.
+
+> Task :compileFrcUserProgramLinuxx86-64ReleaseExecutableFrcUserProgramCpp UP-TO-DATE
+> Task :linkFrcUserProgramLinuxx86-64ReleaseExecutable UP-TO-DATE
+> Task :frcUserProgramLinuxx86-64ReleaseExecutable UP-TO-DATE
+> Task :installFrcUserProgramLinuxx86-64ReleaseExecutable
+> Task :prepareHeadlessSimulation
+[Incubating] Problems report is available at: file:///home/brian/Documents/FRC/2026_Base_Bot-cpp/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.11/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 5s
+5 actionable tasks: 3 executed, 2 up-to-date

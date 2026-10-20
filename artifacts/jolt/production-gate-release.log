@@ -1,0 +1,133 @@
+> Task :buildJoltRelease UP-TO-DATE
+> Task :compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramCpp
+> Task :compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramTestCpp
+> Task :linkFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :frcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :installFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+
+> Task :runFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+HAL Extensions: No extensions found
+[==========] Running 30 tests from 16 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from VisionLimelight
+[ RUN      ] VisionLimelight.SingleTagRequiresUsableAmbiguity
+[       OK ] VisionLimelight.SingleTagRequiresUsableAmbiguity (0 ms)
+[ RUN      ] VisionLimelight.MegaTag2DoesNotUseSingleTagAmbiguity
+[       OK ] VisionLimelight.MegaTag2DoesNotUseSingleTagAmbiguity (0 ms)
+[ RUN      ] VisionLimelight.RejectsOverflowingCovariance
+[       OK ] VisionLimelight.RejectsOverflowingCovariance (0 ms)
+[----------] 3 tests from VisionLimelight (0 ms total)
+
+[----------] 1 test from VisionPhoton
+[ RUN      ] VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose
+[       OK ] VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose (3 ms)
+[----------] 1 test from VisionPhoton (3 ms total)
+
+[----------] 1 test from DriveSimulation
+[ RUN      ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+[DriveSim] Verified Phoenix configuration transport after 0.0521394 s, 1 attempt(s)
+[       OK ] DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries (2655 ms)
+[----------] 1 test from DriveSimulation (2655 ms total)
+
+[----------] 2 tests from CommandLifecycle
+[ RUN      ] CommandLifecycle.CompletedPositionCommandRetainsPositionHold
+[       OK ] CommandLifecycle.CompletedPositionCommandRetainsPositionHold (5 ms)
+[ RUN      ] CommandLifecycle.SysIdReturnedCommandOwnsRoutineAndStopsOnCancellation
+DataLog: Logging to '/home/brian/Documents/FRC/2026_Base_Bot-cpp/build/test-results/frcUserProgramTest/linuxx86-64/release/logs/FRC_TBD_8ddc611552cbaa3d.wpilog' (47.0 GiB free space)
+[       OK ] CommandLifecycle.SysIdReturnedCommandOwnsRoutineAndStopsOnCancellation (21 ms)
+[----------] 2 tests from CommandLifecycle (26 ms total)
+
+[----------] 6 tests from MotorSimulation
+[ RUN      ] MotorSimulation.HighReductionConvergesWithoutNumericalReversal
+[       OK ] MotorSimulation.HighReductionConvergesWithoutNumericalReversal (0 ms)
+[ RUN      ] MotorSimulation.CurrentLimitBoundsStartupAcceleration
+[       OK ] MotorSimulation.CurrentLimitBoundsStartupAcceleration (0 ms)
+[ RUN      ] MotorSimulation.ReadsDoNotAdvanceAndRuntimeOwnsLifetime
+[       OK ] MotorSimulation.ReadsDoNotAdvanceAndRuntimeOwnsLifetime (0 ms)
+[ RUN      ] MotorSimulation.GravityAndTravelStopsAllowMotionAway
+[       OK ] MotorSimulation.GravityAndTravelStopsAllowMotionAway (0 ms)
+[ RUN      ] MotorSimulation.RejectsInvalidConfigurationAndTime
+[       OK ] MotorSimulation.RejectsInvalidConfigurationAndTime (0 ms)
+[ RUN      ] MotorSimulation.HeldTravelStopReportsStallCurrent
+[       OK ] MotorSimulation.HeldTravelStopReportsStallCurrent (0 ms)
+[----------] 6 tests from MotorSimulation (0 ms total)
+
+[----------] 1 test from MechanismConfig
+[ RUN      ] MechanismConfig.RejectsInvalidMappingAndLimits
+[       OK ] MechanismConfig.RejectsInvalidMappingAndLimits (0 ms)
+[----------] 1 test from MechanismConfig (0 ms total)
+
+[----------] 1 test from MechanismEncoder
+[ RUN      ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale
+[       OK ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale (0 ms)
+[----------] 1 test from MechanismEncoder (0 ms total)
+
+[----------] 2 tests from MechanismControl
+[ RUN      ] MechanismControl.DisabledAndSoftLimitsPreventVoltage
+[       OK ] MechanismControl.DisabledAndSoftLimitsPreventVoltage (0 ms)
+[ RUN      ] MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory
+[       OK ] MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory (0 ms)
+[----------] 2 tests from MechanismControl (0 ms total)
+
+[----------] 1 test from MechanismReference
+[ RUN      ] MechanismReference.ResetRetainsPhysicalSoftLimits
+[       OK ] MechanismReference.ResetRetainsPhysicalSoftLimits (0 ms)
+[----------] 1 test from MechanismReference (0 ms total)
+
+[----------] 1 test from MechanismIO
+[ RUN      ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves
+[       OK ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves (0 ms)
+[----------] 1 test from MechanismIO (0 ms total)
+
+[----------] 1 test from MechanismSimulation
+[ RUN      ] MechanismSimulation.ClosedLoopVelocityConverges
+[       OK ] MechanismSimulation.ClosedLoopVelocityConverges (1 ms)
+[----------] 1 test from MechanismSimulation (1 ms total)
+
+[----------] 1 test from MechanismJoint
+[ RUN      ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits
+[       OK ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits (0 ms)
+[----------] 1 test from MechanismJoint (0 ms total)
+
+[----------] 3 tests from MechanismProfile
+[ RUN      ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection
+[       OK ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection (0 ms)
+[ RUN      ] MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing
+[       OK ] MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing (0 ms)
+[ RUN      ] MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition
+[       OK ] MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition (0 ms)
+[----------] 3 tests from MechanismProfile (0 ms total)
+
+[----------] 1 test from MechanismFlywheel
+[ RUN      ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap
+[       OK ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap (0 ms)
+[----------] 1 test from MechanismFlywheel (0 ms total)
+
+[----------] 3 tests from MechanismSafety
+[ RUN      ] MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput
+[       OK ] MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput (0 ms)
+[ RUN      ] MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating
+[       OK ] MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating (0 ms)
+[ RUN      ] MechanismSafety.DisconnectedFeedbackStopsAndCannotReportAtSetpoint
+[       OK ] MechanismSafety.DisconnectedFeedbackStopsAndCannotReportAtSetpoint (0 ms)
+[----------] 3 tests from MechanismSafety (0 ms total)
+
+[----------] 2 tests from VoltageAndVelocity/HeldMotorCommand
+[ RUN      ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/0
+[       OK ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/0 (0 ms)
+[ RUN      ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/1
+[       OK ] VoltageAndVelocity/HeldMotorCommand.RequirementInterruptionAndDisableStopOutput/1 (0 ms)
+[----------] 2 tests from VoltageAndVelocity/HeldMotorCommand (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 30 tests from 16 test suites ran. (2689 ms total)
+[  PASSED  ] 30 tests.
+[phoenix-diagnostics] Server shutdown cleanly. (dur:0)
+
+[phoenix] Library shutdown cleanly
+
+
+BUILD SUCCESSFUL in 34s
+6 actionable tasks: 5 executed, 1 up-to-date
