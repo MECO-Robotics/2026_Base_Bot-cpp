@@ -21,15 +21,29 @@ jobs:
         with:
           python-version: '3.12'
       - uses: lukka/get-cmake@latest
+      - run: python -m unittest discover -s scripts/tests
       - run: cmake -S simulation -B build/jolt -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config }}
       - run: cmake --build build/jolt --parallel 2
       - run: ctest --test-dir build/jolt --output-on-failure
+      # Mac support is numerical models first; record hosted-runner budget
+      # qualification separately from required functional model checks.
       - name: Benchmark release models
         if: matrix.config == 'Release'
         shell: bash
         run: |
           mkdir -p artifacts
-          python scripts/sim_benchmark.py --build-dir build/jolt --output artifacts/benchmark.json --max-p99-ms 4
+          python scripts/sim_benchmark.py --build-dir build/jolt --output artifacts/benchmark.json --max-p99-ms 4 ${{ runner.os == 'macOS' && '--report-only' || '' }}
+          python - <<'PYTHON'
+          import json, os
+          report = json.load(open('artifacts/benchmark.json'))
+          if not report['acceptance']['passed']:
+              print('::warning::Physics p99 exceeds 4 ms on this hosted Mac; inspect the benchmark artifact before practice-machine qualification.')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('### Physics benchmark\n\n')
+              summary.write(f"4 ms p99 budget passed: **{report['acceptance']['passed']}**\n\n")
+              for result in report['results']:
+                  summary.write(f"- {result['mode']} / {result['scene']}: p99 {result['p99Seconds'] * 1000:.3f} ms, {result['deadlineMisses']} misses\n")
+          PYTHON
           git rev-parse HEAD > artifacts/revision.txt
           cmake --version > artifacts/toolchain.txt
           python -c "import platform,json; print(json.dumps(platform.uname()._asdict(),indent=2))" > artifacts/machine.json

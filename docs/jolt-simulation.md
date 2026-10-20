@@ -12,7 +12,11 @@ Mac builds. Use the [portable model commands](../README.md#jolt-practice-simulat
 after installing Xcode Command Line Tools, CMake, Ninja, and Python 3. No WPILib,
 Java, vendordep libraries, or Gradle are needed for these numerical tests and
 benchmarks. CI runs all three model suites in Debug/Release on each Mac architecture
-and enforces the same 4 ms Release p99 benchmark gate.
+and records Release benchmark qualification against a 4 ms p99 budget. Mac CI
+uses `--report-only`: budget misses remain visible in artifacts and job summaries
+but do not override functional test results. The Intel hosted runner exceeded
+the dense-scene budget; performance on an intended practice machine requires its
+own measurement. The local benchmark CLI still enforces 4 ms by default.
 
 Full robot/HAL practice remains Windows/Linux because the pinned Phoenix C++
 libraries do not provide a macOS target. Portable Mac tests cover Jolt lifecycle,

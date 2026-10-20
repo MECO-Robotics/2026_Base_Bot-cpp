@@ -88,9 +88,10 @@ The latest independent audit, commit list, validation evidence, numerical analys
 ## Jolt practice simulation
 
 Full robot practice supports Windows and Linux. Native Jolt models, tests, and
-benchmarks also support macOS on Apple Silicon and Intel. Jolt 5.3.0 is source-pinned and built by CMake
-through Gradle for desktop targets only; install CMake 3.24+ and Ninja, plus the
-WPILib C++ compiler (MSVC on Windows). The roboRIO does not link Jolt.
+benchmarks also support macOS on Apple Silicon and Intel. Jolt 5.3.0 is source-pinned
+and built by CMake. The full robot Gradle build integrates it for desktop targets
+only; that workflow requires CMake 3.24+, Ninja, and the WPILib C++ compiler
+(MSVC on Windows). The roboRIO does not link Jolt. Standalone Mac setup is below.
 
 Windows CI receives the exact pinned Studica 2026.0.0 Windows archives from the
 Linux gate because some Windows runners cannot reach the official Studica Maven
@@ -155,6 +156,7 @@ Ninja, and Python 3 (for example, `brew install cmake ninja python`). Then use t
 same commands below. The build targets the current Mac architecture; use a native
 terminal and toolchain for Apple Silicon or Intel. Replace `Release` and the build
 directory with `Debug` / `build/jolt-debug` for debug tests. Benchmark Release builds.
+On macOS, use `python3` for the benchmark command if `python` is not installed.
 
 The pinned Phoenix 26.1.2 vendordep has no macOS native libraries. Consequently,
 `simulateNative`, `prepareHeadlessSimulation`, and the Xbox/HAL/AdvantageScope
@@ -178,7 +180,13 @@ contact manifolds, median/p99 cost, and 4 ms deadline misses; record CPU/OS,
 build configuration, compiler, and revision alongside results. A p99 below 4 ms
 on the intended practice machine is enforced by the benchmark wrapper, not a hardware latency
 or MapleSim performance claim. CI builds/tests the portable models on Windows, Linux, Apple Silicon macOS, and
-Intel macOS in Debug and Release, and benchmarks each Release target. Full robot
+Intel macOS in Debug and Release, and benchmarks each Release target. Mac CI
+reports budget failures as warnings while keeping functional tests required;
+its hosted Intel runner has exceeded the dense-scene budget. Mac practice-machine
+performance remains unqualified until measured on the intended machine. The
+benchmark command above enforces the budget by default; `--report-only` preserves
+`acceptance.passed` and miss counts while allowing a measurement-only run to exit
+successfully. Model crashes and invalid output still fail the run. Full robot
 smokes run on Windows/Linux. CI uploads benchmark, smoke, and test evidence.
 
 Model parameters, units, ownership, and fidelity limits are detailed in

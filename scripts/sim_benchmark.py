@@ -2,6 +2,7 @@
 """Run model benchmarks with provenance and an enforceable p99 deadline."""
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -14,11 +15,34 @@ def capture(command):
     return (result.stdout + result.stderr).strip()
 
 
+def validate_results(results):
+    expected = {(mode, scene) for mode in ('jolt-planar', 'jolt-3d')
+                for scene in ('empty', 'typical', 'dense')}
+    if not isinstance(results, list) or len(results) != len(expected):
+        raise ValueError('Benchmark must report all six mode/scene measurements')
+    seen = set()
+    for row in results:
+        pair = (row['mode'], row['scene'])
+        if pair not in expected or pair in seen:
+            raise ValueError('Unexpected or duplicate benchmark mode/scene')
+        seen.add(pair)
+        median, p99 = row['medianSeconds'], row['p99Seconds']
+        if not all(type(value) in (int, float) and math.isfinite(value)
+                   for value in (median, p99)) or not 0 <= median <= p99:
+            raise ValueError('Benchmark timings must be finite, nonnegative, and ordered')
+        if type(row['samples']) is not int or row['samples'] <= 0:
+            raise ValueError('Benchmark requires a positive sample count')
+        if type(row['deadlineMisses']) is not int or not 0 <= row['deadlineMisses'] <= row['samples']:
+            raise ValueError('Invalid benchmark deadline miss count')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-dir', type=Path, default=Path('build/jolt-release'))
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--max-p99-ms', type=float, default=4.)
+    parser.add_argument('--report-only', action='store_true',
+                        help='Record budget pass/fail without enforcing a deadline exit status')
     args = parser.parse_args()
     cache = {}
     for line in (args.build_dir / 'CMakeCache.txt').read_text().splitlines():
@@ -27,6 +51,7 @@ def main():
             cache[key.split(':', 1)[0]] = value
     executable = args.build_dir / ('simulation_benchmark.exe' if os.name == 'nt' else 'simulation_benchmark')
     results = json.loads(subprocess.check_output([str(executable.resolve())], text=True))
+    validate_results(results)
     compiler = cache.get('CMAKE_CXX_COMPILER', 'unknown')
     compiler_version = capture([compiler, '/?'] if os.name == 'nt' else [compiler, '--version'])
     cpu = platform.processor()
@@ -47,7 +72,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(evidence, indent=2) + '\n')
     print(json.dumps(evidence['acceptance']))
-    return 0 if passed else 1
+    return 0 if passed or args.report_only else 1
 
 
 if __name__ == '__main__':
