@@ -1,0 +1,199 @@
+[
+  {
+    "path": "src/main/cpp/base/Mechanism.cpp",
+    "checked": 8,
+    "confidence": 1,
+    "coverage": {
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [
+      {
+        "col": 10,
+        "kind": "unknown",
+        "line": 132,
+        "message": "frc2::cmd::RunEnd was not found in the indexed 2026 API (typo, generated class, removed in an older season, or not indexed)",
+        "severity": "info",
+        "symbol": "frc2::cmd::RunEnd"
+      },
+      {
+        "col": 10,
+        "kind": "unknown",
+        "line": 135,
+        "message": "frc2::cmd::Run was not found in the indexed 2026 API (typo, generated class, removed in an older season, or not indexed)",
+        "severity": "info",
+        "symbol": "frc2::cmd::Run"
+      }
+    ],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/main/cpp/base/MechanismHardware.cpp",
+    "checked": 17,
+    "confidence": 1,
+    "coverage": {
+      "phoenix6": "none (no 2026 cpp API table in this index: CTRE's license forbids redistributing it, so no shared index carries it; `frc-mcp index run` builds it locally. Curated renames and removals are still checked)",
+      "revlib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/main/cpp/base/Drive.cpp",
+    "checked": 25,
+    "confidence": 1,
+    "coverage": {
+      "pathplannerlib": "none (no 2026 cpp API indexed)",
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [
+      {
+        "col": 10,
+        "kind": "unknown",
+        "line": 82,
+        "message": "frc2::cmd::RunEnd was not found in the indexed 2026 API (typo, generated class, removed in an older season, or not indexed)",
+        "severity": "info",
+        "symbol": "frc2::cmd::RunEnd"
+      }
+    ],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/main/cpp/base/Vision.cpp",
+    "checked": 5,
+    "confidence": 1,
+    "coverage": {
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/main/include/base/Mechanism.h",
+    "checked": 3,
+    "confidence": 1,
+    "coverage": {
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/test/cpp/MechanismTest.cpp",
+    "checked": 5,
+    "confidence": 1,
+    "coverage": {
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/test/cpp/VisionTest.cpp",
+    "checked": 12,
+    "confidence": 1,
+    "coverage": {
+      "photonvision": "partial (qualified names, imports, members on receivers of known type)",
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/test/cpp/MotorSimulationTest.cpp",
+    "checked": 0,
+    "confidence": 1,
+    "coverage": {},
+    "errors": 0,
+    "findings": [],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  },
+  {
+    "path": "src/test/cpp/CommandLifecycleTest.cpp",
+    "checked": 11,
+    "confidence": 1,
+    "coverage": {
+      "wpilib": "partial (qualified names, imports, members on receivers of known type)"
+    },
+    "errors": 0,
+    "findings": [
+      {
+        "col": 20,
+        "kind": "unknown",
+        "line": 50,
+        "message": "frc2::cmd::RunOnce was not found in the indexed 2026 API (typo, generated class, removed in an older season, or not indexed)",
+        "severity": "info",
+        "symbol": "frc2::cmd::RunOnce"
+      },
+      {
+        "col": 42,
+        "kind": "unknown",
+        "line": 78,
+        "message": "frc2::sysid::Direction was not found in the indexed 2026 API (typo, generated class, removed in an older season, or not indexed)",
+        "severity": "info",
+        "symbol": "frc2::sysid::Direction"
+      }
+    ],
+    "frc_season": "2026",
+    "freshness": "shard",
+    "language": "cpp",
+    "pin_source": "arg",
+    "status": "ok",
+    "truncated": false,
+    "warnings": 0
+  }
+]

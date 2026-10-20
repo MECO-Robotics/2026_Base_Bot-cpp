@@ -1,0 +1,13 @@
+076f8c3f619f61e097222de7df7ea5acf38c5e1a Stop mechanism output on invalid feedback and control overflow
+30176b5b69fe7b565427c52274e9e9e0614ba29d Validate single-tag Limelight ambiguity by pose solver
+b14a843c8ed9d29be814be94bd401c5fef2c2023 Bound position profile acceleration when crossing close goals
+4f8cc0d334e4cc24d3f24d3ab2103c7f357ecb33 Discretize teleop swerve speeds at the command period
+90e0af2b277d0b8b26eb4df0e6f330efbdfb09cd Integrate motor simulation stably across current-limit transitions
+136918b91d6bba8b24b111adcbe7613928d92d7d Reject invalid vision covariance before pose fusion
+7f0e8a6825dd56387e1fc862a82057c69e20cce0 Fail closed on disconnected feedback and protect reference resets
+dc65280d1c174a467a89c99d728f2f9a1cba5bb5 Preserve Spark feedback failures across telemetry reads
+d91f291aff569a53d76dd07a2789b26876d56e29 Verify command ownership cleanup and persistent position hold
+7aaac50c3f4e2989d26f9f93415728a9067fb7be Reset PID history and restore constraints across control modes
+6cd6e5dce439c732fd346e2f8c21b87d5cf851c5 Avoid redundant Phoenix status refreshes in mechanism reads
+b5e0a493f78caf5660082760212c0f3d9ba24870 Select C++23 through platform compiler defaults
+ea29231a3f2b8fed56089c4fe77ec057b27ee0fd Reuse motor-owned Phoenix status signals without copying

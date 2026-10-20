@@ -1,0 +1,50 @@
+[
+  {
+    "path": "build/tmp/compileFrcUserProgramLinuxathenaDebugExecutableFrcUserProgramCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramLinuxathenaReleaseExecutableFrcUserProgramCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramLinuxx86-64DebugExecutableFrcUserProgramCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramLinuxx86-64ReleaseExecutableFrcUserProgramCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramTestCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  },
+  {
+    "path": "build/tmp/compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramTestCpp/options.txt",
+    "flags": [
+      "-std=c++23"
+    ]
+  }
+]

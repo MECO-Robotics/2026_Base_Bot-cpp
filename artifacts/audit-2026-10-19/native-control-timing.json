@@ -1,0 +1,21 @@
+{
+  "command": [
+    "build/install/frcUserProgramTest/linuxx86-64/release/frcUserProgramTest",
+    "--gtest_filter=MechanismSimulation.ClosedLoopVelocityConverges",
+    "--gtest_repeat=1000",
+    "--gtest_brief=1"
+  ],
+  "source_commit": "ea29231",
+  "binary_sha256": "63d4953fd0cebdf2e2d1ab5ace1b61e6827be347fa817d4daae5772a9b4b33a3",
+  "host": "Linux-7.0.0-38-generic-x86_64-with-glibc2.43",
+  "repeat_count": 1000,
+  "control_updates_per_repeat": 500,
+  "total_control_updates": 500000,
+  "returncode": 0,
+  "monotonic_wall_seconds": 0.541781338,
+  "amortized_wall_microseconds_per_control_update": 1.0835626760000001,
+  "stdout_bytes": 77101,
+  "stderr_bytes": 94,
+  "scope": "Actual Linux x86-64 C++23 release mechanism simulation test; subprocess wall time includes process startup, test assertions, DS/HAL, NetworkTables, logging and scheduling interference. Amortized upper bound on update work in this run, not worst-case latency or hardware deadline evidence.",
+  "passed": true
+}

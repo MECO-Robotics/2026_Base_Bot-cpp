@@ -8,7 +8,7 @@ For architecture-aware Codex assistance, use the repository skill [`frc-base-pro
 
 For device configuration, commissioning, and diagnosis, use [`frc-hardware`](.agents/skills/frc-hardware/SKILL.md) or invoke `$frc-hardware`.
 
-Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. From this folder:
+Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. The build selects C++23 mode; the pinned roboRIO GCC 12 implements only a subset, so new code must compile on both targets. From this folder:
 
 ```sh
 ./gradlew build
@@ -20,7 +20,7 @@ Install WPILib 2026.2.1 with its C++ toolchains and Java 17+. From this folder:
 
 ## Verified simulation check
 
-`./gradlew build --max-workers=2` passed for desktop and roboRIO in debug and release, including nine mechanism tests in both configurations. A real desktop `frcUserProgram` was exercised through local HAL simulation and NetworkTables: forward/reverse motion, rotation, pose changes, and stationary disabled behavior passed. The captured result is in `artifacts/sim-smoke.json`. This verifies runtime behavior; it does not establish physical calibration or hardware acceptance.
+`./gradlew build --max-workers=2` passed for desktop and roboRIO in debug and release, including 25 native test cases in both configurations. A real desktop `frcUserProgram` was exercised through local HAL simulation and NetworkTables: forward/reverse motion, rotation, pose changes, and stationary disabled behavior passed. The captured result is in `artifacts/sim-smoke.json`. This verifies runtime behavior; it does not establish physical calibration or hardware acceptance.
 
 For the regular graphical simulator use `./gradlew simulateNative`. For a repeatable Linux headless check, run these in separate terminals:
 
@@ -38,6 +38,24 @@ python3 -m venv /tmp/frc-cpp-sim-venv
 
 The script controls only the local desktop HAL simulator and leaves it disabled. The headless HAL server is a development tool; stop the process after testing. Example base tuning is not hardware calibration.
 
+## Timing and replay contracts
+
+The robot scheduler, mechanism control, and simulation advance at 20 ms (50 Hz).
+Changing the robot period also requires updating mechanism/profile and simulation
+steps and teleop discretization. Phoenix owns its synchronized native swerve loop:
+the pinned 26.1.2 library defaults to 250 Hz on CAN FD and 100 Hz on CAN 2.0,
+including the default `rio` bus. The framework does not establish a 250 Hz
+application control-loop latency guarantee.
+
+Mechanism simulation advances exactly once per `Read()` by 20 ms. It integrates
+the current-limited motor model analytically, including brake/coast drag; additional
+reads advance time. Replay instead consumes caller-injected snapshots without
+stepping physics. Its current clamp models winding current; the real Talon adapter
+configures supply current, so electrical current-limit parity is not established.
+Whole-robot log playback and vendor-independent drivetrain
+replay are not implemented. Systemcore requires a supported future toolchain and
+vendor adapters; this checkout retains the pinned 2026 APIs.
+
 ## Reusable code
 
 - `base/Drive.h`: configurable four-module TalonFX/CANcoder/Pigeon swerve, Phoenix native odometry, field driving, heading hold, X brake, vision fusion, PathPlanner autos and wheel-force feedforwards.
@@ -51,4 +69,8 @@ This is a native implementation, with intentional framework replacements. WPILib
 
 Motor simulation exercises control logic with output inertia; it does not reproduce MapleSim field contacts, fuel dynamics, or arm/elevator gravity loading. QuestNav pose tracking, Java URCL logging, custom AD* telemetry, piece detection localization, and the Java browser system-check dashboard are not implemented by these adapters. These gaps must not be treated as verified parity. External joint sensors are supplied through callbacks, with explicit calibration; they are not constructed automatically from Java encoder enum values.
 
+Mechanism IO must supply `connected=true` with valid feedback, including injected replay snapshots. Disconnected or nonfinite feedback stops the mechanism, and control must be requested again after feedback recovers. `AtSetpoint()` only reports success for connected, active position or velocity control.
+
 No deployment, hardware motion, sensor calibration, or field acceptance was performed as part of this port. See `docs/port-contract.md` for provenance and verification boundaries.
+
+The latest independent audit, commit list, validation evidence, numerical analysis, and remaining risks are recorded in [the 2026-10-19 audit report](artifacts/audit-2026-10-19/REPORT.md).

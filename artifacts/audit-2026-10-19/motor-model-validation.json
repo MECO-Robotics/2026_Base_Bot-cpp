@@ -1,0 +1,13 @@
+{
+  "scope": "Independent Python transcription versus 1 us RK4; not execution of production C++",
+  "seed": 8324,
+  "cases": 60,
+  "duration_seconds": 0.02,
+  "reference_timestep_seconds": 1e-06,
+  "max_velocity_error_rad_per_second": 8.17067240532765e-08,
+  "max_position_error_rad": 4.919779986178874e-09,
+  "python_analytical_kernel_iterations": 100000,
+  "python_analytical_kernel_ns_per_iteration": 1258.58166,
+  "performance_limit": "Host Python microbenchmark; excludes C++, HAL, NetworkTables, scheduling and hardware; does not establish a 4 ms robot budget",
+  "passed": true
+}

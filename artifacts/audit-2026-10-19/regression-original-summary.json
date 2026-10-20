@@ -1,0 +1,55 @@
+[
+  {
+    "log": "base-mechanism-original.log",
+    "failed_tests": [
+      "2 tests, listed below:",
+      "MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput",
+      "MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput (0 ms)",
+      "MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating",
+      "MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating (0 ms)"
+    ],
+    "original_failed": true
+  },
+  {
+    "log": "base-profile-original.log",
+    "failed_tests": [
+      "1 test, listed below:",
+      "MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing",
+      "MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing (1 ms)"
+    ],
+    "original_failed": true
+  },
+  {
+    "log": "base-sim-original.log",
+    "failed_tests": [
+      "2 tests, listed below:",
+      "MotorSimulation.CurrentLimitBoundsStartupAcceleration",
+      "MotorSimulation.CurrentLimitBoundsStartupAcceleration (0 ms)",
+      "MotorSimulation.HighReductionConvergesWithoutNumericalReversal",
+      "MotorSimulation.HighReductionConvergesWithoutNumericalReversal (1 ms)"
+    ],
+    "original_failed": true
+  },
+  {
+    "log": "base-modes-original.log",
+    "failed_tests": [
+      "2 tests, listed below:",
+      "MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory",
+      "MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory (1 ms)",
+      "MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition",
+      "MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition (0 ms)"
+    ],
+    "original_failed": true
+  },
+  {
+    "log": "base-vision-finite-original.log",
+    "failed_tests": [
+      "2 tests, listed below:",
+      "VisionLimelight.RejectsOverflowingCovariance",
+      "VisionLimelight.RejectsOverflowingCovariance (0 ms)",
+      "VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose",
+      "VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose (13 ms)"
+    ],
+    "original_failed": true
+  }
+]

@@ -15,6 +15,7 @@ enum class Vendor { TalonFX, SparkMax };
 enum class Gravity { Constant, Cosine, Sine };
 struct MotorConfig {
   std::vector<int> ids;
+  // Primary inversion first; subsequent true flags oppose the primary motor.
   std::vector<bool> reversed;
   double gearRatio = 1;
   int currentLimit = 40;
@@ -35,6 +36,7 @@ struct EncoderCalibration {
 };
 struct MotorInputs {
   double position=0, velocity=0, voltage=0, supplyVoltage=12, current=0;
+  // Adapters and replay injectors must affirm healthy feedback before control.
   bool connected=false;
 };
 class MotorIO {
