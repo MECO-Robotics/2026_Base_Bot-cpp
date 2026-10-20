@@ -5,8 +5,6 @@
 #include <chrono>
 #include <cmath>
 #include <thread>
-#include <string>
-#include <iostream>
 
 TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
   auto& clock=base::sim::GetSimulationRuntime();
@@ -14,32 +12,6 @@ TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
   frc::sim::DriverStationSim::SetDsAttached(true);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
-  // Device status frames can arrive before configuration transactions work.
-  // Exercise the same configuration transport that module construction uses,
-  // and verify a nondefault value returned by a fresh configuration readback.
-  ctre::phoenix6::hardware::TalonFX startupProbe{60,"rio"};
-  startupProbe.GetSimState().SetSupplyVoltage(units::volt_t{12});
-  const auto startupTime=std::chrono::steady_clock::now();
-  const auto readyDeadline=startupTime+std::chrono::seconds(10);
-  ctre::phoenix6::configs::MotorOutputConfigs requested;
-  requested.PeakForwardDutyCycle=0;
-  requested.PeakReverseDutyCycle=0;
-  bool ready=false;
-  std::string transactionStatus;
-  int attempts=0;
-  do {
-    ++attempts;
-    auto applied=startupProbe.GetConfigurator().Apply(requested,units::second_t{.1});
-    transactionStatus=applied.GetName();
-    if(applied.IsOK()) {
-      ctre::phoenix6::configs::MotorOutputConfigs actual;
-      auto refreshed=startupProbe.GetConfigurator().Refresh(actual,units::second_t{.1});
-      transactionStatus=refreshed.GetName();
-      ready=refreshed.IsOK()&&std::abs((actual.PeakForwardDutyCycle-requested.PeakForwardDutyCycle).value())<1e-6&&std::abs((actual.PeakReverseDutyCycle-requested.PeakReverseDutyCycle).value())<1e-6;
-    }
-  } while(!ready&&std::chrono::steady_clock::now()<readyDeadline);
-  ASSERT_TRUE(ready)<<"Phoenix desktop configuration transport did not complete verified apply/readback: "<<transactionStatus;
-  std::cout<<"[DriveSimulation] Verified configuration transport after "<<std::chrono::duration<double>(std::chrono::steady_clock::now()-startupTime).count()<<" s, "<<attempts<<" attempt(s); constructing modules"<<std::endl;
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   struct DisableOnExit {
@@ -57,7 +29,6 @@ TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
     config.modules[i].encoderInverted=(i==2||i==3);
   }
   base::Drive drive(config);
-  std::cout<<"[DriveSimulation] Module construction completed at "<<std::chrono::duration<double>(std::chrono::steady_clock::now()-startupTime).count()<<" s"<<std::endl;
   drive.ResetSimulation(frc::Pose2d{});
   // Phoenix's control/status threads run on wall time. This bounded integration
   // interval exercises real feedback, rather than asserting setpoint storage.

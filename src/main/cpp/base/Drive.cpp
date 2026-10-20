@@ -6,6 +6,9 @@
 #include <frc/RobotBase.h>
 #ifndef __FRC_ROBORIO__
 #include <ctre/phoenix6/sim/ChassisReference.hpp>
+#include <chrono>
+#include <iostream>
+#include <stdexcept>
 #endif
 #include <ctre/phoenix6/Utils.hpp>
 #include <frc/RobotController.h>
@@ -21,6 +24,40 @@ namespace s = p::swerve;
 namespace base
 {
 #ifndef __FRC_ROBORIO__
+  namespace {
+    void AwaitPhoenixSimulationTransport(const DriveConfig& config) {
+      // Status frames can arrive before configuration transactions work. Probe
+      // the actual first drive device with the same Apply/Refresh transport used
+      // by native module construction, rather than relying on status freshness.
+      // This temporary handle is destroyed before NativeDrive owns its devices.
+      p::hardware::TalonFX probe{config.modules[0].drive,p::CANBus{config.bus}};
+      probe.GetSimState().SetSupplyVoltage(12_V);
+      p::configs::MotorOutputConfigs requested;
+      requested.PeakForwardDutyCycle=0;
+      requested.PeakReverseDutyCycle=0;
+      const auto start=std::chrono::steady_clock::now();
+      const auto deadline=start+std::chrono::seconds(10);
+      std::string status;
+      int attempts=0;
+      do {
+        ++attempts;
+        auto applied=probe.GetConfigurator().Apply(requested,.1_s);
+        status=applied.GetName();
+        if(applied.IsOK()) {
+          p::configs::MotorOutputConfigs actual;
+          auto refreshed=probe.GetConfigurator().Refresh(actual,.1_s);
+          status=refreshed.GetName();
+          if(refreshed.IsOK()&&actual.PeakForwardDutyCycle==requested.PeakForwardDutyCycle&&actual.PeakReverseDutyCycle==requested.PeakReverseDutyCycle) {
+            std::cout<<"[DriveSim] Verified Phoenix configuration transport after "<<std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count()<<" s, "<<attempts<<" attempt(s)"<<std::endl;
+            // Native SwerveModule applies the full DriveMotorInitialConfigs;
+            // its default +/-1 duty limits replace these temporary zero limits.
+            return;
+          }
+        }
+      } while(std::chrono::steady_clock::now()<deadline);
+      throw std::runtime_error("Phoenix desktop simulation configuration transport did not complete verified Apply/Refresh within 10 seconds for drive device "+std::to_string(config.modules[0].drive)+" on bus "+config.bus+": "+status);
+    }
+  }
   struct Drive::Simulation {
     Drive& owner;
     sim::DrivePhysics physics;
@@ -105,6 +142,9 @@ namespace base
 #endif
   Drive::Drive(DriveConfig config) : config_(std::move(config))
   {
+#ifndef __FRC_ROBORIO__
+    if(frc::RobotBase::IsSimulation()) AwaitPhoenixSimulationTransport(config_);
+#endif
     p::configs::TalonFXConfiguration drive, steer;
     drive.CurrentLimits.WithSupplyCurrentLimit(units::ampere_t{config_.driveCurrent}).WithSupplyCurrentLimitEnable(true);
     steer.CurrentLimits.WithStatorCurrentLimit(units::ampere_t{config_.steerCurrent}).WithStatorCurrentLimitEnable(true);
