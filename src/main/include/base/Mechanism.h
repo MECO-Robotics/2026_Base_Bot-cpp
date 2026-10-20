@@ -5,6 +5,12 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <optional>
+#include <units/angle.h>
+#include <units/length.h>
+#include <units/mass.h>
+#include <units/moment_of_inertia.h>
+#include <units/time.h>
 #include <frc/DigitalInput.h>
 #include <frc2/command/SubsystemBase.h>
 #include <frc2/command/CommandPtr.h>
@@ -39,16 +45,33 @@ struct MotorInputs {
   // Adapters and replay injectors must affirm healthy feedback before control.
   bool connected=false;
 };
+// All positions below are output-shaft angles; elevator travel is angle * drumRadius.
+struct MotorSimulationConfig {
+  enum class Load { Free, Arm, Elevator };
+  Load load=Load::Free;
+  // Arm inertia includes its payload. Elevator adds mass * drumRadius squared.
+  units::kilogram_square_meter_t outputInertia{.025};
+  units::kilogram_t mass{0};
+  units::meter_t armCOM{0}, drumRadius{0};
+  // Arm angle zero is horizontal; offset maps the output sensor zero to that frame.
+  units::radian_t armAngleOffset{0}, initialPosition{0};
+  std::optional<units::radian_t> minimum, maximum;
+  void Validate() const;
+};
 class MotorIO {
  public:
   virtual ~MotorIO() = default;
   virtual MotorInputs Read()=0;
   virtual void SetVoltage(double volts)=0;
   virtual void SetBrake(bool brake)=0;
+  // Explicit plant advancement (0..1 s); real/replay adapters remain observational.
+  virtual void StepSimulation(units::second_t) {}
 };
 // Factories are lazy: replay never constructs a controller or simulator.
 std::unique_ptr<MotorIO> MakeMotorIO(Mode mode, Vendor vendor, const MotorConfig& config,
                                    double outputInertia=.025);
+std::unique_ptr<MotorIO> MakeMotorIO(Mode mode, Vendor vendor, const MotorConfig& config,
+                                   const MotorSimulationConfig& simulation);
 class InjectedMotorIO final : public MotorIO {
  public:
   MotorInputs inputs;

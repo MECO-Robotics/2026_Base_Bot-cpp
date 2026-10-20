@@ -2,6 +2,7 @@
 #include <cmath>
 #include <numbers>
 #include <gtest/gtest.h>
+#include "base/sim/SimulationWorld.h"
 
 TEST(MotorSimulation, HighReductionConvergesWithoutNumericalReversal) {
   // No-load NEO speed at 4 V, including the model's output viscous drag.
@@ -14,6 +15,7 @@ TEST(MotorSimulation, HighReductionConvergesWithoutNumericalReversal) {
   io->SetVoltage(voltage);
   base::MotorInputs state;
   for(int n=0;n<50;++n) {
+    io->StepSimulation(units::second_t{.02});
     state=io->Read();
     EXPECT_GE(state.velocity,0);
     EXPECT_LE(state.velocity,expected+1e-9);
@@ -21,11 +23,13 @@ TEST(MotorSimulation, HighReductionConvergesWithoutNumericalReversal) {
   }
   EXPECT_NEAR(state.velocity,expected,1e-6);
   io->SetVoltage(-voltage);
-  for(int n=0;n<50;++n) state=io->Read();
+  for(int n=0;n<50;++n) { io->StepSimulation(units::second_t{.02}); state=io->Read(); }
   EXPECT_NEAR(state.velocity,-expected,1e-6);
   io->SetBrake(false); io->SetVoltage(0);
+  io->StepSimulation(units::second_t{.02});
   const double coastSpeed=std::abs(io->Read().velocity);
   io->SetBrake(true);
+  io->StepSimulation(units::second_t{.02});
   EXPECT_LT(std::abs(io->Read().velocity),coastSpeed*.01);
 }
 
@@ -34,10 +38,80 @@ TEST(MotorSimulation, CurrentLimitBoundsStartupAcceleration) {
   auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
                           base::MotorConfig{{1,2},{false,true},ratio,10,""},inertia);
   io->SetVoltage(12);
+  io->StepSimulation(units::second_t{.02});
   const auto state=io->Read();
   const double acceleration=kt*10*2*ratio/inertia;
   EXPECT_GT(state.velocity,0);
   EXPECT_LE(state.velocity,acceleration*.02/(2*std::numbers::pi));
   EXPECT_LE(state.position,.5*acceleration*.02*.02/(2*std::numbers::pi));
   EXPECT_LE(state.current,20+1e-9);
+}
+
+TEST(MotorSimulation, ReadsDoNotAdvanceAndRuntimeOwnsLifetime) {
+  auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
+                          base::MotorConfig{{1},{false},2,40,""});
+  io->SetVoltage(4);
+  const auto before=io->Read();
+  for(int n=0;n<20;++n) EXPECT_DOUBLE_EQ(io->Read().position,before.position);
+  base::sim::GetSimulationRuntime().StepRobotPeriod();
+  const auto once=io->Read();
+  EXPECT_GT(once.position,before.position);
+  EXPECT_DOUBLE_EQ(io->Read().position,once.position);
+  io.reset();
+  EXPECT_NO_THROW(base::sim::GetSimulationRuntime().StepRobotPeriod());
+}
+
+TEST(MotorSimulation, GravityAndTravelStopsAllowMotionAway) {
+  const base::MotorConfig motor{{1},{false},1,40,""};
+  base::MotorSimulationConfig arm;
+  arm.load=base::MotorSimulationConfig::Load::Arm;
+  arm.mass=units::kilogram_t{.2}; arm.armCOM=units::meter_t{.2};
+  arm.minimum=units::radian_t{-.1}; arm.maximum=units::radian_t{.2};
+  auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,motor,arm);
+  io->SetBrake(false);
+  for(int n=0;n<50;++n) io->StepSimulation(units::second_t{.02});
+  EXPECT_NEAR(io->Read().position,-.1/(2*std::numbers::pi),1e-12);
+  EXPECT_DOUBLE_EQ(io->Read().velocity,0);
+  io->SetVoltage(12);
+  for(int n=0;n<50;++n) io->StepSimulation(units::second_t{.02});
+  EXPECT_NEAR(io->Read().position,.2/(2*std::numbers::pi),1e-12);
+  EXPECT_DOUBLE_EQ(io->Read().velocity,0);
+
+  base::MotorSimulationConfig elevator;
+  elevator.load=base::MotorSimulationConfig::Load::Elevator;
+  elevator.mass=units::kilogram_t{2}; elevator.drumRadius=units::meter_t{.05};
+  auto lift=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,motor,elevator);
+  lift->SetBrake(false); lift->StepSimulation(units::second_t{.02});
+  // Closed-form free fall with reflected translating mass and viscous drag:
+  // J * omega_dot = -m*g*r - b*omega, starting from rest.
+  constexpr double inertia=.025+2*.05*.05, viscousDrag=.0001, duration=.02;
+  const double expected=(-2*9.80665*.05/viscousDrag) *
+                        (-std::expm1(-viscousDrag*duration/inertia));
+  EXPECT_NEAR(lift->Read().velocity*2*std::numbers::pi,expected,1e-10);
+}
+
+TEST(MotorSimulation, RejectsInvalidConfigurationAndTime) {
+  const base::MotorConfig motor{{1},{false},1,40,""};
+  base::MotorSimulationConfig invalid;
+  invalid.load=base::MotorSimulationConfig::Load::Arm;
+  EXPECT_THROW(base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,motor,invalid),std::invalid_argument);
+  auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,motor);
+  EXPECT_THROW(io->StepSimulation(units::second_t{-.01}),std::invalid_argument);
+  EXPECT_THROW(io->StepSimulation(units::second_t{NAN}),std::invalid_argument);
+  EXPECT_THROW(io->SetVoltage(NAN),std::invalid_argument);
+}
+
+TEST(MotorSimulation, HeldTravelStopReportsStallCurrent) {
+  base::MotorSimulationConfig model;
+  model.maximum=units::radian_t{0};
+  auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
+                          base::MotorConfig{{1},{false},200,40,""},model);
+  io->SetVoltage(12);
+  io->StepSimulation(units::second_t{.02});
+  EXPECT_DOUBLE_EQ(io->Read().position,0);
+  EXPECT_DOUBLE_EQ(io->Read().velocity,0);
+  EXPECT_NEAR(io->Read().current,40,1e-9);
+  io->SetBrake(false); io->SetVoltage(0);
+  io->StepSimulation(units::second_t{.02});
+  EXPECT_DOUBLE_EQ(io->Read().current,0);
 }

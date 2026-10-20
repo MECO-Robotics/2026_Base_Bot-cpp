@@ -54,7 +54,7 @@ TEST(MechanismIO, ReplayDoesNotConstructHardwareAndSimulationMoves) {
   ASSERT_NE(dynamic_cast<base::InjectedMotorIO*>(replay.get()),nullptr);
   auto sim=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,config);
   sim->SetVoltage(4);
-  for(int n=0;n<20;++n) sim->Read();
+  for(int n=0;n<20;++n) sim->StepSimulation(units::second_t{.02});
   EXPECT_GT(sim->Read().position,0);
   EXPECT_GT(sim->Read().velocity,0);
 }
@@ -64,9 +64,11 @@ TEST(MechanismSimulation, ClosedLoopVelocityConverges) {
   frc::sim::DriverStationSim::NotifyNewData();
   base::MotorConfig config{{1},{false},1,40,""};
   base::Gains gains; gains.p=.8; gains.v=.127; gains.maxVelocity=50; gains.maxAcceleration=100;
-  base::Flywheel wheel("SimControl",base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,config),gains);
+  auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,config);
+  auto* plant=io.get();
+  base::Flywheel wheel("SimControl",std::move(io),gains);
   wheel.SetVelocity(20);
-  for(int n=0;n<500;++n) wheel.Periodic();
+  for(int n=0;n<500;++n) { wheel.Periodic(); plant->StepSimulation(units::second_t{.02}); }
   EXPECT_NEAR(wheel.Velocity(),20,1);
   wheel.Stop();
   frc::sim::DriverStationSim::SetEnabled(false);
