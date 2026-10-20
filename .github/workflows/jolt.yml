@@ -58,6 +58,10 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         if: runner.os == 'Windows'
       - uses: lukka/get-cmake@latest
+      - name: Install roboRIO toolchain
+        if: runner.os == 'Linux'
+        shell: bash
+        run: ./gradlew installRoboRioToolchain
       - name: Build and test Linux desktop debug/release
         if: runner.os == 'Linux'
         shell: bash
@@ -65,11 +69,7 @@ jobs:
       - name: Build and test Windows desktop debug/release
         if: runner.os == 'Windows'
         shell: bash
-        run: ./gradlew frcUserProgramWindowsx86-64DebugExecutable frcUserProgramWindowsx86-64ReleaseExecutable runFrcUserProgramTestWindowsx86-64DebugGoogleTestExe runFrcUserProgramTestWindowsx86-64ReleaseGoogleTestExe --max-workers=2
-      - name: Install roboRIO toolchain
-        if: runner.os == 'Linux'
-        shell: bash
-        run: ./gradlew installRoboRioToolchain
+        run: ./gradlew frcUserProgramWindowsx86-64DebugExecutable frcUserProgramWindowsx86-64ReleaseExecutable runFrcUserProgramTestWindowsx86-64DebugGoogleTestExe runFrcUserProgramTestWindowsx86-64ReleaseGoogleTestExe -Ptoolchain-optional-roboRio --max-workers=2
       - name: Verify roboRIO isolation
         if: runner.os == 'Linux'
         shell: bash
@@ -77,7 +77,7 @@ jobs:
       - run: python -m pip install 'pyntcore>=2026,<2027' 'websockets>=14,<17'
       - name: Resolve pinned HAL websocket extension
         shell: bash
-        run: ./gradlew prepareHeadlessSimulation
+        run: ./gradlew prepareHeadlessSimulation -Ptoolchain-optional-roboRio
       - name: Exercise local HAL simulator
         shell: bash
         run: |
