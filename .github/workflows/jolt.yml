@@ -1,5 +1,10 @@
 name: Jolt physics
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    paths-ignore: ['artifacts/**', '**/*.md']
+  pull_request:
+    paths-ignore: ['artifacts/**', '**/*.md']
+  workflow_dispatch:
 jobs:
   portable-world:
     strategy:
