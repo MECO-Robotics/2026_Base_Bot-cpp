@@ -1,0 +1,51 @@
+Start testing: Oct 20 20:22 UTC
+----------------------------------------------------------
+1/3 Testing: world
+1/3 Test: world
+Command: "/Users/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/build/jolt/world_test"
+Directory: /Users/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/build/jolt
+"world" start time: Oct 20 20:22 UTC
+Output:
+----------------------------------------------------------
+world contracts passed
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"world" end time: Oct 20 20:22 UTC
+"world" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/3 Testing: drive_physics
+2/3 Test: drive_physics
+Command: "/Users/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/build/jolt/drive_physics_test"
+Directory: /Users/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/build/jolt
+"drive_physics" start time: Oct 20 20:22 UTC
+Output:
+----------------------------------------------------------
+Drivetrain physics contracts passed
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"drive_physics" end time: Oct 20 20:22 UTC
+"drive_physics" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/3 Testing: arena
+3/3 Test: arena
+Command: "/Users/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/build/jolt/arena_test"
+Directory: /Users/runner/work/2026_Base_Bot-cpp/2026_Base_Bot-cpp/build/jolt
+"arena" start time: Oct 20 20:22 UTC
+Output:
+----------------------------------------------------------
+Arena tests passed
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"arena" end time: Oct 20 20:22 UTC
+"arena" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 20 20:22 UTC

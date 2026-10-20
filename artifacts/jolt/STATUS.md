@@ -2,6 +2,8 @@
 
 **Accepted:** source `c890889c59551131a1427791b51b9d5793641f6f` passed all six Windows/Linux CI jobs in [run 39472708656](https://github.com/MECO-Robotics/2026_Base_Bot-cpp/actions/runs/39472708656). Separate module planning, implementation, and review assignments are complete.
 
+Native macOS model support was subsequently added; see [Mac validation and performance limits](macos/STATUS.md).
+
 ## Baseline
 
 - Reviewed the seven pre-existing modified C++ files: identical ordered lexical tokens; formatting only.
@@ -11,7 +13,7 @@
 
 ## Implementation contract
 
-Required platforms are **Windows and Linux**, per the user's subsequent scope clarification. Keep WPILib 2026.2.1 and vendor versions pinned. Jolt starts at 5.3.0, commit `0373ec0dd762e4bc2f6acdb08371ee84fa23c6db`.
+Initial required platforms were **Windows and Linux**, per the user's scope clarification. The later native macOS model extension is recorded in `macos/STATUS.md`. Keep WPILib 2026.2.1 and vendor versions pinned. Jolt starts at 5.3.0, commit `0373ec0dd762e4bc2f6acdb08371ee84fa23c6db`.
 
 Modules proceed through separate scoped planning, implementation, and reviewer/test agents. The coordinator owns shared contracts and integration. Module A's dependency/world gate must pass on both platforms before dependent implementation.
 

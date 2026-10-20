@@ -1,0 +1,97 @@
+{
+  "metadata": {
+    "machine": {
+      "system": "Darwin",
+      "node": "sjc20-cw753-7554ae70-75dc-4cea-9688-1134ddda79bd-2A9D7C6E3C34.local",
+      "release": "24.6.0",
+      "version": "Darwin Kernel Version 24.6.0: Tue Jul 21 20:50:07 PDT 2026; root:xnu-11417.140.69.711.44~1/RELEASE_X86_64",
+      "machine": "x86_64",
+      "processor": "i386"
+    },
+    "cpu": "Intel(R) Core(TM) i7-8700B CPU @ 3.20GHz",
+    "compiler": "/usr/bin/c++",
+    "compilerVersion": "Apple clang version 17.0.0 (clang-1700.0.13.5)\nTarget: x86_64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode_16.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin",
+    "buildType": "Release",
+    "cxxFlags": {
+      "CMAKE_CXX_FLAGS": "",
+      "CMAKE_CXX_FLAGS_DEBUG": "-g",
+      "CMAKE_CXX_FLAGS_MINSIZEREL": "-Os -DNDEBUG",
+      "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG",
+      "CMAKE_CXX_FLAGS-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_DEBUG-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_MINSIZEREL-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_RELEASE-ADVANCED": "1",
+      "CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED": "1"
+    },
+    "revision": "64c6d231bf5dc70a224e56c27825b6ae80f85bd9",
+    "workingTreeChanges": "",
+    "measurement": "Complete registered model/arena before -> Jolt -> after substep; excludes robot controls and telemetry"
+  },
+  "acceptance": {
+    "maximumP99Milliseconds": 4.0,
+    "passed": true
+  },
+  "results": [
+    {
+      "mode": "jolt-planar",
+      "scene": "empty",
+      "bodies": 2,
+      "peakContactManifolds": 0,
+      "samples": 5000,
+      "medianSeconds": 1.7036e-05,
+      "p99Seconds": 2.8048e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-planar",
+      "scene": "typical",
+      "bodies": 16,
+      "peakContactManifolds": 3,
+      "samples": 5000,
+      "medianSeconds": 2.7117e-05,
+      "p99Seconds": 4.8585e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-planar",
+      "scene": "dense",
+      "bodies": 316,
+      "peakContactManifolds": 908,
+      "samples": 5000,
+      "medianSeconds": 0.000805909,
+      "p99Seconds": 0.0022104,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "empty",
+      "bodies": 2,
+      "peakContactManifolds": 0,
+      "samples": 5000,
+      "medianSeconds": 1.4672e-05,
+      "p99Seconds": 1.8678e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "typical",
+      "bodies": 17,
+      "peakContactManifolds": 4,
+      "samples": 5000,
+      "medianSeconds": 2.607e-05,
+      "p99Seconds": 4.1186e-05,
+      "deadlineMisses": 0
+    },
+    {
+      "mode": "jolt-3d",
+      "scene": "dense",
+      "bodies": 317,
+      "peakContactManifolds": 743,
+      "samples": 5000,
+      "medianSeconds": 0.00127754,
+      "p99Seconds": 0.00174432,
+      "deadlineMisses": 0
+    }
+  ]
+}

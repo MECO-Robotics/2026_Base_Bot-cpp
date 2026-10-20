@@ -1,0 +1,31 @@
+{
+  "sourceRevision": "64c6d231bf5dc70a224e56c27825b6ae80f85bd9",
+  "runUrl": "https://github.com/MECO-Robotics/2026_Base_Bot-cpp/actions/runs/39491159060",
+  "scope": "Native macOS models/tests/benchmarks; full robot workflows remain Windows/Linux",
+  "jobs": [
+    {
+      "name": "portable-world (macos-15, Release)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MECO-Robotics/2026_Base_Bot-cpp/actions/runs/39491159060/job/118864381786"
+    },
+    {
+      "name": "portable-world (macos-15, Debug)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MECO-Robotics/2026_Base_Bot-cpp/actions/runs/39491159060/job/118864381885"
+    },
+    {
+      "name": "portable-world (macos-15-intel, Release)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MECO-Robotics/2026_Base_Bot-cpp/actions/runs/39491159060/job/118864382138"
+    },
+    {
+      "name": "portable-world (macos-15-intel, Debug)",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MECO-Robotics/2026_Base_Bot-cpp/actions/runs/39491159060/job/118864382445"
+    }
+  ]
+}
