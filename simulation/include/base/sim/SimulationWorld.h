@@ -82,6 +82,8 @@ public:
   void DestroyBody(BodyHandle);
   BodyState ReadBody(BodyHandle) const;
   void SetBodyState(BodyHandle, const BodyState &);
+  // Changes only linear velocity. Static or disabled bodies are left unchanged.
+  void SetLinearVelocity(BodyHandle, Vec3);
   void SetEnabled(BodyHandle, bool);
   void AddForce(BodyHandle, Vec3 force, Vec3 worldPosition);
   void AddTorque(BodyHandle, Vec3 torque);

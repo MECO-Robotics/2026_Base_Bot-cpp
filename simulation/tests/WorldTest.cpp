@@ -72,6 +72,26 @@ int main() {
   Check(!world.ReadBody(h).enabled);
   world.Reset();
   Check(world.ReadBody(h).enabled);
+  // Drag updates must not teleport the body or overwrite its angular motion.
+  BodyState spinning{{{1, 2, 3}, {0, 0, std::sqrt(.5), std::sqrt(.5)}},
+                     {4, 5, 6}, {1, 2, 3}, true};
+  world.SetBodyState(h, spinning);
+  const auto beforeVelocity = world.ReadBody(h);
+  world.SetLinearVelocity(h, {2, 3, 4});
+  const auto afterVelocity = world.ReadBody(h);
+  Check(afterVelocity.linearVelocity.x == 2 &&
+        afterVelocity.linearVelocity.y == 3 &&
+        afterVelocity.linearVelocity.z == 4 &&
+        afterVelocity.pose.position.x == beforeVelocity.pose.position.x &&
+        afterVelocity.pose.position.y == beforeVelocity.pose.position.y &&
+        afterVelocity.pose.position.z == beforeVelocity.pose.position.z &&
+        afterVelocity.pose.rotation.x == beforeVelocity.pose.rotation.x &&
+        afterVelocity.pose.rotation.y == beforeVelocity.pose.rotation.y &&
+        afterVelocity.pose.rotation.z == beforeVelocity.pose.rotation.z &&
+        afterVelocity.pose.rotation.w == beforeVelocity.pose.rotation.w &&
+        afterVelocity.angularVelocity.x == beforeVelocity.angularVelocity.x &&
+        afterVelocity.angularVelocity.y == beforeVelocity.angularVelocity.y &&
+        afterVelocity.angularVelocity.z == beforeVelocity.angularVelocity.z);
   // Reset must clear pending forces, and stale registrations must not execute.
   SimulationClock lifecycle(Backend::Planar);
   auto *planar = lifecycle.World();

@@ -188,7 +188,7 @@ void Arena::Before(double dt) {
             std::max(0.0, speed - p.spec.rollingResistance * dt) / speed;
         s.linearVelocity.x *= scale;
         s.linearVelocity.y *= scale;
-        world_.SetBodyState(*p.body, s);
+        world_.SetLinearVelocity(*p.body, s.linearVelocity);
       }
     }
 }

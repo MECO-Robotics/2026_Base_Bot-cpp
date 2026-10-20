@@ -242,6 +242,13 @@ void SimulationWorld::SetBodyState(BodyHandle h, const BodyState &s) {
                                  V(s.angularVelocity));
   SetEnabled(h, s.enabled);
 }
+void SimulationWorld::SetLinearVelocity(BodyHandle h, Vec3 velocity) {
+  if (!Finite(velocity))
+    throw std::invalid_argument("Invalid body velocity");
+  auto &e = impl_->Get(h);
+  if (e.enabled && e.spec.mass > 0)
+    impl_->physics.GetBodyInterface().SetLinearVelocity(e.id, V(velocity));
+}
 void SimulationWorld::SetEnabled(BodyHandle h, bool enable) {
   auto &e = impl_->Get(h);
   if (enable == e.enabled)
