@@ -87,14 +87,30 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: ./gradlew installRoboRioToolchain
-      - name: Build and test Linux desktop debug/release
+      - name: Build Linux desktop debug/release
         if: runner.os == 'Linux'
         shell: bash
-        run: ./gradlew frcUserProgramLinuxx86-64DebugExecutable frcUserProgramLinuxx86-64ReleaseExecutable runFrcUserProgramTestLinuxx86-64DebugGoogleTestExe runFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe --max-workers=2
-      - name: Build and test Windows desktop debug/release
+        run: ./gradlew frcUserProgramLinuxx86-64DebugExecutable frcUserProgramLinuxx86-64ReleaseExecutable frcUserProgramTestLinuxx86-64DebugGoogleTestExe frcUserProgramTestLinuxx86-64ReleaseGoogleTestExe --max-workers=2
+      # Phoenix uses asynchronous desktop threads; keep native compilation and
+      # other test processes out of the timing-sensitive integration interval.
+      - name: Test Linux desktop debug/release
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          ./gradlew runFrcUserProgramTestLinuxx86-64DebugGoogleTestExe --max-workers=1
+          ./gradlew runFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe --max-workers=1
+      - name: Build Windows desktop debug/release
         if: runner.os == 'Windows'
         shell: bash
-        run: ./gradlew frcUserProgramWindowsx86-64DebugExecutable frcUserProgramWindowsx86-64ReleaseExecutable runFrcUserProgramTestWindowsx86-64DebugGoogleTestExe runFrcUserProgramTestWindowsx86-64ReleaseGoogleTestExe -Ptoolchain-optional-roboRio --max-workers=2
+        run: ./gradlew frcUserProgramWindowsx86-64DebugExecutable frcUserProgramWindowsx86-64ReleaseExecutable frcUserProgramTestWindowsx86-64DebugGoogleTestExe frcUserProgramTestWindowsx86-64ReleaseGoogleTestExe -Ptoolchain-optional-roboRio --max-workers=2
+      # Phoenix uses asynchronous desktop threads; keep native compilation and
+      # other test processes out of the timing-sensitive integration interval.
+      - name: Test Windows desktop debug/release
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          ./gradlew runFrcUserProgramTestWindowsx86-64DebugGoogleTestExe -Ptoolchain-optional-roboRio --max-workers=1
+          ./gradlew runFrcUserProgramTestWindowsx86-64ReleaseGoogleTestExe -Ptoolchain-optional-roboRio --max-workers=1
       - name: Verify roboRIO isolation
         if: runner.os == 'Linux'
         shell: bash
