@@ -91,6 +91,7 @@ public:
   void Reset(); // Restore all extant bodies to their creation state.
   Backend Mode() const;
   uint32_t BodyCount() const;
+  uint32_t ContactManifoldCount() const; // Added/persisted manifolds during latest step.
 
 private:
   struct Impl;

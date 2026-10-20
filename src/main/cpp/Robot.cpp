@@ -3,6 +3,9 @@
 #include <frc/DriverStation.h>
 #include <frc/RobotController.h>
 #include <frc2/command/CommandScheduler.h>
+#ifndef __FRC_ROBORIO__
+#include "base/sim/SimulationWorld.h"
+#endif
 Robot::Robot()
 {
   frc::DataLogManager::Start();
@@ -22,6 +25,14 @@ void Robot::TeleopInit()
     autonomous_->Cancel();
 }
 void Robot::TestInit() { frc2::CommandScheduler::GetInstance().CancelAll(); }
+void Robot::SimulationPeriodic()
+{
+#ifndef __FRC_ROBORIO__
+  // This is the sole owner of plant time. Subsystem reads never advance physics.
+  base::sim::GetSimulationRuntime().StepRobotPeriod();
+  container_.PublishSimulation();
+#endif
+}
 #ifndef RUNNING_FRC_TESTS
 int main() { return frc::StartRobot<Robot>(); }
 #endif

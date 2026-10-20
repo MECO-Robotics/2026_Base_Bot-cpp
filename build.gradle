@@ -47,6 +47,11 @@ wpi.cpp.debugSimulation = false
 wpi.sim.addGui().defaultEnabled = true
 // Enable DS but not by default
 wpi.sim.addDriverstation()
+// Resolve the optional local HAL transport without opening it in ordinary GUI runs.
+wpi.sim.addWebsocketsServer().defaultEnabled = false
+tasks.register('prepareHeadlessSimulation') {
+    doLast { wpi.sim.releaseConfiguration.resolve() }
+}
 
 // Set the platform default so GradleRIO cannot append C++20 after our flag.
 // The pinned roboRIO GCC 12 supports only a subset of C++23.

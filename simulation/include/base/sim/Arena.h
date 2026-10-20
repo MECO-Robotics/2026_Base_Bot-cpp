@@ -46,6 +46,7 @@ public:
   std::optional<PieceId> Launch(IntakeId, Pose localMuzzle, Vec3 localVelocity);
   std::vector<PieceSnapshot> Pieces() const;
   size_t HeldCount(IntakeId id = 0) const;
+  bool IntakeActive(IntakeId id = 0) const;
   void Reset(uint32_t seed = 2026);
 
 private:

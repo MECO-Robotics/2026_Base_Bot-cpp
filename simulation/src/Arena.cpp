@@ -137,6 +137,9 @@ IntakeId Arena::RegisterIntake(const IntakeConfig &i) {
 void Arena::SetIntakeActive(IntakeId id, bool active) {
   intakes_.at(id).active = active;
 }
+bool Arena::IntakeActive(IntakeId id) const {
+  return intakes_.at(id).active;
+}
 size_t Arena::HeldCount(IntakeId id) const {
   return intakes_.at(id).held.size();
 }

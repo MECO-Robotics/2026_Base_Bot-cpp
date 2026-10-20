@@ -9,6 +9,7 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/ContactListener.h>
 #include <Jolt/Physics/Collision/RayCast.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.h>
@@ -77,7 +78,9 @@ struct BroadPair : JPH::ObjectVsBroadPhaseLayerFilter {
 } // namespace
 Backend BackendFromEnvironment() {
   auto *p = std::getenv("FRC_SIM_PHYSICS");
-  if (!p || std::string_view(p) == "phoenix")
+  if (!p || std::string_view(p).empty())
+    return Backend::Planar;
+  if (std::string_view(p) == "phoenix")
     return Backend::Phoenix;
   if (std::string_view(p) == "jolt-planar")
     return Backend::Planar;
@@ -87,6 +90,17 @@ Backend BackendFromEnvironment() {
       "FRC_SIM_PHYSICS must be phoenix, jolt-planar, or jolt-3d");
 }
 struct SimulationWorld::Impl {
+  struct Contacts : JPH::ContactListener {
+    uint32_t manifolds{};
+    void OnContactAdded(const JPH::Body &, const JPH::Body &,
+                        const JPH::ContactManifold &, JPH::ContactSettings &) override {
+      ++manifolds;
+    }
+    void OnContactPersisted(const JPH::Body &, const JPH::Body &,
+                            const JPH::ContactManifold &, JPH::ContactSettings &) override {
+      ++manifolds;
+    }
+  } contacts;
   Backend mode;
   Layers layers;
   Pair pair;
@@ -105,6 +119,7 @@ struct SimulationWorld::Impl {
   explicit Impl(Backend m) : mode(m) {
     physics.Init(4096, 0, 16384, 4096, layers, broad, pair);
     physics.SetGravity({0, 0, -9.80665f});
+    physics.SetContactListener(&contacts);
   }
   Entry &Get(BodyHandle h) {
     if (h.index >= bodies.size() || !bodies[h.index].alive ||
@@ -134,6 +149,7 @@ SimulationWorld::SimulationWorld(Backend m) {
 SimulationWorld::~SimulationWorld() = default;
 Backend SimulationWorld::Mode() const { return impl_->mode; }
 uint32_t SimulationWorld::BodyCount() const { return impl_->physics.GetNumBodies(); }
+uint32_t SimulationWorld::ContactManifoldCount() const { return impl_->contacts.manifolds; }
 BodyHandle SimulationWorld::CreateBody(const BodySpec &s) {
   CheckPose(s.pose);
   if (!std::isfinite(s.mass) || s.mass < 0 || !Finite(s.halfExtents) ||
@@ -280,6 +296,7 @@ SimulationWorld::Raycast(Vec3 o, Vec3 d, std::optional<BodyHandle> x) const {
 void SimulationWorld::Step(double dt) {
   if (!std::isfinite(dt) || dt <= 0 || dt > 0.02)
     throw std::invalid_argument("Invalid physics step");
+  impl_->contacts.manifolds = 0;
   if (impl_->physics.Update(float(dt), 1, &impl_->allocator, &impl_->jobs) !=
       JPH::EPhysicsUpdateError::None)
     throw std::runtime_error("Jolt physics capacity exceeded");
