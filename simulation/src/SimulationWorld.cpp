@@ -133,6 +133,7 @@ SimulationWorld::SimulationWorld(Backend m) {
 }
 SimulationWorld::~SimulationWorld() = default;
 Backend SimulationWorld::Mode() const { return impl_->mode; }
+uint32_t SimulationWorld::BodyCount() const { return impl_->physics.GetNumBodies(); }
 BodyHandle SimulationWorld::CreateBody(const BodySpec &s) {
   CheckPose(s.pose);
   if (!std::isfinite(s.mass) || s.mass < 0 || !Finite(s.halfExtents) ||

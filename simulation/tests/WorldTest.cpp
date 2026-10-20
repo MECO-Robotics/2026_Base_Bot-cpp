@@ -2,10 +2,12 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <source_location>
+#include <string>
 using namespace base::sim;
-void Check(bool ok) {
+void Check(bool ok, std::source_location where = std::source_location::current()) {
   if (!ok)
-    throw std::runtime_error("World contract failed");
+    throw std::runtime_error("World contract failed at line " + std::to_string(where.line()));
 }
 int main() {
   for (int repeat = 0; repeat < 2; ++repeat) {
@@ -70,5 +72,45 @@ int main() {
   Check(!world.ReadBody(h).enabled);
   world.Reset();
   Check(world.ReadBody(h).enabled);
+  // Reset must clear pending forces, and stale registrations must not execute.
+  SimulationClock lifecycle(Backend::Planar);
+  auto *planar = lifecycle.World();
+  BodySpec moving;
+  moving.mass = 1;
+  moving.planar = true;
+  auto robot = planar->CreateBody(moving);
+  planar->AddForce(robot, {100, 0, 0}, {});
+  lifecycle.Reset();
+  planar->Step(.004);
+  Check(std::abs(planar->ReadBody(robot).linearVelocity.x) < 1e-9);
+  Registration removed;
+  int resets = 0;
+  auto first = lifecycle.Register({{}, {}, [&] { removed = {}; }});
+  removed = lifecycle.Register({{}, {}, [&] { ++resets; }});
+  lifecycle.Reset();
+  Check(resets == 0);
+  Registration survivor;
+  {
+    SimulationClock temporary;
+    survivor = temporary.Register({});
+  }
+  survivor = {};
+  BodySpec wall;
+  wall.pose.position.x = 2;
+  wall.halfExtents = {.1, 5, 1};
+  planar->CreateBody(wall);
+  for (int i = 0; i < 500; ++i) {
+    planar->AddForce(robot, {20, 0, 0}, planar->ReadBody(robot).pose.position);
+    planar->Step(.004);
+  }
+  Check(planar->ReadBody(robot).pose.position.x < 1.42);
+  bool invalid = false;
+  moving.inertia = {1, 0, 1};
+  try {
+    planar->CreateBody(moving);
+  } catch (const std::invalid_argument &) {
+    invalid = true;
+  }
+  Check(invalid);
   std::cout << "world contracts passed\n";
 }

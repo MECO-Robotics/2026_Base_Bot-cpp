@@ -124,6 +124,7 @@ def joltCmake = providers.environmentVariable('CMAKE_COMMAND').getOrElse('cmake'
         def output = layout.buildDirectory.dir("jolt/${configuration}").get().asFile
         inputs.files(fileTree('simulation'))
         outputs.files(new File(output, "lib/${System.getProperty('os.name').toLowerCase().contains('windows') ? 'frc_jolt.lib' : 'libfrc_jolt.a'}"))
+        outputs.files(new File(output, "lib/${System.getProperty('os.name').toLowerCase().contains('windows') ? 'Jolt.lib' : 'libJolt.a'}"))
         commandLine joltCmake, '--build', output, '--config', configuration, '--parallel', '2'
         doFirst {
             project.exec {

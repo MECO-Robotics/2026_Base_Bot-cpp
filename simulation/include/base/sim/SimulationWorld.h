@@ -70,6 +70,8 @@ private:
   explicit Registration(std::function<void()> release);
   std::function<void()> release_;
 };
+// Single-threaded owner: create, query, and step on the robot thread.
+// No Jolt types escape this boundary; all quantities use metres, kilograms, seconds.
 class SimulationWorld {
 public:
   explicit SimulationWorld(Backend mode);
@@ -88,6 +90,7 @@ public:
   void Step(double seconds);
   void Reset(); // Restore all extant bodies to their creation state.
   Backend Mode() const;
+  uint32_t BodyCount() const;
 
 private:
   struct Impl;
