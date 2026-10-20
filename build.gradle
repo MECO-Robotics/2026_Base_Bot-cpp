@@ -116,3 +116,44 @@ model {
         }
     }
 }
+
+// Jolt is desktop-only: GradleRIO continues to own all roboRIO compilation.
+def joltCmake = providers.environmentVariable('CMAKE_COMMAND').getOrElse('cmake')
+['Debug', 'Release'].each { configuration ->
+    tasks.register("buildJolt${configuration}", Exec) {
+        def output = layout.buildDirectory.dir("jolt/${configuration}").get().asFile
+        inputs.files(fileTree('simulation'))
+        outputs.files(new File(output, "lib/${System.getProperty('os.name').toLowerCase().contains('windows') ? 'frc_jolt.lib' : 'libfrc_jolt.a'}"))
+        commandLine joltCmake, '--build', output, '--config', configuration, '--parallel', '2'
+        doFirst {
+            project.exec {
+                commandLine joltCmake, '-S', file('simulation'), '-B', output,
+                    '-DCMAKE_BUILD_TYPE=' + configuration, '-DBUILD_TESTING=OFF'
+            }
+        }
+    }
+}
+model {
+    binaries {
+        all { binary ->
+            if (binary.targetPlatform.name != wpi.platforms.roborio) {
+                binary.cppCompiler.args binary.targetPlatform.name.startsWith('windows') ? '/I' + file('simulation/include') : '-I' + file('simulation/include')
+                def configuration = binary.buildType.name.equalsIgnoreCase('debug') ? 'Debug' : 'Release'
+                def directory = file("build/jolt/${configuration}/lib")
+                if (binary.targetPlatform.name.startsWith('windows')) {
+                    binary.linker.args new File(directory, 'frc_jolt.lib').path, new File(directory, 'Jolt.lib').path
+                } else {
+                    binary.linker.args '-Wl,--whole-archive', new File(directory, 'libfrc_jolt.a').path,
+                        new File(directory, 'libJolt.a').path, '-Wl,--no-whole-archive', '-pthread'
+                }
+
+            }
+        }
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name.startsWith("link") && !task.name.toLowerCase().contains("linuxathena")) {
+        task.dependsOn task.name.toLowerCase().contains("debug") ? "buildJoltDebug" : "buildJoltRelease"
+    }
+}
