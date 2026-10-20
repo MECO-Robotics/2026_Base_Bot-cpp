@@ -5,6 +5,20 @@ backend selection, controller bindings, AdvantageScope, and headless commands.
 All defaults demonstrate software behavior; replace them with measured robot
 parameters before using the model to assess a physical design.
 
+## macOS model workflow
+
+The standalone `simulation/` CMake project supports native Apple Silicon and Intel
+Mac builds. Use the [portable model commands](../README.md#jolt-practice-simulation)
+after installing Xcode Command Line Tools, CMake, Ninja, and Python 3. No WPILib,
+Java, vendordep libraries, or Gradle are needed for these numerical tests and
+benchmarks. CI runs all three model suites in Debug/Release on each Mac architecture
+and enforces the same 4 ms Release p99 benchmark gate.
+
+Full robot/HAL practice remains Windows/Linux because the pinned Phoenix C++
+libraries do not provide a macOS target. Portable Mac tests cover Jolt lifecycle,
+drivetrain physics, collisions, and piece ownership/launch; they do not validate
+Phoenix sensors/odometry, command scheduling, or mechanism IO adapters.
+
 ## Drivetrain
 
 `base::DriveConfig` supplies mass (`massKg`), yaw inertia (`moi`), tire friction

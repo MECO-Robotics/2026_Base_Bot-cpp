@@ -30,6 +30,8 @@ def main():
     compiler = cache.get('CMAKE_CXX_COMPILER', 'unknown')
     compiler_version = capture([compiler, '/?'] if os.name == 'nt' else [compiler, '--version'])
     cpu = platform.processor()
+    if platform.system() == 'Darwin':
+        cpu = capture(['sysctl', '-n', 'machdep.cpu.brand_string'])
     if not cpu and Path('/proc/cpuinfo').exists():
         cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines() if line.startswith('model name')), '')
     passed = all(row['p99Seconds'] < args.max_p99_ms / 1000 for row in results)

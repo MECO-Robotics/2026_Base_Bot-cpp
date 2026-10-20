@@ -87,7 +87,8 @@ The latest independent audit, commit list, validation evidence, numerical analys
 
 ## Jolt practice simulation
 
-Windows and Linux are supported. Jolt 5.3.0 is source-pinned and built by CMake
+Full robot practice supports Windows and Linux. Native Jolt models, tests, and
+benchmarks also support macOS on Apple Silicon and Intel. Jolt 5.3.0 is source-pinned and built by CMake
 through Gradle for desktop targets only; install CMake 3.24+ and Ninja, plus the
 WPILib C++ compiler (MSVC on Windows). The roboRIO does not link Jolt.
 
@@ -148,7 +149,20 @@ and `DeadlineMisses` expose state and timing. Existing `/SmartDashboard/Drive`
 telemetry remains the estimated/control view. World truth is timestamped for future
 camera models; synthetic images and new camera simulation are not included.
 
-Portable model tests and benchmarks can run separately:
+Portable model tests and benchmarks can run separately, without WPILib or Phoenix.
+On macOS, install Xcode Command Line Tools (`xcode-select --install`), CMake 3.24+,
+Ninja, and Python 3 (for example, `brew install cmake ninja python`). Then use the
+same commands below. The build targets the current Mac architecture; use a native
+terminal and toolchain for Apple Silicon or Intel. Replace `Release` and the build
+directory with `Debug` / `build/jolt-debug` for debug tests. Benchmark Release builds.
+
+The pinned Phoenix 26.1.2 vendordep has no macOS native libraries. Consequently,
+`simulateNative`, `prepareHeadlessSimulation`, and the Xbox/HAL/AdvantageScope
+robot practice launcher remain Windows/Linux workflows. The standalone Mac models
+exercise the Jolt world, drivetrain physics, and arena/pieces; they do not run
+Phoenix control/odometry or WPILib mechanism adapters.
+
+Portable model commands:
 
 ```sh
 cmake -S simulation -B build/jolt-release -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -163,8 +177,9 @@ robot controls and telemetry. Results include body count, peak added/persisted
 contact manifolds, median/p99 cost, and 4 ms deadline misses; record CPU/OS,
 build configuration, compiler, and revision alongside results. A p99 below 4 ms
 on the intended practice machine is enforced by the benchmark wrapper, not a hardware latency
-or MapleSim performance claim. CI builds/tests Windows and Linux and uploads
-benchmark, smoke, and test evidence.
+or MapleSim performance claim. CI builds/tests the portable models on Windows, Linux, Apple Silicon macOS, and
+Intel macOS in Debug and Release, and benchmarks each Release target. Full robot
+smokes run on Windows/Linux. CI uploads benchmark, smoke, and test evidence.
 
 Model parameters, units, ownership, and fidelity limits are detailed in
 [the simulation configuration guide](docs/jolt-simulation.md).

@@ -50,6 +50,9 @@ def main():
     parser.add_argument('--smoke-output', type=Path)
     parser.add_argument('--backend', choices=['phoenix', 'jolt-planar', 'jolt-3d'], default='jolt-planar')
     args = parser.parse_args()
+    if platform.system() not in ('Windows', 'Linux'):
+        parser.error('Full robot simulation requires Windows or Linux with Phoenix; '
+                     'on macOS use the standalone simulation/ CMake models and benchmarks')
     root = Path(__file__).resolve().parents[1]
     windows = platform.system() == 'Windows'
     target = 'windowsx86-64' if windows else 'linuxx86-64'
