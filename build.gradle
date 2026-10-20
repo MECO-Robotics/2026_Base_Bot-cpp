@@ -67,6 +67,8 @@ wpi.sim.addDriverstation()
 // Resolve the optional local HAL transport without opening it in ordinary GUI runs.
 wpi.sim.addWebsocketsServer().defaultEnabled = false
 tasks.register('prepareHeadlessSimulation') {
+    def desktopTarget = System.getProperty('os.name').toLowerCase().contains('windows') ? 'Windowsx86-64' : 'Linuxx86-64'
+    dependsOn "installFrcUserProgram${desktopTarget}ReleaseExecutable"
     doLast { wpi.sim.releaseConfiguration.resolve() }
 }
 

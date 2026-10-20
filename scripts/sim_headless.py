@@ -5,6 +5,8 @@ Copies the executable and libraries before starting so later builds cannot repla
 loaded files. Pass --smoke-output to own both simulator and smoke-driver lifetime.
 """
 import argparse
+import hashlib
+import json
 import os
 from pathlib import Path
 import platform
@@ -18,6 +20,31 @@ import time
 import zipfile
 
 
+def snapshot_windows_dlls(sources, destination):
+    """Colocate release DLLs with the executable, as Windows' loader expects.
+
+    Keep libraries immutable even when Gradle rebuilds. Reject conflicting DLL
+    basenames rather than silently mixing different native configurations.
+    """
+    copied = {}
+    for source in sources:
+        if not source.exists():
+            continue
+        for library in sorted(source.rglob('*')):
+            if not library.is_file() or library.suffix.lower() != '.dll':
+                continue
+            key = library.name.lower()
+            digest = hashlib.sha256(library.read_bytes()).hexdigest()
+            if key in copied and copied[key]['sha256'] != digest:
+                raise RuntimeError(f'Conflicting release runtime DLLs: {library.name}')
+            if key not in copied:
+                shutil.copy2(library, destination / library.name)
+                copied[key] = {'source': str(library), 'sha256': digest}
+    if not copied:
+        raise RuntimeError('No Windows runtime DLLs found in the Gradle release installation')
+    return copied
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--smoke-output', type=Path)
@@ -28,7 +55,9 @@ def main():
     target = 'windowsx86-64' if windows else 'linuxx86-64'
     suffix = '.exe' if windows else ''
     binary = root / f'build/exe/frcUserProgram/{target}/release/frcUserProgram{suffix}'
-    libraries = root / f'build/install/frcUserProgramTest/{target}/release/lib'
+    app_libraries = root / f'build/install/frcUserProgram/{target}/release/lib'
+    test_libraries = root / f'build/install/frcUserProgramTest/{target}/release/lib'
+    libraries = app_libraries if app_libraries.exists() else test_libraries
     wpilib = Path(os.environ.get('WPILIB_ROOT', Path.home() / 'wpilib/2026'))
     archive = wpilib / f'maven/edu/wpi/first/halsim/halsim_ws_server/2026.2.1/halsim_ws_server-2026.2.1-{target}.zip'
     if not archive.exists():
@@ -52,20 +81,41 @@ def main():
         with zipfile.ZipFile(archive) as source:
             source.extractall(snapshot / 'extension')
         extension = next((snapshot / 'extension').rglob('*halsim_ws_server.dll' if windows else '*halsim_ws_server.so'))
+        runtime_manifest = {}
+        if windows:
+            # Gradle's installation is the authoritative resolved runtime set.
+            # DLLs beside the EXE work independently of PATH spelling/search rules.
+            runtime_manifest = snapshot_windows_dlls([libraries, extension.parent], snapshot)
+            print('Windows runtime snapshot: ' + json.dumps(runtime_manifest, sort_keys=True), flush=True)
+            dumpbin = shutil.which('dumpbin')
+            if dumpbin:
+                dependencies = subprocess.run([dumpbin, '/DEPENDENTS', str(snapshot / binary.name)],
+                                              capture_output=True, text=True, check=False)
+                print(dependencies.stdout + dependencies.stderr, flush=True)
         environment = os.environ.copy()
         environment['HALSIM_EXTENSIONS'] = str(extension)
         environment['FRC_SIM_PHYSICS'] = args.backend
         token = uuid.uuid4().hex
         environment['FRC_SIM_RUN_TOKEN'] = token
         path_key = 'PATH' if windows else 'LD_LIBRARY_PATH'
-        environment[path_key] = str(snapshot / 'lib') + os.pathsep + environment.get(path_key, '')
+        if windows:
+            # GitHub/MSVC environments spell it `Path`. Windows names are case
+            # insensitive, but Python dictionaries are not: emit exactly one key.
+            existing_paths = [key for key in environment if key.upper() == 'PATH']
+            inherited_path = next((environment[key] for key in existing_paths), '')
+            for key in existing_paths:
+                del environment[key]
+            environment[path_key] = os.pathsep.join(
+                [str(snapshot), str(snapshot / 'lib'), str(extension.parent), inherited_path])
+        else:
+            environment[path_key] = str(snapshot / 'lib') + os.pathsep + environment.get(path_key, '')
         process = subprocess.Popen([str(snapshot / binary.name)], cwd=root, env=environment)
         try:
             if args.smoke_output:
                 deadline = time.monotonic() + 20
                 while True:
                     if process.poll() is not None:
-                        raise RuntimeError(f'Owned simulator exited during startup: {process.returncode}')
+                        raise RuntimeError(f'Owned simulator exited during startup: {process.returncode:#x}; Windows DLL snapshot: {list(runtime_manifest)}')
                     with socket.socket() as probe:
                         ready = probe.connect_ex(('127.0.0.1', 3300)) == 0
                     if ready:
