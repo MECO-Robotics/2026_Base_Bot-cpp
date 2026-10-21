@@ -8,6 +8,8 @@ bool MotorIO::ConfigureControl(const MotorControlConfig& config) {
   config.gains.Validate(config.positionControlled);
   if (!std::isfinite(config.unitsPerOutputRotation) || config.unitsPerOutputRotation<=0)
     throw std::invalid_argument("Invalid motor control units");
+  if (controlNative_ && config.externalFeedback)
+    throw std::invalid_argument("Onboard control requires adapter-owned coherent feedback");
   const bool native=ConfigureNative(config.gains,config.unitsPerOutputRotation,
                                     config.gravity,config.positionControlled);
   if (native && config.externalFeedback)

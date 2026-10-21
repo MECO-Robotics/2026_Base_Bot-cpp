@@ -74,27 +74,46 @@ namespace base
     native_=io_->ConfigureControl({gains_,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)});
     if (native_ && externalEncoder_)
       throw std::invalid_argument("Native control requires the motor adapter feedback, not an external encoder callback");
+    asynchronousConfiguration_=io_->UsesAsyncConfiguration();
     SetName(name);
   }
   void Mechanism::SetGains(Gains gains)
   {
     gains.Validate(joint_);
+    if (configurationIntent_) throw std::logic_error("Motor configuration awaits a control-tick acknowledgement");
+    if (inputs_.configuration==MotorConfigurationState::Fault &&
+        inputs_.configurationFailure!=MotorConfigurationFailure::Gains)
+      throw std::logic_error("Retry the failed neutral configuration first");
     if (native_ && frc::DriverStation::IsEnabled())
       throw std::logic_error("Native gain configuration requires disabled state");
     if (native_) {
-      Stop(); nativeFault_=true;
-      if(!io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)}))
-        throw std::runtime_error("Native controller reconfiguration lost capability");
+      Stop();
+      const bool previousFault=nativeFault_;
+      nativeFault_=true;
+      try {
+        if(!io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)}))
+          throw std::runtime_error("Native controller reconfiguration lost capability");
+      } catch (...) {
+        // A rejected overlapping submission does not change the accepted job.
+        if(asynchronousConfiguration_) nativeFault_=previousFault;
+        throw;
+      }
       nativeFault_=false;
     }
     if (!native_) io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)});
+    configurationIntent_=native_ && asynchronousConfiguration_;
     gains_ = gains;
     maxVelocity_ = gains.maxVelocity;
     maxAcceleration_ = gains.maxAcceleration;
   }
+  bool Mechanism::AcceptIntent() {
+    if (configurationIntent_ || inputs_.configuration!=MotorConfigurationState::Ready) { Stop(); return false; }
+    return true;
+  }
   void Mechanism::SetVelocity(double velocity)
   {
     Finite(velocity);
+    if (!AcceptIntent()) return;
     unprofiled_=false;
     if (control_ != ControlMode::Velocity)
     {
@@ -110,6 +129,7 @@ namespace base
   void Mechanism::SetPositionUnprofiled(double position) { SetPosition(position); motionMagic_=false; unprofiled_=true; }
   void Mechanism::SetPositionDynamic(double position, double maxVelocity, double maxAcceleration)
   {
+    if (!AcceptIntent()) return;
     const bool enterSoftwareProfile=native_ && (motionMagic_ || unprofiled_);
     Finite(position);
     Finite(maxVelocity);
@@ -132,6 +152,7 @@ namespace base
   void Mechanism::SetVoltage(double volts)
   {
     Finite(volts);
+    if (!AcceptIntent()) return;
     voltage_ = std::clamp(volts, -12., 12.);
     control_ = ControlMode::Voltage;
     replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","voltage"},{"value",voltage_}});
@@ -143,7 +164,19 @@ namespace base
     ApplyVoltage(0);
   }
   void Mechanism::SetBrake(bool enabled) {
+    if (configurationIntent_) throw std::logic_error("Motor configuration awaits a control-tick acknowledgement");
+    if(inputs_.configuration==MotorConfigurationState::Fault &&
+       inputs_.configurationFailure!=(enabled?MotorConfigurationFailure::Brake:MotorConfigurationFailure::Coast))
+      throw std::logic_error("Retry the failed configuration operation and neutral target");
+    if(native_ && (brake_!=enabled || inputs_.configuration==MotorConfigurationState::Fault) &&
+       frc::DriverStation::IsEnabled())
+      throw std::logic_error("Neutral mode configuration requires disabled state");
+    const bool configuring=native_ && asynchronousConfiguration_ &&
+        (brake_!=enabled || inputs_.configuration==MotorConfigurationState::Fault);
+    if(configuring) Stop();
     io_->SetBrake(enabled);
+    if(configuring) configurationIntent_=true;
+    brake_=enabled;
     replay::RecordOutput("Mechanism/" + GetName() + "/Brake", enabled);
   }
   void Mechanism::ApplyVoltage(double volts) {
@@ -200,14 +233,25 @@ namespace base
       return wpi::json{{"position",Number(value.position)},{"velocity",Number(value.velocity)},
           {"voltage",Number(value.voltage)},{"supplyVoltage",Number(value.supplyVoltage)},
           {"current",Number(value.current)},{"connected",value.connected},{"nativeControl",native_},
+          {"configuration",static_cast<int>(value.configuration)},
+          {"configurationFailure",static_cast<int>(value.configurationFailure)},
+          {"asynchronousConfiguration",asynchronousConfiguration_},
           {"externalEncoder",externalEncoder_?Number(externalEncoder_()):wpi::json(nullptr)}};
     });
     if(replay::Active()) {
       native_=input.value("nativeControl",false);
+      asynchronousConfiguration_=input.value("asynchronousConfiguration",false);
       io_->UseRecordedControl(native_);
     }
+    const int configuration=input.value("configuration",0);
+    if(configuration<0 || configuration>2) { Stop(); throw std::runtime_error("Invalid recorded motor configuration state"); }
+    const int failure=input.value("configurationFailure",0);
+    if(failure<0 || failure>3) { Stop(); throw std::runtime_error("Invalid recorded motor configuration failure"); }
     inputs_={Number(input.at("position")),Number(input.at("velocity")),Number(input.at("voltage")),
-             Number(input.at("supplyVoltage")),Number(input.at("current")),input.at("connected").get<bool>()};
+             Number(input.at("supplyVoltage")),Number(input.at("current")),input.at("connected").get<bool>(),
+             static_cast<MotorConfigurationState>(configuration),static_cast<MotorConfigurationFailure>(failure)};
+    configurationIntent_=inputs_.configuration==MotorConfigurationState::Pending;
+    if (inputs_.configuration!=MotorConfigurationState::Ready) { Stop(); return; }
     if (!inputs_.connected || nativeFault_)
     {
       Stop();

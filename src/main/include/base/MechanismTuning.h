@@ -20,10 +20,10 @@ class MechanismTuning final : public frc2::SubsystemBase {
   nt::StringSubscriber subscriber_;
   std::shared_ptr<nt::StringPublisher> publisher_;
   std::string path_,status_="idle";
-  uint64_t revision_=0;
-  bool tuning_=false;
+  uint64_t revision_=0, configurationRevision_=0;
+  bool tuning_=false, configuring_=false;
   std::optional<double> pending_;
   void Process(const std::string& request);
-  void Status(std::string status);
+  void Status(std::string status, std::optional<uint64_t> revision={});
 };
 }

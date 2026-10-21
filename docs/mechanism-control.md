@@ -100,3 +100,26 @@ on cancellation/completion; they do not need a second characterization API.
 Vendor references: [REV closed-loop control](https://docs.revrobotics.com/revlib/spark/closed-loop),
 [REV MAXMotion](https://docs.revrobotics.com/revlib/spark/closed-loop/maxmotion-position-control).
 Pinned local headers and desktop/roboRIO compilation are the API authority.
+
+### Runtime configuration and scheduler latency
+
+Real motor factories wrap the vendor adapter with a prestarted configuration
+worker. Construction and the first gain configuration are synchronous startup
+operations; construct mechanisms before running the command scheduler. Subsequent
+`SetGains` and changed `SetBrake` requests require disabled state, stop the motor,
+and submit one bounded job. An overlapping request is rejected, rather than
+queued. `ConfigureControl` still returns firmware ownership, not completion.
+
+The worker exclusively owns the vendor device during configuration, including
+Spark CAN timeout changes. Scheduler reads, stops, and motor requests use
+non-waiting lock attempts; pending/faulted inputs are unhealthy and outputs remain
+zero. `MotorInputs::configuration` reports Ready, Pending, or Fault;
+`configurationFailure` identifies failed gains/brake/coast operations. Failures and
+an observed enable transition during a job latch Fault. Retry the failed
+operation while disabled to recover: gains after a gain failure, or the exact
+failed brake/coast target after a neutral failure. Switching operation kind or
+neutral target cannot clear partially applied device configuration. Requests made while inhibited are discarded;
+completion never resumes a prior goal. Issue a fresh command after observing a
+Ready control tick. Destruction joins the worker and belongs to robot lifecycle,
+not command execution. This avoids deliberate device-acknowledgement waits;
+short vendor/cache locks and OS scheduling still prevent a hard real-time claim.

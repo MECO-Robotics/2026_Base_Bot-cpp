@@ -121,3 +121,13 @@ transport and sendable infrastructure retain their own implementation threads;
 this policy covers application publishers, not a blanket OS priority guarantee
 for every library thread. The WPILib disk writer's priority is not configured by
 this framework.
+
+Motor input frames include `configuration` (0 Ready, 1 Pending, 2 Fault), recording
+the asynchronous hardware configuration boundary. Replay substitutes this state
+before control and tuning consume it, so pending/fault inhibition and the need
+for a fresh post-configuration request are reproduced without a worker or device.
+`asynchronousConfiguration` records source control ownership and
+`configurationFailure` (0 none, 1 gains, 2 brake, 3 coast) preserves recovery
+operation restrictions. Older frames without these fields retain synchronous
+Ready behavior. The firmware
+configuration transaction itself remains outside replay, like onboard PID.

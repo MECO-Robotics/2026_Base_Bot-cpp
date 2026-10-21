@@ -44,6 +44,8 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
     auto *injected=dynamic_cast<base::InjectedMotorIO*>(io.get());ASSERT_NE(injected,nullptr);
     base::Gains gains;gains.p=3;gains.maxAcceleration=1000;gains.maxVelocity=10;
     base::Flywheel wheel("Probe",std::move(io),gains);
+    auto configuredIO=std::make_unique<base::InjectedMotorIO>(); auto* configured=configuredIO.get();
+    base::Flywheel configWheel("ConfigProbe",std::move(configuredIO),gains);
     int observationCount=0;
     base::VisionConfig config;config.name="ReplayVision";
     base::Vision vision(config,[&](const base::VisionObservation &o){
@@ -64,6 +66,10 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
       if(base::replay::FrameIndex()==1){gains.p=4;wheel.SetGains(gains);}
       wheel.SetVelocity(3);wheel.Periodic();
       EXPECT_DOUBLE_EQ(injected->requestedVoltage,base::replay::FrameIndex()==0?6:base::replay::FrameIndex()==1?8:0);
+      configWheel.SetVelocity(2); configWheel.Periodic();
+      EXPECT_EQ(configWheel.ConfigurationState(),base::replay::FrameIndex()==0 ?
+          base::MotorConfigurationState::Pending : base::MotorConfigurationState::Ready);
+      EXPECT_EQ(configured->nativeRequest.has_value(),base::replay::FrameIndex()==2);
       pieces.Periodic();ASSERT_TRUE(pieces.Target());EXPECT_NEAR(pieces.Target()->X().value(),1,1e-9);
       quest.Periodic();EXPECT_TRUE(quest.Connected());
       if(base::replay::FrameIndex()==0)EXPECT_TRUE(quest.AlignToField(frc::Pose2d{units::meter_t{5},units::meter_t{4},frc::Rotation2d{}}));
@@ -92,6 +98,7 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
   frame["inputs"]["PieceDetection/ReplayPiece"]={{"now",.1},{"ray",{.1,0,-45}}};
   frame["outputs"]={{"Mechanism/Probe/AppliedVoltageRequest",999},{"Drive/RequestedChassisSpeeds",{999,999,999}}};
   {std::error_code ec;wpi::log::DataLogWriter log(source.string(),ec);ASSERT_FALSE(ec);wpi::log::StringLogEntry entry(log,"Replay/Frames");for(int i=0;i<3;++i){frame["sequence"]=i;frame["timestampUs"]=100000+20000*i;auto packet=questfixture::Bytes(i==0?questfixture::first:questfixture::second);packet[10]=7+i;
+frame["inputs"]["Mechanism/ConfigProbe"]={{"position",0},{"velocity",0},{"voltage",0},{"supplyVoltage",12},{"current",0},{"connected",i!=0},{"externalEncoder",nullptr},{"nativeControl",true},{"configuration",i==0?1:0}};
 frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frames",wpi::json::array({{{"timestampUs",100000+20000*i},{"data",packet}}})}};if(i==2)frame["inputs"]["Mechanism/Probe"]["connected"]=false;entry.Append(frame.dump(),100000+20000*i);}log.Flush();}
   const auto oldInput=Saved("FRC_REPLAY_LOG"),oldOutput=Saved("FRC_REPLAY_OUTPUT");
   Env("FRC_REPLAY_LOG",source.string());Env("FRC_REPLAY_OUTPUT",output.string());Env("FRC_REPLAY_TEST_CHILD","1");

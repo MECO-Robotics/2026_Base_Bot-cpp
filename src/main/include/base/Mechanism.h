@@ -58,10 +58,14 @@ struct EncoderCalibration {
   double Apply(double raw) const;
   void Validate() const;
 };
+enum class MotorConfigurationState { Ready, Pending, Fault };
+enum class MotorConfigurationFailure { None, Gains, Brake, Coast };
 struct MotorInputs {
   double position=0, velocity=0, voltage=0, supplyVoltage=12, current=0;
   // Adapters and replay injectors must affirm healthy feedback before control.
   bool connected=false;
+  MotorConfigurationState configuration=MotorConfigurationState::Ready;
+  MotorConfigurationFailure configurationFailure=MotorConfigurationFailure::None;
 };
 // All positions below are output-shaft angles; elevator travel is angle * drumRadius.
 struct MotorSimulationConfig {
@@ -103,6 +107,8 @@ class MotorIO {
   virtual MotorInputs Read()=0;
   virtual void SetVoltage(double volts)=0;
   virtual void SetBrake(bool brake)=0;
+  virtual bool UsesAsyncConfiguration() const { return false; }
+  virtual MotorConfigurationState ConfigurationState() const { return MotorConfigurationState::Ready; }
   // Adapters own all PID/feedforward state and vendor conversion. Configuration
   // returns whether firmware owns the loop; false selects the IO-owned emulator.
   bool ConfigureControl(const MotorControlConfig&);
@@ -123,6 +129,9 @@ class MotorIO {
   bool controlNative_=false;
   double integral_=0, previousError_=0;
 };
+// Real adapters wrap blocking configuration in a prestarted, bounded worker.
+// The first gain configuration is startup-only and synchronous.
+std::unique_ptr<MotorIO> MakeAsyncMotorIO(std::unique_ptr<MotorIO> child);
 // Factories are lazy: replay never constructs a controller or simulator.
 std::unique_ptr<MotorIO> MakeMotorIO(Mode mode, Vendor vendor, const MotorConfig& config,
                                    double outputInertia=.025);
@@ -168,6 +177,7 @@ class Mechanism : public frc2::SubsystemBase {
   void SetBrake(bool enabled);
   void SetGains(Gains gains);
   const Gains& GetGains() const { return gains_; }
+  MotorConfigurationState ConfigurationState() const { return inputs_.configuration; }
   bool IsPositionControlled() const { return joint_; }
   bool AtSetpoint() const;
   bool VelocityControlActive() const { return control_==ControlMode::Velocity; }
@@ -182,10 +192,11 @@ class Mechanism : public frc2::SubsystemBase {
   frc2::CommandPtr VoltageCommand(std::function<double()> voltage);
  private:
   void ApplyVoltage(double volts);
+  bool AcceptIntent();
   enum class ControlMode { Stopped, Voltage, Velocity, Position };
   std::unique_ptr<MotorIO> io_;
   Gains gains_;
-  bool externalScheduling_=false;
+  bool externalScheduling_=false, configurationIntent_=false, brake_=true, asynchronousConfiguration_=false;
   bool joint_, native_=false, nativeFault_=false, motionMagic_=true, unprofiled_=false;
   double units_, physicalPosition_=0, zeroOffset_=0, target_=0, voltage_=0;
   double profiledPosition_=0, profiledVelocity_=0;

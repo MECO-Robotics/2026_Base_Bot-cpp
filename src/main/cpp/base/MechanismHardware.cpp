@@ -550,7 +550,7 @@ namespace base
       return std::make_unique<SimMotorIO>(config, vendor, simulation);
 
     if (vendor == Vendor::SparkMax)
-      return std::make_unique<SparkMotorIO>(config);
-    return std::make_unique<TalonMotorIO>(config);
+      return MakeAsyncMotorIO(std::make_unique<SparkMotorIO>(config));
+    return MakeAsyncMotorIO(std::make_unique<TalonMotorIO>(config));
   }
 }
