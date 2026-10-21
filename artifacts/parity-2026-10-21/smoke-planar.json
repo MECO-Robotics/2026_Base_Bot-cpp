@@ -1,0 +1,506 @@
+{
+  "transport": "localhost HAL websocket + NT4",
+  "scope": "Software simulation behavior; excludes physical calibration",
+  "checks": {
+    "practice_start_field_frame": true,
+    "intake_captures": true,
+    "disable_held_intake_stops": true,
+    "intake_recaptures": true,
+    "launch_releases_one": true,
+    "practice_reset_field_frame": true,
+    "ModuleStates_forward_vectors": true,
+    "ModuleTargets_forward_vectors": true,
+    "ModuleStates_turn_vectors": true,
+    "ModuleTargets_turn_vectors": true,
+    "autonomous_without_choice_does_not_drive": true,
+    "forward_pose_changes": true,
+    "forward_truth_moves": true,
+    "initial_disabled_stationary": true,
+    "forward_speed_tracking": true,
+    "reverse_speed_tracking": true,
+    "turn_speed_tracking": true,
+    "negative_turn_velocity": true,
+    "spin_reversal_velocity": true,
+    "zero_input_stops": true,
+    "final_disabled_stationary": true,
+    "turn_heading_matches_rate": true,
+    "negative_turn_heading_matches_rate": true,
+    "spin_reversal_heading_matches_rate": true,
+    "stopping_heading_matches_rate": true,
+    "collider_wireframe_struct": true,
+    "RobotTruth_struct_present": true,
+    "Pieces_struct_present": true,
+    "Pose_struct_present": true,
+    "truth_positive_spin": true,
+    "truth_negative_spin": true,
+    "power_finite_and_physical": true,
+    "loaded_battery_sags": true,
+    "disabled_battery_recovers": true
+  },
+  "runToken": "1339d918fa07416aa1d1b0d745748206",
+  "passed": true,
+  "power": {
+    "minimumVoltage": 10.428075804597345,
+    "maximumSupplyCurrent": 83.39774895473963
+  },
+  "samples": {
+    "disabled_initial": {
+      "speeds": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleStates": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleTargets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "practice_reset": {
+      "speeds": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleStates": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleTargets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "forward": {
+      "speeds": [
+        1.9599515528994464,
+        0.0,
+        0.0
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          2.032,
+          0.0,
+          0.0
+        ],
+        "moduleStates": [
+          2.1099886266037524,
+          0.0,
+          2.1099886266037524,
+          0.0,
+          2.1099886266037524,
+          0.0,
+          2.1099886266037524,
+          0.0
+        ],
+        "moduleTargets": [
+          2.032,
+          0.0,
+          2.032,
+          0.0,
+          2.032,
+          0.0,
+          2.032,
+          0.0
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.07798862660375239,
+          0.0,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.07798862660375239,
+          0.07798862660375239,
+          0.07798862660375239,
+          0.07798862660375239
+        ]
+      }
+    },
+    "reverse": {
+      "speeds": [
+        -2.0619660715404384,
+        0.0,
+        -5.672834611804411e-05
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          -2.0319992435528773,
+          0.0017533398229829036,
+          0.0
+        ],
+        "moduleStates": [
+          -2.114876159374575,
+          0.0,
+          -2.114876159374575,
+          0.0,
+          -2.114876159374575,
+          0.0,
+          -2.114876159374575,
+          0.0
+        ],
+        "moduleTargets": [
+          -2.032,
+          -0.0008628641931858424,
+          -2.032,
+          -0.0008628641931858424,
+          -2.032,
+          -0.0008628641931858424,
+          -2.032,
+          -0.0008628641931858424
+        ],
+        "chassisMeasuredMinusTarget": [
+          -0.0828769158216982,
+          -0.0017533398229829036,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.0828954605310305,
+          0.0828954605310305,
+          0.0828954605310305,
+          0.0828954605310305
+        ]
+      }
+    },
+    "turn": {
+      "speeds": [
+        0.0,
+        0.0,
+        3.2741115215531176
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          3.1111111111111116
+        ],
+        "moduleStates": [
+          -1.5589193066935358,
+          -0.7577865092155067,
+          1.5589193066935358,
+          0.7577865092155067,
+          -1.5589193066935358,
+          0.7577865092155067,
+          1.5589193066935358,
+          -0.7577865092155067
+        ],
+        "moduleTargets": [
+          -1.4807444537407364,
+          -0.7853981633974485,
+          1.4807444537407364,
+          0.7853981633974483,
+          -1.4807444537407364,
+          0.7853981633974483,
+          1.4807444537407364,
+          -0.7853981633974483
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.0,
+          0.0,
+          0.16300041044200597
+        ],
+        "moduleVectorErrorMps": [
+          0.08871921041108298,
+          0.0887192104110826,
+          0.0887192104110826,
+          0.0887192104110826
+        ]
+      },
+      "estimatedHeadingChange": 5.23245780916273,
+      "truthHeadingChange": 5.297288962534273
+    },
+    "negative_turn": {
+      "speeds": [
+        -3.698025181109177e-05,
+        0.0,
+        -3.2746461576604915
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          -3.1111111111111116
+        ],
+        "moduleStates": [
+          1.5591229538923201,
+          -0.7577865092155067,
+          -1.5592247774917123,
+          0.7577865092155067,
+          1.5591229538923201,
+          0.7577865092155067,
+          -1.5592247774917123,
+          -0.7577865092155067
+        ],
+        "moduleTargets": [
+          1.4807444537407364,
+          -0.7853981633974483,
+          -1.4807444537407364,
+          0.7853981633974483,
+          1.4807444537407364,
+          0.7853981633974483,
+          -1.4807444537407364,
+          -0.7853981633974485
+        ],
+        "chassisMeasuredMinusTarget": [
+          -3.698025181109177e-05,
+          0.0,
+          -0.1635350465493799
+        ],
+        "moduleVectorErrorMps": [
+          0.08889999907495781,
+          0.08899043043746038,
+          0.08889999907495781,
+          0.08899043043746074
+        ]
+      },
+      "estimatedHeadingChange": -3.230161470375522,
+      "truthHeadingChange": -3.3595653542792303
+    },
+    "spin_reversal": {
+      "speeds": [
+        -3.698025181120279e-05,
+        0.0,
+        3.2746461576604906
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          3.1111111111111116
+        ],
+        "moduleStates": [
+          -1.5592247774917123,
+          -0.7577865092155067,
+          1.5591229538923201,
+          0.7577865092155067,
+          -1.5592247774917123,
+          0.7577865092155067,
+          1.5591229538923201,
+          -0.7577865092155067
+        ],
+        "moduleTargets": [
+          -1.4807444537407364,
+          -0.7853981633974485,
+          1.4807444537407364,
+          0.7853981633974483,
+          -1.4807444537407364,
+          0.7853981633974483,
+          1.4807444537407364,
+          -0.7853981633974483
+        ],
+        "chassisMeasuredMinusTarget": [
+          -3.698025181120279e-05,
+          0.0,
+          0.163535046549379
+        ],
+        "moduleVectorErrorMps": [
+          0.08899043043746074,
+          0.08889999907495781,
+          0.08899043043746038,
+          0.08889999907495781
+        ]
+      },
+      "estimatedHeadingChange": 3.4697390725968447,
+      "truthHeadingChange": 3.465052493145952
+    },
+    "stopping": {
+      "speeds": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleStates": [
+          0.0,
+          -0.7577865092155067,
+          0.0,
+          0.7577865092155067,
+          0.0,
+          0.7577865092155067,
+          0.0,
+          -0.7577865092155067
+        ],
+        "moduleTargets": [
+          -0.0,
+          -0.7853981633974485,
+          0.0,
+          0.7853981633974483,
+          -0.0,
+          0.7853981633974483,
+          0.0,
+          -0.7853981633974483
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "estimatedHeadingChange": 0.8122520433371382,
+      "truthHeadingChange": 0.8125415418092924
+    },
+    "disabled_final": {
+      "speeds": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleStates": [
+          0.0,
+          -0.7577865092155067,
+          0.0,
+          0.7577865092155067,
+          0.0,
+          0.7577865092155067,
+          0.0,
+          -0.7577865092155067
+        ],
+        "moduleTargets": [
+          -0.0,
+          -0.7853981633974485,
+          0.0,
+          0.7853981633974483,
+          -0.0,
+          0.7853981633974483,
+          0.0,
+          -0.7853981633974483
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "autonomous_no_choice": {
+      "speeds": [
+        0.0,
+        -0.0,
+        0.0
+      ],
+      "targetMeasured": {
+        "requestedSpeeds": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "moduleStates": [
+          0.0,
+          -0.7577865092155067,
+          0.0,
+          0.7577865092155067,
+          0.0,
+          0.7577865092155067,
+          0.0,
+          -0.7577865092155067
+        ],
+        "moduleTargets": [
+          -0.0,
+          -0.7853981633974485,
+          0.0,
+          0.7853981633974483,
+          -0.0,
+          0.7853981633974483,
+          0.0,
+          -0.7853981633974483
+        ],
+        "chassisMeasuredMinusTarget": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "moduleVectorErrorMps": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  }
+}

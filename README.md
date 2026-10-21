@@ -40,7 +40,7 @@ instead, set `C_Cpp.default.configurationProvider` to
 
 ## Verified simulation check
 
-`./gradlew build --max-workers=2` passed for desktop and roboRIO in debug and release, including 25 native test cases in both configurations. A real desktop `frcUserProgram` was exercised through local HAL simulation and NetworkTables: forward/reverse motion, rotation, pose changes, and stationary disabled behavior passed. The captured result is in `artifacts/sim-smoke.json`. This verifies runtime behavior; it does not establish physical calibration or hardware acceptance.
+The [parity audit](docs/parity-audit-2026-10-21.md) records the current desktop/roboRIO Debug and Release build, 52 native tests per configuration, headless practice checks, replay comparison and numerical model evidence. These checks establish software behavior, not physical calibration or hardware acceptance.
 
 For the regular graphical simulator use `./gradlew simulateNative`. For a repeatable Windows or Linux headless check, run these in separate terminals:
 
@@ -87,7 +87,7 @@ automatically registers simulated IO with the shared clock. The shared [battery 
 
 ## Reusable code
 
-- `base/Drive.h`: configurable four-module TalonFX/CANcoder/Pigeon swerve, Phoenix native odometry, field driving, heading hold, X brake, vision fusion, PathPlanner autos, wheel-force feedforwards, and [native translation SysId](docs/runtime-parity.md).
+- `base/Drive.h`: configurable four-module TalonFX/CANcoder/Pigeon swerve, Phoenix native odometry, field driving, heading hold, X brake, vision fusion, PathPlanner autos, wheel-force feedforwards, and [native translation SysId](docs/runtime-parity.md), and [wheel-radius characterization](docs/wheel-radius-characterization.md).
 - `base/Mechanism.h`: motor groups, flywheel and position joint subsystems; validated hardware/gains; voltage/velocity/position commands; acceleration limits, gravity feedforward, physical-coordinate soft limits, reset offsets, external encoder calibration, digital input, real/sim/injected replay IO. Angular mechanism units are rotations; linear mechanism units are metres; rates are per second.
 - `base/Vision.h`: Limelight NetworkTables and PhotonVision pose observations, configurable tag filters and covariance.
 - `base/ModelFeedforward.h` and `base/MechanismTuning.h`: [WPILib model coefficients and safe dashboard transactions](docs/mechanism-tuning.md), with disabled gain updates and an explicit Test-mode command.

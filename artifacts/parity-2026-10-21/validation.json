@@ -1,0 +1,32 @@
+{
+  "sourceRevision": "c3fedda73a5216552314dfa488eb7ca0a28958b5",
+  "sourceHash": "6184c5c53630464aa79a8f1b6c8622acc932cf1e6f4f463b03dd3b5b0d399399",
+  "buildDirty": false,
+  "command": "./gradlew build prepareHeadlessSimulation --max-workers=2 --console=plain",
+  "result": "BUILD SUCCESSFUL in 8m 56s",
+  "productionTargets": [
+    "Linux desktop Debug",
+    "Linux desktop Release",
+    "roboRIO Debug",
+    "roboRIO Release"
+  ],
+  "nativeTests": {
+    "Debug": 52,
+    "Release": 52
+  },
+  "portableTests": {
+    "Debug": 4,
+    "Release": 4
+  },
+  "pythonTests": 3,
+  "nativeSummary": [
+    "[==========] 52 tests from 30 test suites ran. (6742 ms total)",
+    "[  PASSED  ] 52 tests.",
+    "[==========] 52 tests from 30 test suites ran. (5621 ms total)",
+    "[  PASSED  ] 52 tests."
+  ],
+  "limitations": [
+    "No fresh Windows or macOS execution in this local audit",
+    "No hardware deployment or calibration"
+  ]
+}

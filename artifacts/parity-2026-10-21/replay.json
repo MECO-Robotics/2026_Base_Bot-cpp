@@ -1,0 +1,52 @@
+{
+  "scope": "recorded sensor/DS inputs injected into rerun C++ commands; Phoenix estimator and camera processing are recorded boundaries",
+  "checks": {
+    "complete": true,
+    "frameCount": true,
+    "sourceHash": true,
+    "replayMode": true,
+    "sourceMetadata": true,
+    "inputsAndClockPreserved": true,
+    "outputsRecorded": true
+  },
+  "completed": true,
+  "frameCount": 1018,
+  "outputFramesDifferent": 611,
+  "outputDifferenceCounts": {
+    "Drive/ModuleTargets": 611
+  },
+  "sourceSha256": "f1175af94d643e7ac8dafa453cdc02f8a6e538616d1c9b77f369609637a11411",
+  "replaySha256": "3822ea0c98ea627584c3b64f927b7b5d7625c6b9315c71cabbdd530a49599526",
+  "sourceMetadata": {
+    "buildDirty": false,
+    "buildRevision": "c3fedda73a5216552314dfa488eb7ca0a28958b5",
+    "buildSourceHash": "6184c5c53630464aa79a8f1b6c8622acc932cf1e6f4f463b03dd3b5b0d399399",
+    "mode": "live",
+    "schemaVersion": 1
+  },
+  "replayMetadata": {
+    "buildDirty": false,
+    "buildRevision": "c3fedda73a5216552314dfa488eb7ca0a28958b5",
+    "buildSourceHash": "6184c5c53630464aa79a8f1b6c8622acc932cf1e6f4f463b03dd3b5b0d399399",
+    "mode": "replay",
+    "schemaVersion": 1,
+    "sourceFile": "/home/brian/Documents/FRC/2026_Base_Bot-cpp/logs/FRC_20261021_160737.wpilog",
+    "sourceFileHashFnv1a64": "3900333291615760911",
+    "sourceFileSha256": "f1175af94d643e7ac8dafa453cdc02f8a6e538616d1c9b77f369609637a11411",
+    "sourceMetadata": {
+      "buildDirty": false,
+      "buildRevision": "c3fedda73a5216552314dfa488eb7ca0a28958b5",
+      "buildSourceHash": "6184c5c53630464aa79a8f1b6c8622acc932cf1e6f4f463b03dd3b5b0d399399",
+      "mode": "live",
+      "schemaVersion": 1
+    }
+  },
+  "recordingStatus": {
+    "failed": 0,
+    "highWater": 12,
+    "rejected": 0,
+    "written": 1018
+  },
+  "source": "/home/brian/Documents/FRC/2026_Base_Bot-cpp/logs/FRC_20261021_160737.wpilog",
+  "replayLog": "/tmp/parity-replayed.wpilog"
+}

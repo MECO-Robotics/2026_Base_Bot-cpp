@@ -1,0 +1,45 @@
+> Task :generateReplayProvenance
+> Task :compileFrcUserProgramLinuxathenaDebugExecutableFrcUserProgramCpp
+> Task :compileFrcUserProgramLinuxathenaReleaseExecutableFrcUserProgramCpp
+> Task :linkFrcUserProgramLinuxathenaDebugExecutable
+> Task :frcUserProgramLinuxathenaDebugExecutable
+> Task :buildJoltDebug UP-TO-DATE
+> Task :compileFrcUserProgramLinuxx86-64DebugExecutableFrcUserProgramCpp
+> Task :linkFrcUserProgramLinuxathenaReleaseExecutable
+> Task :frcUserProgramLinuxathenaReleaseExecutable
+> Task :buildJoltRelease UP-TO-DATE
+> Task :compileFrcUserProgramLinuxx86-64ReleaseExecutableFrcUserProgramCpp
+> Task :linkFrcUserProgramLinuxx86-64ReleaseExecutable
+> Task :frcUserProgramLinuxx86-64ReleaseExecutable
+> Task :checkFrcUserProgramLinuxathenaDebugExecutable UP-TO-DATE
+> Task :checkFrcUserProgramLinuxathenaReleaseExecutable UP-TO-DATE
+> Task :linkFrcUserProgramLinuxx86-64DebugExecutable
+> Task :frcUserProgramLinuxx86-64DebugExecutable
+> Task :assemble
+> Task :compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramCpp
+> Task :compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramTestCpp
+> Task :compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramCpp
+> Task :linkFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :frcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :installFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :runFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+[==========] Running 52 tests from 30 test suites.
+[==========] 52 tests from 30 test suites ran. (6742 ms total)
+[  PASSED  ] 52 tests.
+> Task :checkFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :checkFrcUserProgramLinuxx86-64DebugExecutable
+> Task :installFrcUserProgramLinuxx86-64ReleaseExecutable
+> Task :prepareHeadlessSimulation
+> Task :compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramTestCpp
+> Task :linkFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :frcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :installFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :runFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+[==========] Running 52 tests from 30 test suites.
+[==========] 52 tests from 30 test suites ran. (5621 ms total)
+[  PASSED  ] 52 tests.
+> Task :checkFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :checkFrcUserProgramLinuxx86-64ReleaseExecutable
+> Task :check
+> Task :build
+BUILD SUCCESSFUL in 8m 56s
