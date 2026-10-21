@@ -39,7 +39,7 @@ class PhotonPieceDetection : public frc2::SubsystemBase {
  public:
   using Source=std::function<std::optional<PieceRay>()>;
   PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,Source source={});
-  PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,std::unique_ptr<PieceDetectionIO> io);
+  PhotonPieceDetection(std::unique_ptr<PieceDetectionIO> io,PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose);
   void Periodic() override;
   std::optional<frc::Translation3d> Target() const {return target_;}
  private:

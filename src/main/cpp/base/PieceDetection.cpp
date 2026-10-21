@@ -40,15 +40,16 @@ std::unique_ptr<PieceDetectionIO> MakePhotonPieceDetectionIO(std::string name) {
   return std::make_unique<PhotonPieceIO>(std::move(name));
 }
 namespace {
-std::unique_ptr<PieceDetectionIO> SelectIO(const PieceDetectionConfig &config,PhotonPieceDetection::Source source) {
+std::unique_ptr<PieceDetectionIO> SelectIO(const PieceDetectionConfig &config,PhotonPieceDetection::Source source,const std::function<frc::Pose3d()> &robotPose) {
   Validate(config);
+  if(!robotPose)throw std::invalid_argument("Missing piece robot pose supplier");
   if(source) return std::make_unique<InjectedPieceDetectionIO>(std::move(source));
   return MakePhotonPieceDetectionIO(config.name);
 }
 }
 PhotonPieceDetection::PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,Source source)
-    :PhotonPieceDetection(config,std::move(robotPose),SelectIO(config,std::move(source))) {}
-PhotonPieceDetection::PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,std::unique_ptr<PieceDetectionIO> io)
+    :PhotonPieceDetection(SelectIO(config,std::move(source),robotPose),config,robotPose) {}
+PhotonPieceDetection::PhotonPieceDetection(std::unique_ptr<PieceDetectionIO> io,PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose)
     :config_(std::move(config)),robotPose_(std::move(robotPose)),io_(std::move(io)) {
   Validate(config_);
   if(!robotPose_)throw std::invalid_argument("Missing piece robot pose supplier");

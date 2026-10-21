@@ -25,3 +25,7 @@ Photon acquisition; `InjectedPieceDetectionIO` supplies typed rays. Pass either
 adapter to the `PhotonPieceDetection` constructor; the existing callback
 constructor remains supported. Replay substitutes the same recorded ray input
 before the adapter is called, so it never acquires live camera data.
+
+The adapter constructor takes IO first, e.g.
+`PhotonPieceDetection(std::move(io), config, robotPoseSupplier)`. This avoids
+ambiguity with existing third-argument empty callbacks.
