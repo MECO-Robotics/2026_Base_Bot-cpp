@@ -5,6 +5,7 @@ steering pairs, NEO motors and a NavX on MXP SPI. Phoenix native swerve remains
 the default and retains its native synchronized acquisition. Desktop launches may
 select `FRC_DRIVE_BACKEND=rev`, or `scripts/sim_headless.py --drive-backend rev`
 with Jolt planar or 3D physics. Real hardware selection is explicit C++ config.
+Full robot builds retain Phoenix headers and libraries for the default backend.
 
 Each steering Spark uses its attached duty-cycle absolute encoder. Module
 `encoder` CAN IDs and `pigeon` are unused by this backend. Only the roboRIO CAN

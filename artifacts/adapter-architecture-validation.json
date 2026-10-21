@@ -1,0 +1,731 @@
+{
+  "scope": "Hardware-owned control, optional Spark MAX/NavX swerve, reusable vision acquisition",
+  "testedRevision": "4f418fc5bef429b2cd42bdf1216f6ff4b927c6f6",
+  "baseRevision": "93e85e9",
+  "platform": "Linux x86_64",
+  "date": "2026-10-21",
+  "workflow": {
+    "method": "Separate planner, implementation and independent reviewer assignments per concern; isolated worktrees; fixes independently rechecked",
+    "concerns": [
+      "mechanisms",
+      "swerve",
+      "vision"
+    ]
+  },
+  "build": {
+    "passed": true,
+    "command": "./gradlew assemble prepareHeadlessSimulation installFrcUserProgramTestLinuxx86-64DebugGoogleTestExe installFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe --max-workers=4",
+    "targets": [
+      "Linux desktop Debug",
+      "Linux desktop Release",
+      "roboRIO Debug",
+      "roboRIO Release"
+    ],
+    "log": "/tmp/adapters-accepted-build.log"
+  },
+  "nativeTests": {
+    "debug": {
+      "tests": 77,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "seconds": 7.092,
+      "command": "GTEST_FILTER='*' build/install/frcUserProgramTest/linuxx86-64/debug/frcUserProgramTest --gtest_output=xml:/tmp/adapters-final-debug.xml"
+    },
+    "release": {
+      "tests": 77,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "seconds": 5.826,
+      "command": "GTEST_FILTER='*' build/install/frcUserProgramTest/linuxx86-64/release/frcUserProgramTest --gtest_output=xml:/tmp/adapters-final-release.xml"
+    }
+  },
+  "executableScenarios": [
+    {
+      "name": "rev-3d",
+      "revision": "3e5510e",
+      "passed": true,
+      "checkCount": 34,
+      "checks": {
+        "practice_start_field_frame": true,
+        "intake_captures": true,
+        "disable_held_intake_stops": true,
+        "intake_recaptures": true,
+        "launch_releases_one": true,
+        "practice_reset_field_frame": true,
+        "ModuleStates_forward_vectors": true,
+        "ModuleTargets_forward_vectors": true,
+        "ModuleStates_turn_vectors": true,
+        "ModuleTargets_turn_vectors": true,
+        "autonomous_without_choice_does_not_drive": true,
+        "forward_pose_changes": true,
+        "forward_truth_moves": true,
+        "initial_disabled_stationary": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "negative_turn_velocity": true,
+        "spin_reversal_velocity": true,
+        "zero_input_stops": true,
+        "final_disabled_stationary": true,
+        "turn_heading_matches_rate": true,
+        "negative_turn_heading_matches_rate": true,
+        "spin_reversal_heading_matches_rate": true,
+        "stopping_heading_matches_rate": true,
+        "collider_wireframe_struct": true,
+        "RobotTruth_struct_present": true,
+        "Pieces_struct_present": true,
+        "Pose_struct_present": true,
+        "truth_positive_spin": true,
+        "truth_negative_spin": true,
+        "power_finite_and_physical": true,
+        "loaded_battery_sags": true,
+        "disabled_battery_recovers": true
+      },
+      "runToken": "fd4bdc6aaaf7447c9193ebdec2ff1845"
+    },
+    {
+      "name": "rev-planar",
+      "revision": "3e5510e",
+      "passed": true,
+      "checkCount": 34,
+      "checks": {
+        "practice_start_field_frame": true,
+        "intake_captures": true,
+        "disable_held_intake_stops": true,
+        "intake_recaptures": true,
+        "launch_releases_one": true,
+        "practice_reset_field_frame": true,
+        "ModuleStates_forward_vectors": true,
+        "ModuleTargets_forward_vectors": true,
+        "ModuleStates_turn_vectors": true,
+        "ModuleTargets_turn_vectors": true,
+        "autonomous_without_choice_does_not_drive": true,
+        "forward_pose_changes": true,
+        "forward_truth_moves": true,
+        "initial_disabled_stationary": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "negative_turn_velocity": true,
+        "spin_reversal_velocity": true,
+        "zero_input_stops": true,
+        "final_disabled_stationary": true,
+        "turn_heading_matches_rate": true,
+        "negative_turn_heading_matches_rate": true,
+        "spin_reversal_heading_matches_rate": true,
+        "stopping_heading_matches_rate": true,
+        "collider_wireframe_struct": true,
+        "RobotTruth_struct_present": true,
+        "Pieces_struct_present": true,
+        "Pose_struct_present": true,
+        "truth_positive_spin": true,
+        "truth_negative_spin": true,
+        "power_finite_and_physical": true,
+        "loaded_battery_sags": true,
+        "disabled_battery_recovers": true
+      },
+      "runToken": "037b26c39214430c8d1642509fb70380"
+    },
+    {
+      "name": "phoenix-3d",
+      "revision": "3e5510e",
+      "passed": true,
+      "checkCount": 34,
+      "checks": {
+        "practice_start_field_frame": true,
+        "intake_captures": true,
+        "disable_held_intake_stops": true,
+        "intake_recaptures": true,
+        "launch_releases_one": true,
+        "practice_reset_field_frame": true,
+        "ModuleStates_forward_vectors": true,
+        "ModuleTargets_forward_vectors": true,
+        "ModuleStates_turn_vectors": true,
+        "ModuleTargets_turn_vectors": true,
+        "autonomous_without_choice_does_not_drive": true,
+        "forward_pose_changes": true,
+        "forward_truth_moves": true,
+        "initial_disabled_stationary": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "negative_turn_velocity": true,
+        "spin_reversal_velocity": true,
+        "zero_input_stops": true,
+        "final_disabled_stationary": true,
+        "turn_heading_matches_rate": true,
+        "negative_turn_heading_matches_rate": true,
+        "spin_reversal_heading_matches_rate": true,
+        "stopping_heading_matches_rate": true,
+        "collider_wireframe_struct": true,
+        "RobotTruth_struct_present": true,
+        "Pieces_struct_present": true,
+        "Pose_struct_present": true,
+        "truth_positive_spin": true,
+        "truth_negative_spin": true,
+        "power_finite_and_physical": true,
+        "loaded_battery_sags": true,
+        "disabled_battery_recovers": true
+      },
+      "runToken": "e5c5be7ae040488ea8676b8ca6c3e7a1"
+    },
+    {
+      "name": "final-rev-3d",
+      "revision": "4f418fc5bef429b2cd42bdf1216f6ff4b927c6f6",
+      "passed": true,
+      "checkCount": 34,
+      "checks": {
+        "practice_start_field_frame": true,
+        "intake_captures": true,
+        "disable_held_intake_stops": true,
+        "intake_recaptures": true,
+        "launch_releases_one": true,
+        "practice_reset_field_frame": true,
+        "ModuleStates_forward_vectors": true,
+        "ModuleTargets_forward_vectors": true,
+        "ModuleStates_turn_vectors": true,
+        "ModuleTargets_turn_vectors": true,
+        "autonomous_without_choice_does_not_drive": true,
+        "forward_pose_changes": true,
+        "forward_truth_moves": true,
+        "initial_disabled_stationary": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "negative_turn_velocity": true,
+        "spin_reversal_velocity": true,
+        "zero_input_stops": true,
+        "final_disabled_stationary": true,
+        "turn_heading_matches_rate": true,
+        "negative_turn_heading_matches_rate": true,
+        "spin_reversal_heading_matches_rate": true,
+        "stopping_heading_matches_rate": true,
+        "collider_wireframe_struct": true,
+        "RobotTruth_struct_present": true,
+        "Pieces_struct_present": true,
+        "Pose_struct_present": true,
+        "truth_positive_spin": true,
+        "truth_negative_spin": true,
+        "power_finite_and_physical": true,
+        "loaded_battery_sags": true,
+        "disabled_battery_recovers": true
+      },
+      "runToken": "b6cf1fa797534626881545b8dc8b49c2",
+      "motionEvidence": {
+        "forward": {
+          "measuredChassisSpeeds": [
+            1.8817608150654106,
+            0.0,
+            -8.720724060897806e-11
+          ],
+          "requestedSpeeds": [
+            2.032,
+            1.7473415497931654e-08,
+            0.0
+          ],
+          "moduleStates": [
+            1.9870031379272657,
+            0.0,
+            1.9870031379760473,
+            0.0,
+            1.9870031378094526,
+            0.0,
+            1.987003137858253,
+            0.0
+          ],
+          "moduleTargets": [
+            2.032,
+            8.599121800163215e-09,
+            2.032,
+            8.599121800163215e-09,
+            2.032,
+            8.599121800163215e-09,
+            2.032,
+            8.599121800163215e-09
+          ],
+          "chassisMeasuredMinusTarget": [
+            -0.044996862107245406,
+            -1.7473415497931654e-08,
+            3.6243588837422646e-11
+          ],
+          "moduleVectorErrorMps": [
+            0.04499686207273774,
+            0.04499686202395609,
+            0.04499686219055083,
+            0.04499686214175031
+          ]
+        },
+        "turn": {
+          "measuredChassisSpeeds": [
+            1.3996806991212196e-08,
+            -2.8101855897855188e-08,
+            3.193021463535799
+          ],
+          "requestedSpeeds": [
+            0.0,
+            0.0,
+            3.1111111111111116
+          ],
+          "moduleStates": [
+            -1.519876413119268,
+            -0.7734934014926649,
+            1.5198769530602851,
+            0.7734934014926647,
+            -1.519876707330556,
+            0.7734934014926645,
+            1.5198770102335037,
+            -0.7734934014926647
+          ],
+          "moduleTargets": [
+            -1.4807444537407364,
+            -0.7853981633974485,
+            1.4807444537407364,
+            0.7853981633974483,
+            -1.4807444537407364,
+            0.7853981633974482,
+            1.4807444537407364,
+            -0.7853981633974483
+          ],
+          "chassisMeasuredMinusTarget": [
+            1.5075832304756176e-07,
+            -6.137272434703078e-08,
+            0.08199248739043563
+          ],
+          "moduleVectorErrorMps": [
+            0.0430146692878687,
+            0.04301516180888656,
+            0.04301493766008377,
+            0.0430152139609678
+          ]
+        },
+        "stopping": {
+          "measuredChassisSpeeds": [
+            -1.27264271581988e-09,
+            -2.58221274072358e-09,
+            0.0027990286541338745
+          ],
+          "requestedSpeeds": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "moduleStates": [
+            -0.0006489385992058412,
+            -0.773493401492686,
+            0.0006489380470920305,
+            0.7734934014926858,
+            -0.000648952132067029,
+            0.7734934014926858,
+            0.0006489517167745245,
+            -0.773493401492686
+          ],
+          "moduleTargets": [
+            -0.0,
+            -0.7853981633974485,
+            0.0,
+            0.7853981633974483,
+            -0.0,
+            0.7853981633974482,
+            0.0,
+            -0.7853981633974483
+          ],
+          "chassisMeasuredMinusTarget": [
+            -1.7303861661144108e-10,
+            -4.751189043323417e-09,
+            0.0013633664581316537
+          ],
+          "moduleVectorErrorMps": [
+            0.0006489385992058412,
+            0.0006489380470920305,
+            0.000648952132067029,
+            0.0006489517167745245
+          ]
+        }
+      }
+    }
+  ],
+  "codeReplay": {
+    "scope": "recorded sensor/DS inputs injected into rerun C++ commands; Phoenix estimator and camera processing are recorded boundaries",
+    "checks": {
+      "complete": true,
+      "frameCount": true,
+      "sourceHash": true,
+      "replayMode": true,
+      "sourceMetadata": true,
+      "inputsAndClockPreserved": true,
+      "outputsRecorded": true
+    },
+    "completed": true,
+    "frameCount": 1030,
+    "outputFramesDifferent": 0,
+    "outputDifferenceCounts": {},
+    "sourceSha256": "977482dccfb6338f182b070c46367631e35a4951f9ae8570064c2f97f6b3efde",
+    "replaySha256": "339a6e930fb005a39efab93b1407b825ab88aab81e8a3abbcc1725e326989745",
+    "sourceMetadata": {
+      "buildDirty": false,
+      "buildRevision": "4f418fc5bef429b2cd42bdf1216f6ff4b927c6f6",
+      "buildSourceHash": "1a62b9a46e6e7ab07ead1272646c6d8c75d6fd6d29605764dd202be47894b225",
+      "mode": "live",
+      "schemaVersion": 1
+    },
+    "replayMetadata": {
+      "buildDirty": false,
+      "buildRevision": "4f418fc5bef429b2cd42bdf1216f6ff4b927c6f6",
+      "buildSourceHash": "1a62b9a46e6e7ab07ead1272646c6d8c75d6fd6d29605764dd202be47894b225",
+      "mode": "replay",
+      "schemaVersion": 1,
+      "sourceFile": "/home/brian/Documents/FRC/2026_Base_Bot-cpp/logs/FRC_20261021_185323.wpilog",
+      "sourceFileHashFnv1a64": "1947516451615011606",
+      "sourceFileSha256": "977482dccfb6338f182b070c46367631e35a4951f9ae8570064c2f97f6b3efde",
+      "sourceMetadata": {
+        "buildDirty": false,
+        "buildRevision": "4f418fc5bef429b2cd42bdf1216f6ff4b927c6f6",
+        "buildSourceHash": "1a62b9a46e6e7ab07ead1272646c6d8c75d6fd6d29605764dd202be47894b225",
+        "mode": "live",
+        "schemaVersion": 1
+      }
+    },
+    "recordingStatus": {
+      "failed": 0,
+      "highWater": 2,
+      "rejected": 0,
+      "written": 1030
+    },
+    "source": "/home/brian/Documents/FRC/2026_Base_Bot-cpp/logs/FRC_20261021_185323.wpilog",
+    "replayLog": "/tmp/adapters-current-replayed.wpilog",
+    "archivedReplayLog": "logs/adapter-architecture-replay-4f418fc.wpilog"
+  },
+  "priorRecordingReplay": {
+    "frames": 1028,
+    "checks": {
+      "complete": true,
+      "frameCount": true,
+      "sourceHash": true,
+      "replayMode": true,
+      "sourceMetadata": true,
+      "inputsAndClockPreserved": true,
+      "outputsRecorded": true
+    },
+    "outputFramesDifferent": 0,
+    "sourceSha256": "755d3cebbd01a5ab277d5af83e373097969b3a7bac860ca1cb23b719006c0e5d",
+    "sourceRevision": "3e5510e112022a773beddff6defea1bf425b7863",
+    "replayRevision": "4f418fc5bef429b2cd42bdf1216f6ff4b927c6f6"
+  },
+  "advantageScope": {
+    "passed": true,
+    "advantageScopeVersion": "26.0.0",
+    "parser": "Installed unmodified hub$wpilogWorker.js + hub$wpilogIndexer.wasm",
+    "workerSha256": "dd8c29e3b5d760f6b625b32a7b621f1bb02b03e22eb6dd5236455202dd68026b",
+    "errors": [],
+    "layoutValidation": "Generated from installed 26.0.0 export/restore schema; GUI import not exercised",
+    "fields": [
+      {
+        "key": "NT:/AdvantageScope/Drive/ModuleStates",
+        "type": "SwerveModuleState[]",
+        "sampleCount": 1030,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/AdvantageScope/Drive/ModuleTargets",
+        "type": "SwerveModuleState[]",
+        "sampleCount": 105,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/AdvantageScope/Drive/Pose",
+        "type": "Pose2d",
+        "sampleCount": 1030,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/AdvantageScope/Drive/ChassisSpeeds",
+        "type": "ChassisSpeeds",
+        "sampleCount": 1030,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/AdvantageScope/Drive/RequestedChassisSpeeds",
+        "type": "ChassisSpeeds",
+        "sampleCount": 109,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box0",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box1",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box2",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box3",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box4",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box5",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box6",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box7",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box8",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box9",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box10",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box11",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box12",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box13",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box14",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box15",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box16",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box17",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box18",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box19",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box20",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box21",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box22",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box23",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box24",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box25",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box26",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box27",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Colliders/Box28",
+        "type": "Pose3d[]",
+        "sampleCount": 1,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/RobotTruth",
+        "type": "Pose3d",
+        "sampleCount": 749,
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Simulation/Pieces",
+        "type": "Pose3d[]",
+        "sampleCount": 74,
+        "typeWarning": false
+      }
+    ]
+  },
+  "visionDispatchBenchmark": {
+    "hardware": "AMD Ryzen AI 9 465 w/ Radeon 880M",
+    "build": "Linux x86_64 Release, GCC 15, C++23, -O2",
+    "sources": 2,
+    "observationsPerSource": 1,
+    "cycles": 20000,
+    "medianMicroseconds": 0.08,
+    "p99Microseconds": 0.1,
+    "scope": "Injected dispatch and batch delivery only; excludes camera solving, NT, replay serialization and full-robot timing",
+    "command": "FRC_VISION_IO_BENCHMARK=1 GTEST_FILTER='VisionIO.*' build/install/frcUserProgramTest/linuxx86-64/release/frcUserProgramTest"
+  },
+  "limitations": [
+    "Windows builds were not executed in this Linux session.",
+    "Physical encoder phasing, hardware configuration readback and closed-loop tuning require commissioning.",
+    "Initial portable hardware support is Spark MAX/NEO, attached absolute steering encoder and MXP-SPI NavX. The executable retains Phoenix dependencies.",
+    "REV cached feedback lacks an independent source-timestamp watchdog; software sampling is not synchronized hardware acquisition.",
+    "Replay preserves the recorded drivetrain estimator and camera-solved observation boundaries; vendor firmware and counterfactual trajectories are not replayed.",
+    "AdvantageScope parser/schema validation passed; GUI import was not exercised."
+  ],
+  "commits": [
+    {
+      "sha": "3a4ee24",
+      "subject": "Separate localization acquisition behind reusable vision IO batches"
+    },
+    {
+      "sha": "fd41bc6",
+      "subject": "Separate piece ray acquisition from projection policy"
+    },
+    {
+      "sha": "6d4004f",
+      "subject": "Make vision topic dependencies explicit in protocol tests"
+    },
+    {
+      "sha": "aa36498",
+      "subject": "Preserve empty callback construction alongside typed piece adapters"
+    },
+    {
+      "sha": "9445b9c",
+      "subject": "Add Spark MAX NavX swerve backend with shared physics and bounded acquisition"
+    },
+    {
+      "sha": "7dade99",
+      "subject": "Guard portable swerve acquisition epochs and controller reset safety"
+    },
+    {
+      "sha": "014c49b",
+      "subject": "Enforce disabled state at Spark startup transaction boundaries"
+    },
+    {
+      "sha": "d407016",
+      "subject": "Move mechanism PID and feedforward execution into motor IO"
+    },
+    {
+      "sha": "92b22c1",
+      "subject": "Use onboard Talon and Spark control with coherent adapter feedback"
+    },
+    {
+      "sha": "4aacef3",
+      "subject": "Preserve Spark gravity mode across disabled reconfiguration"
+    },
+    {
+      "sha": "6bca607",
+      "subject": "Stop Spark mechanism groups after unconfigured device resets"
+    },
+    {
+      "sha": "29b5fbd",
+      "subject": "Document hardware-owned control and shared adapter contracts"
+    },
+    {
+      "sha": "5d9cde4",
+      "subject": "Keep Spark runtime CAN access nonblocking and configure neutral modes disabled"
+    },
+    {
+      "sha": "3e5510e",
+      "subject": "Acquire injected swerve IO and initialize measured odometry baseline"
+    },
+    {
+      "sha": "2b17402",
+      "subject": "Retain WPILib swerve azimuth state during code replay"
+    },
+    {
+      "sha": "464abf2",
+      "subject": "Normalize Spark PID integral and derivative milliseconds to public seconds"
+    },
+    {
+      "sha": "4f418fc",
+      "subject": "Normalize Spark swerve derivative gains to REV millisecond units"
+    }
+  ]
+}

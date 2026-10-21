@@ -73,7 +73,7 @@ brake/coast drag, optional arm gravity, elevator load, and physical travel stops
 stepping physics. Its current clamp models winding current; the real Talon adapter
 configures supply current, so electrical current-limit parity is not established.
 Desktop code replay substitutes recorded framework inputs and reruns the scheduler,
-commands, and software controllers; see [code replay](docs/replay.md) for the
+commands, and IO control according to the recorded source; see [code replay](docs/replay.md) for the
 boundary and traceability workflow. Systemcore requires a supported future
 toolchain and vendor adapters; this checkout retains the pinned 2026 APIs.
 
@@ -100,7 +100,11 @@ control is described in [its contract](docs/explicit-time-control.md).
 
 ## Port status
 
-This is a native implementation, with intentional framework replacements. WPILib DataLog/NetworkTables replaces AdvantageKit; it does not read Java AdvantageKit replay logs. Phoenix remains the default swerve backend with native odometry; [SparkMax/NavX](docs/portable-swerve.md) uses WPILib kinematics and estimation behind the same drive API. Mechanisms own goals, trajectories and safety, while real Talon and Spark IO execute onboard closed loops; simulation and replay emulate control inside IO. See [mechanism control](docs/mechanism-control.md). The default base container instantiates only drive, as in Java; other subsystems are reusable library components.
+This is a native implementation, with intentional framework replacements. WPILib DataLog/NetworkTables replaces AdvantageKit; it does not read Java AdvantageKit replay logs. Phoenix remains the default swerve backend with native odometry; [SparkMax/NavX](docs/portable-swerve.md) uses WPILib kinematics and estimation behind the same drive API. Mechanisms own goals, trajectories and safety, while real Talon and Spark IO execute onboard closed loops. Simulated IO owns its controller emulator; replay reconstructs the source's control requests. See [mechanism control](docs/mechanism-control.md). The default base container instantiates only drive, as in Java; other subsystems are reusable library components.
+
+The [adapter validation report](artifacts/adapter-architecture-validation.json)
+records independent reviews, native builds/tests, executable simulation, code
+replay and the injected vision dispatch benchmark.
 
 The desktop Jolt backend supplies rigid-body field contacts and generic game pieces.
 The illustrative tire, suspension, load, and piece parameters require physical calibration;
