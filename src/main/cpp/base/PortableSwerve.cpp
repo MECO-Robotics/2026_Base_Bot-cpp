@@ -21,7 +21,7 @@ struct PortableSwerve::Impl {
   mutable std::mutex mutex;
   std::mutex ioMutex;
   std::condition_variable wake;
-  bool quit=false,validRequest=false,voltageMode=false;
+  bool quit=false,validRequest=false,voltageMode=false,estimatorInitialized=false;
   double requestedAt{},voltage{};
   uint64_t requestGeneration=0,resetGeneration=0;
   std::array<double,4> forceVolts{};
@@ -100,9 +100,9 @@ void PortableSwerve::Velocity(const frc::ChassisSpeeds& speeds,const std::array<
 void PortableSwerve::Voltage(double volts) { std::scoped_lock lock(impl_->mutex);if(!std::isfinite(volts)){impl_->validRequest=false;throw std::invalid_argument("Nonfinite swerve voltage");}++impl_->requestGeneration;impl_->voltage=volts;impl_->voltageMode=true;impl_->validRequest=true;impl_->requestedAt=frc::RobotController::GetFPGATime()*1e-6; }
 void PortableSwerve::Brake() { std::scoped_lock lock(impl_->mutex);auto& p=*impl_;for(size_t i=0;i<4;++i)p.state.targets[i]={units::meters_per_second_t{0},frc::Rotation2d{units::radian_t{std::atan2(p.config.modules[i].yMeters,p.config.modules[i].xMeters)}}};p.forceVolts={};++p.requestGeneration;p.voltageMode=false;p.validRequest=true;p.requestedAt=frc::RobotController::GetFPGATime()*1e-6; }
 void PortableSwerve::Sample(double time,bool enabled) { impl_->Sample(time,enabled); }
-void PortableSwerve::Update() { std::scoped_lock lock(impl_->mutex);auto& p=*impl_;while(p.count){const auto& s=p.queue[p.head];p.estimator.UpdateWithTime(units::second_t{s.timestamp},frc::Rotation2d{units::radian_t{s.rawYaw}},s.positions);p.head=(p.head+1)%p.queue.size();--p.count;}p.state.pose=p.estimator.GetEstimatedPosition();p.state.speeds=p.kinematics.ToChassisSpeeds(p.state.states); }
+void PortableSwerve::Update() { std::scoped_lock lock(impl_->mutex);auto& p=*impl_;while(p.count){const auto& s=p.queue[p.head];if(!p.estimatorInitialized){p.estimator.ResetPosition(frc::Rotation2d{units::radian_t{s.rawYaw}},s.positions,p.state.pose);p.estimatorInitialized=true;}p.estimator.UpdateWithTime(units::second_t{s.timestamp},frc::Rotation2d{units::radian_t{s.rawYaw}},s.positions);p.head=(p.head+1)%p.queue.size();--p.count;}p.state.pose=p.estimator.GetEstimatedPosition();p.state.speeds=p.kinematics.ToChassisSpeeds(p.state.states); }
 PortableSwerve::Snapshot PortableSwerve::State() const { std::scoped_lock lock(impl_->mutex);auto state=impl_->state;const double age=frc::RobotController::GetFPGATime()*1e-6-state.timestamp;state.healthy=state.healthy&&age>=-.025&&age<=.1;return state; }
-void PortableSwerve::ResetPose(const frc::Pose2d& pose) { std::scoped_lock lock(impl_->mutex);auto& p=*impl_;++p.resetGeneration;p.head=p.count=0;p.estimator.ResetPosition(frc::Rotation2d{units::radian_t{p.state.rawYaw}},p.state.positions,pose);p.state.pose=pose; }
+void PortableSwerve::ResetPose(const frc::Pose2d& pose) { std::scoped_lock lock(impl_->mutex);auto& p=*impl_;++p.resetGeneration;p.head=p.count=0;p.estimatorInitialized=p.estimatorInitialized||p.state.healthy;p.estimator.ResetPosition(frc::Rotation2d{units::radian_t{p.state.rawYaw}},p.state.positions,pose);p.state.pose=pose; }
 void PortableSwerve::AddVision(const frc::Pose2d& pose,units::second_t time,std::array<double,3> noise) { std::scoped_lock lock(impl_->mutex);impl_->estimator.AddVisionMeasurement(pose,time,noise);impl_->state.pose=impl_->estimator.GetEstimatedPosition(); }
 std::array<double,2> PortableSwerve::SimVoltages(size_t i,double dt,double bus) { std::scoped_lock lock(impl_->ioMutex);return impl_->io.modules.at(i)->SimVoltages(dt,bus); }
 void PortableSwerve::SetSimInputs(size_t i,SwerveModuleInputs value) { std::scoped_lock lock(impl_->ioMutex);impl_->io.modules.at(i)->SetSimInputs(value); }

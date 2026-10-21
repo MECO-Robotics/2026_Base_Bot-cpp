@@ -2,6 +2,8 @@
 #include "base/Drive.h"
 #include <frc/RobotController.h>
 #include <hal/HAL.h>
+#include <frc/DriverStation.h>
+#include <frc/simulation/DriverStationSim.h>
 #include <gtest/gtest.h>
 #include <limits>
 #include <future>
@@ -11,16 +13,17 @@ class Module final : public base::SwerveModuleIO {
  public:
   base::SwerveModuleInputs input{0,0,0,0,0,true};
   std::function<void()> beforeRead;
+  int reads=0;
   bool stopped=true;double force{};frc::SwerveModuleState target{};
-  base::SwerveModuleInputs Read()override{if(beforeRead)beforeRead();return input;}
+  base::SwerveModuleInputs Read()override{++reads;if(beforeRead)beforeRead();return input;}
   void Set(const frc::SwerveModuleState& s,double ff)override{stopped=false;target=s;force=ff;}
   void SetVoltage(double v)override{stopped=v==0;}
   void Stop()override{stopped=true;}
 };
-class Gyro final : public base::SwerveGyroIO {public:base::SwerveGyroInputs Read()override{return {0,true};}};
+class Gyro final : public base::SwerveGyroIO {public:int reads=0;double yaw=0;base::SwerveGyroInputs Read()override{++reads;return {yaw,true};}};
 struct Rig {
-  std::array<Module*,4> modules{};base::SwerveIO io;
-  Rig(){for(size_t i=0;i<4;++i){auto module=std::make_unique<Module>();modules[i]=module.get();io.modules[i]=std::move(module);}io.gyro=std::make_unique<Gyro>();}
+  std::array<Module*,4> modules{};Gyro* gyro{};base::SwerveIO io;
+  Rig(){for(size_t i=0;i<4;++i){auto module=std::make_unique<Module>();modules[i]=module.get();io.modules[i]=std::move(module);}auto device=std::make_unique<Gyro>();gyro=device.get();io.gyro=std::move(device);}
 };
 }
 TEST(PortableSwerve, EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests) {
@@ -88,4 +91,35 @@ TEST(PortableSwerve, BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset)
   drive.Update();EXPECT_NEAR(drive.State().pose.X().value(),5,1e-10);
   EXPECT_FALSE(rig.modules[0]->stopped); // newest request survived the blocked read
   drive.Sample(now+.01,true);EXPECT_FALSE(rig.modules[0]->stopped);
+}
+
+TEST(PortableSwerve, InjectedDriveAcquiresAndExecutesThroughPublicPeriodic) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetDsAttached(true);
+  frc::sim::DriverStationSim::SetEStop(false);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();frc::DriverStation::RefreshData();
+  base::DriveConfig config;config.backend=base::DriveBackend::SparkMaxNavX;
+  Rig rig;
+  for(auto* module:rig.modules)module->input.distance=10;
+  {
+    base::Drive drive(config,std::move(rig.io));
+    EXPECT_FALSE(drive.SimulationTruth().has_value());
+    drive.Periodic();
+    EXPECT_NEAR(drive.Pose().X().value(),0,1e-8); // historical encoder travel is not a new displacement
+    for(auto* module:rig.modules){EXPECT_EQ(module->reads,1);module->input.distance=10.2;module->input.velocity=.5;}
+    rig.gyro->yaw=.4;
+    drive.RunVelocity({units::meters_per_second_t{.8},units::meters_per_second_t{0},units::radians_per_second_t{0}});
+    drive.Periodic();
+    EXPECT_EQ(rig.gyro->reads,2);
+    EXPECT_NEAR(drive.Pose().Rotation().Radians().value(),.4,1e-8);
+    EXPECT_GT(drive.Pose().X().value(),.18);
+    EXPECT_LT(drive.Pose().X().value(),.21);
+    EXPECT_NEAR(drive.Speeds().vx.value(),.5,1e-8);
+    for(auto* module:rig.modules){EXPECT_EQ(module->reads,2);EXPECT_FALSE(module->stopped);EXPECT_NEAR(module->target.speed.value(),.8,1e-8);}
+    frc::sim::DriverStationSim::SetEnabled(false);
+    frc::sim::DriverStationSim::NotifyNewData();frc::DriverStation::RefreshData();
+    drive.Periodic();
+    for(auto* module:rig.modules)EXPECT_TRUE(module->stopped);
+  }
 }

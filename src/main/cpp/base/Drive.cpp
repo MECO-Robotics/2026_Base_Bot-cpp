@@ -283,7 +283,7 @@ namespace base
     SetName("Drive");
 
   }
-  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {if(config_.backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Injected portable Drive requires SparkMaxNavX backend");config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(!replay::Active())portable_=std::make_unique<PortableSwerve>(config_,std::move(io),false);}
+  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {if(config_.backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Injected portable Drive requires SparkMaxNavX backend");config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(!replay::Active())portable_=std::make_unique<PortableSwerve>(config_,std::move(io),!frc::RobotBase::IsSimulation());}
   Drive::~Drive() = default;
   Drive::Inputs Drive::ReadInputs() const {
     auto j=replay::ProcessInputs("Drive",[this] {
@@ -317,7 +317,13 @@ namespace base
       if(native_){auto a=frc::DriverStation::GetAlliance();native_->SetOperatorPerspectiveForward(frc::Rotation2d{a&&*a==frc::DriverStation::Alliance::kRed?180_deg:0_deg});}
       Stop();
     }
-    if(portable_)portable_->Update();
+    if(portable_) {
+#ifndef __FRC_ROBORIO__
+      // Injected desktop IO has no Jolt owner; acquire once at robot cadence.
+      if(frc::RobotBase::IsSimulation()&&!simulation_)portable_->Sample(frc::RobotController::GetFPGATime()*1e-6,frc::DriverStation::IsEnabled());
+#endif
+      portable_->Update();
+    }
     auto state=ReadInputs();
     std::array<frc::SwerveModuleState,4> targets=replayTargets_;
     if(native_) {auto measured=native_->GetState();std::copy(measured.ModuleTargets.begin(),measured.ModuleTargets.end(),targets.begin());}

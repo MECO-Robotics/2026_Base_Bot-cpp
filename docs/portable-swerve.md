@@ -56,7 +56,15 @@ vendor devices or physics. It does not rerun the estimator from raw hardware
 batches or emulate vendor firmware. Vision pose resets remain estimator operations;
 `ResetSimulation` explicitly places the physical robot and synchronizes sensors.
 
-Injected `Drive(config, SwerveIO)` requires `SparkMaxNavX` configuration. Ordinary
+Injected `Drive(config, SwerveIO)` requires `SparkMaxNavX` configuration. Real
+injected IO uses the same default 100 Hz sampler thread; desktop injected IO
+is acquired and commanded once per `Drive::Periodic` (normally 50 Hz), without
+constructing a vendor adapter or automatically registering Jolt physics. Replay
+creates no sampler and performs no IO reads or writes. The normal desktop
+factory keeps its existing Jolt substep sampling owner. The estimator takes its
+initial module/gyro baseline from the first accepted acquisition, preserving its
+initial or explicitly reset field pose; historical encoder travel is not newly
+integrated motion. Ordinary
 `ResetPose` uses the latest acquired sensor baseline and rejects acquisitions
 that crossed the reset; it does not move physics or defer the baseline to a later
 sample.
