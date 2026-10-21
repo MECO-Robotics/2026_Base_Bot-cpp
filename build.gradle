@@ -189,3 +189,32 @@ tasks.configureEach { task ->
                           new File(directory, windows ? 'Jolt.lib' : 'libJolt.a'))
     }
 }
+
+// Reproducible provenance travels with both live and replay output WPILOGs.
+def provenanceHeader = layout.buildDirectory.file('generated/replay/BuildProvenance.h')
+tasks.register('generateReplayProvenance') {
+    outputs.file(provenanceHeader)
+    outputs.upToDateWhen { false }
+    doLast {
+        def capture = { List<String> command ->
+            def bytes = new ByteArrayOutputStream()
+            exec { commandLine command; standardOutput = bytes }
+            bytes.toString('UTF-8').trim()
+        }
+        def revision = capture(['git', 'rev-parse', 'HEAD'])
+        def dirty = !capture(['git', 'status', '--porcelain']).isEmpty()
+        def digest = java.security.MessageDigest.getInstance('SHA-256')
+        files(fileTree('src'), fileTree('simulation') { exclude '**/build/**' }, fileTree('vendordeps')).files.findAll { it.isFile() }.sort { a,b -> a.path <=> b.path }.each {
+            digest.update(project.relativePath(it).getBytes('UTF-8'))
+            digest.update(it.bytes)
+        }
+        digest.update(file('build.gradle').bytes)
+        def header = provenanceHeader.get().asFile
+        header.parentFile.mkdirs()
+        header.text = "#pragma once\n#define FRC_BUILD_REVISION \"${revision}\"\n#define FRC_BUILD_DIRTY \"${dirty}\"\n#define FRC_BUILD_SOURCE_HASH \"${digest.digest().encodeHex()}\"\n"
+    }
+}
+tasks.withType(CppCompile).configureEach {
+    dependsOn tasks.named('generateReplayProvenance')
+    includes.from(provenanceHeader.map { it.asFile.parentFile })
+}
