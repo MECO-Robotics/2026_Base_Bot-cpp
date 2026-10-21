@@ -129,14 +129,6 @@ static void Case_DriveCharacterizationTest_DriveCharacterizationNative_InvertedM
   std::filesystem::remove_all(directory);
 }
 
-TEST(DriveCharacterization, DriveCharacterizationNative_InvertedModuleUsesConsistentVoltageAndWheelCoordinates) {
-  Case_DriveCharacterizationTest_DriveCharacterizationNative_InvertedModuleUsesConsistentVoltageAndWheelCoordinates();
-}
-
-TEST(DriveCharacterization, DriveCharacterization_OwnsDriveRecordsMeasuredSIAndZerosOnInterruption) {
-  Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecordsMeasuredSIAndZerosOnInterruption();
-}
-
 TEST(DriveCharacterization, OwnsDriveRecordsMeasuredSIAndZerosOnInterruption) {
   Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecordsMeasuredSIAndZerosOnInterruption();
 }
