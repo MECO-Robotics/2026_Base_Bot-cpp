@@ -9,6 +9,7 @@
 #include <ctre/phoenix6/controls/MotionMagicVoltage.hpp>
 #include <ctre/phoenix6/controls/Follower.hpp>
 #include <rev/SparkMax.h>
+#include <frc/DriverStation.h>
 #include <rev/config/SparkMaxConfig.h>
 #include <units/voltage.h>
 #ifndef __FRC_ROBORIO__
@@ -24,11 +25,12 @@ namespace base
     public:
       explicit TalonMotorIO(MotorConfig config) : config_(std::move(config))
       {
+        if (frc::DriverStation::IsEnabled()) throw std::logic_error("Motor construction requires disabled state");
         for (size_t i = 0; i < config_.ids.size(); ++i)
         {
           auto motor = std::make_unique<ctre::phoenix6::hardware::TalonFX>(config_.ids[i], config_.canBus);
           ctre::phoenix6::configs::TalonFXConfiguration settings;
-          if (config_.phoenix.enabled) {
+          {
             settings.MotorOutput.Inverted = config_.reversed[i] ?
                 ctre::phoenix6::signals::InvertedValue::Clockwise_Positive :
                 ctre::phoenix6::signals::InvertedValue::CounterClockwise_Positive;
@@ -58,13 +60,14 @@ namespace base
         const auto &supply = motor.GetSupplyVoltage();
         const auto &current = motor.GetSupplyCurrent();
         bool feedbackHealthy=true;
-        if(config_.phoenix.enabled && config_.phoenix.feedback==PhoenixControlConfig::Feedback::RemoteCANcoder) {
+        if(config_.phoenix.feedback==PhoenixControlConfig::Feedback::RemoteCANcoder) {
           const auto& invalid=motor.GetFault_RemoteSensorDataInvalid();
           feedbackHealthy=invalid.GetStatus().IsOK() && !invalid.GetValue();
         }
         // Phoenix getters refresh their motor-owned cached signals by default.
-        double direction = config_.phoenix.enabled ? 1 : config_.reversed.front() ? -1 : 1;
-        const double ratio=config_.phoenix.enabled ? 1 : config_.gearRatio;
+        double direction = 1;
+        const double ratio=1;
+        lastPosition_=position.GetValueAsDouble();
         return {direction * position.GetValueAsDouble() / ratio,
                 direction * velocity.GetValueAsDouble() / ratio,
                 (config_.reversed.front()?-1:1) * voltage.GetValueAsDouble(), supply.GetValueAsDouble(), current.GetValueAsDouble(),
@@ -72,32 +75,25 @@ namespace base
       }
       void SetVoltage(double volts) override
       {
-        if(config_.phoenix.enabled && volts==0) {
+        if (volts==0) {
           for(auto& motor:motors_) motor->SetVoltage(units::volt_t{0});
-          return;
-        }
-        if(config_.phoenix.enabled) {
+        } else {
           motors_.front()->SetVoltage(units::volt_t{volts});
-          Follow(); return;
-        }
-        for (size_t i = 0; i < motors_.size(); ++i)
-        {
-          bool reversed = i == 0 ? config_.reversed[0] : config_.reversed[0] != config_.reversed[i];
-          motors_[i]->SetVoltage(units::volt_t{reversed ? -volts : volts});
+          if (!Follow()) { for(auto& motor:motors_) motor->SetVoltage(units::volt_t{0}); }
         }
       }
       bool ConfigureNative(const Gains& gains, double scale, Gravity gravity, bool joint) override
       {
-        if(!config_.phoenix.enabled) return false;
-        if (gravity==Gravity::Sine && gains.gravity!=0)
-          throw std::invalid_argument("Native gravity supports constant or cosine; use software for sine");
+        if (frc::DriverStation::IsEnabled()) throw std::logic_error("Motor configuration requires disabled state");
         for(double value : {gains.p*scale,gains.i*scale,gains.d*scale,gains.v*scale,gains.a*scale,
             gains.minimum/scale,gains.maximum/scale,gains.maxVelocity/scale,gains.maxAcceleration/scale})
           if(!std::isfinite(value)) throw std::invalid_argument("Native control conversion overflow");
         scale_=scale; accelerationGain_=gains.a;
+        gravity_=gravity; gravityGain_=joint?gains.gravity:0;
+        customGravity_=gravity==Gravity::Sine || (gravity==Gravity::Cosine && scale!=1);
         ctre::phoenix6::configs::Slot0Configs slot;
         slot.kP=gains.p*scale; slot.kI=gains.i*scale; slot.kD=gains.d*scale;
-        slot.kS=gains.s; slot.kV=gains.v*scale; slot.kA=gains.a*scale; slot.kG=joint?gains.gravity:0;
+        slot.kS=gains.s; slot.kV=gains.v*scale; slot.kA=gains.a*scale; slot.kG=customGravity_?0:gravityGain_;
         slot.GravityType=gravity==Gravity::Cosine ? ctre::phoenix6::signals::GravityTypeValue::Arm_Cosine :
             ctre::phoenix6::signals::GravityTypeValue::Elevator_Static;
         auto& configurator=motors_.front()->GetConfigurator();
@@ -115,28 +111,37 @@ namespace base
       }
       bool SetNative(const NativeControlRequest& request) override
       {
-        if(!config_.phoenix.enabled) return false;
+
         for(double value : {request.target/scale_,request.velocity/scale_,request.acceleration/scale_,
             accelerationGain_*request.acceleration})
           if(!std::isfinite(value)) return false;
         auto& motor=*motors_.front();
+        const double angle=lastPosition_*scale_*2*std::numbers::pi;
+        const double gravity=customGravity_ ? gravityGain_*(gravity_==Gravity::Sine?std::sin(angle):std::cos(angle)) : 0;
         ctre::phoenix::StatusCode status;
         if(request.kind==NativeControlRequest::Kind::Velocity)
           status=motor.SetControl(ctre::phoenix6::controls::VelocityVoltage{units::turns_per_second_t{request.target/scale_}}
-              .WithAcceleration(units::turns_per_second_squared_t{request.acceleration/scale_}).WithEnableFOC(false));
+              .WithAcceleration(units::turns_per_second_squared_t{request.acceleration/scale_})
+              .WithFeedForward(units::volt_t{gravity}).WithEnableFOC(false));
         else if(request.kind==NativeControlRequest::Kind::Position)
           status=motor.SetControl(ctre::phoenix6::controls::PositionVoltage{units::turn_t{request.target/scale_}}
               .WithVelocity(units::turns_per_second_t{request.velocity/scale_})
-              .WithFeedForward(units::volt_t{accelerationGain_*request.acceleration}).WithEnableFOC(false));
+              .WithFeedForward(units::volt_t{accelerationGain_*request.acceleration+gravity}).WithEnableFOC(false));
         else {
-          status=motor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{units::turn_t{request.target/scale_}}.WithEnableFOC(false));
+          status=motor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{units::turn_t{request.target/scale_}}
+              .WithFeedForward(units::volt_t{gravity}).WithEnableFOC(false));
         }
         const bool followers=Follow(); return status.IsOK() && followers;
       }
       void SetBrake(bool enabled) override
       {
+        if(brake_==enabled) return;
         for (auto &motor : motors_)
-          motor->SetNeutralMode(enabled ? ctre::phoenix6::signals::NeutralModeValue::Brake : ctre::phoenix6::signals::NeutralModeValue::Coast);
+          if(!motor->SetNeutralMode(enabled ? ctre::phoenix6::signals::NeutralModeValue::Brake :
+              ctre::phoenix6::signals::NeutralModeValue::Coast).IsOK()) {
+            SetVoltage(0); throw std::runtime_error("Talon brake configuration failed");
+          }
+        brake_=enabled;
       }
 
     private:
@@ -146,7 +151,9 @@ namespace base
           ok=motors_[i]->SetControl(ctre::phoenix6::controls::Follower{config_.ids.front(),config_.reversed[i] ? ctre::phoenix6::signals::MotorAlignmentValue::Opposed : ctre::phoenix6::signals::MotorAlignmentValue::Aligned}).IsOK() && ok;
         return ok;
       }
-      double scale_=1, accelerationGain_=0;
+      double scale_=1, accelerationGain_=0, gravityGain_=0, lastPosition_=0;
+      Gravity gravity_=Gravity::Constant;
+      bool customGravity_=false, brake_=true;
       MotorConfig config_;
       std::vector<std::unique_ptr<ctre::phoenix6::hardware::TalonFX>> motors_;
     };
@@ -155,14 +162,26 @@ namespace base
     public:
       explicit SparkMotorIO(MotorConfig config) : config_(std::move(config))
       {
+        if (frc::DriverStation::IsEnabled()) throw std::logic_error("Motor construction requires disabled state");
         if (!config_.canBus.empty() && config_.canBus != "rio")
           throw std::invalid_argument("SparkMax requires roboRIO CAN bus");
-        for (int id : config_.ids)
+        for (size_t i=0;i<config_.ids.size();++i)
         {
-          auto motor = std::make_unique<rev::spark::SparkMax>(id, rev::spark::SparkLowLevel::MotorType::kBrushless);
+          auto motor = std::make_unique<rev::spark::SparkMax>(config_.ids[i], rev::spark::SparkLowLevel::MotorType::kBrushless);
           rev::spark::SparkMaxConfig settings;
           settings.SmartCurrentLimit(config_.currentLimit).SetIdleMode(rev::spark::SparkBaseConfig::IdleMode::kBrake);
-          if (motor->Configure(settings, rev::ResetMode::kResetSafeParameters, rev::PersistMode::kPersistParameters) != rev::REVLibError::kOk)
+          settings.VoltageCompensation(12);
+          if (i==0) settings.Inverted(config_.reversed.front());
+          else settings.Follow(config_.ids.front(),config_.reversed[i]);
+          settings.encoder.PositionConversionFactor(1/config_.gearRatio)
+              .VelocityConversionFactor(1/(60*config_.gearRatio));
+          if(config_.spark.feedback==SparkControlConfig::Feedback::AbsoluteEncoder)
+            settings.absoluteEncoder.PositionConversionFactor(1/config_.spark.sensorToMechanismRatio)
+                .VelocityConversionFactor(1/(60*config_.spark.sensorToMechanismRatio))
+                .Inverted(config_.spark.sensorReversed).ZeroOffset(config_.spark.zeroOffset);
+          settings.closedLoop.SetFeedbackSensor(config_.spark.feedback==SparkControlConfig::Feedback::AbsoluteEncoder ?
+              rev::spark::FeedbackSensor::kAbsoluteEncoder : rev::spark::FeedbackSensor::kPrimaryEncoder);
+          if (motor->Configure(settings, rev::ResetMode::kResetSafeParameters, rev::PersistMode::kNoPersistParameters) != rev::REVLibError::kOk)
             throw std::runtime_error("SparkMax configuration failed");
           motors_.push_back(std::move(motor));
         }
@@ -170,11 +189,10 @@ namespace base
       MotorInputs Read() override
       {
         auto &motor = *motors_.front();
-        auto encoder = motor.GetEncoder();
-        double direction = config_.reversed.front() ? -1 : 1;
-        double position = encoder.GetPosition();
+        const bool absolute=config_.spark.feedback==SparkControlConfig::Feedback::AbsoluteEncoder;
+        double position = absolute ? motor.GetAbsoluteEncoder().GetPosition() : motor.GetEncoder().GetPosition();
         bool connected = motor.GetLastError() == rev::REVLibError::kOk;
-        double velocity = encoder.GetVelocity();
+        double velocity = absolute ? motor.GetAbsoluteEncoder().GetVelocity() : motor.GetEncoder().GetVelocity();
         connected = (motor.GetLastError() == rev::REVLibError::kOk) && connected;
         double appliedOutput = motor.GetAppliedOutput();
         connected = (motor.GetLastError() == rev::REVLibError::kOk) && connected;
@@ -182,26 +200,82 @@ namespace base
         connected = (motor.GetLastError() == rev::REVLibError::kOk) && connected;
         double current = motor.GetOutputCurrent();
         connected = (motor.GetLastError() == rev::REVLibError::kOk) && connected;
-        return {direction * position / config_.gearRatio, direction * velocity / (60 * config_.gearRatio),
-                direction * appliedOutput * supplyVoltage, supplyVoltage, current, connected};
+        lastPosition_=position;
+        return {position, velocity, (config_.reversed.front()?-1:1)*appliedOutput*supplyVoltage,
+                supplyVoltage, current, connected};
       }
       void SetVoltage(double volts) override
       {
-        for (size_t i = 0; i < motors_.size(); ++i)
-        {
-          bool reversed = i == 0 ? config_.reversed[0] : config_.reversed[0] != config_.reversed[i];
-          motors_[i]->SetVoltage(units::volt_t{reversed ? -volts : volts});
+        // Native followers remain followers even while stopping or characterizing.
+        motors_.front()->SetVoltage(units::volt_t{volts});
+      }
+      bool ConfigureNative(const Gains& gains, double scale, Gravity gravity, bool joint) override
+      {
+        if (frc::DriverStation::IsEnabled()) throw std::logic_error("Motor configuration requires disabled state");
+        scale_=scale; gains_=gains; gravity_=gravity; joint_=joint;
+        for (double value:{gains.p*scale/12,gains.i*scale/12,gains.d*scale/12,
+                           gains.v*scale,gains.a*scale,gains.minimum/scale,gains.maximum/scale,
+                           gains.maxVelocity/scale,gains.maxAcceleration/scale})
+          if(!std::isfinite(value)) throw std::invalid_argument("Spark control conversion overflow");
+        rev::spark::SparkMaxConfig settings;
+        // Encoder values are output rotations and rotations/s, not rotor RPM.
+        // REV PID output is duty cycle. Nominal voltage compensation maps the
+        // public voltage gains to duty gains; feedforward's API already uses volts.
+        settings.closedLoop.Pid(gains.p*scale/12,gains.i*scale/12,gains.d*scale/12);
+        settings.closedLoop.feedForward.kS(gains.s).kV(gains.v*scale).kA(gains.a*scale)
+            .kG(joint && gravity==Gravity::Constant ? gains.gravity : 0)
+            .kCos(joint && gravity==Gravity::Cosine ? gains.gravity : 0).kCosRatio(scale);
+        settings.closedLoop.maxMotion.CruiseVelocity(gains.maxVelocity/scale)
+            .MaxAcceleration(gains.maxAcceleration/scale).AllowedProfileError(gains.tolerance/scale);
+        settings.softLimit.ForwardSoftLimitEnabled(joint).ReverseSoftLimitEnabled(joint)
+            .ForwardSoftLimit(gains.maximum/scale).ReverseSoftLimit(gains.minimum/scale);
+        if (motors_.front()->Configure(settings,rev::ResetMode::kNoResetSafeParameters,
+            rev::PersistMode::kNoPersistParameters)!=rev::REVLibError::kOk)
+          throw std::runtime_error("Spark onboard control configuration failed");
+        return true;
+      }
+      bool SetNative(const NativeControlRequest& request) override
+      {
+        const double target=request.target/scale_;
+        double feedforward=0;
+        auto type=rev::spark::SparkLowLevel::ControlType::kPosition;
+        if(request.kind==NativeControlRequest::Kind::MotionMagic)
+          type=rev::spark::SparkLowLevel::ControlType::kMAXMotionPositionControl;
+        else if(request.kind==NativeControlRequest::Kind::Velocity) {
+          type=rev::spark::SparkLowLevel::ControlType::kVelocity;
+          feedforward=gains_.a*request.acceleration;
+          // REV gravity feedforward is inactive in velocity mode.
+          if (joint_ && gravity_!=Gravity::Sine) {
+            const double position=lastPosition_*scale_*2*std::numbers::pi;
+            feedforward+=gains_.gravity*(gravity_==Gravity::Constant ? 1 : std::cos(position));
+          }
+        } else {
+          // REV basic position mode does not apply kV/kA automatically.
+          feedforward=gains_.v*request.velocity+gains_.a*request.acceleration;
         }
+        if(joint_ && gravity_==Gravity::Sine)
+          feedforward+=gains_.gravity*std::sin(lastPosition_*scale_*2*std::numbers::pi);
+        if(!std::isfinite(target) || !std::isfinite(feedforward)) return false;
+        return motors_.front()->GetClosedLoopController().SetSetpoint(target,type,
+            rev::spark::ClosedLoopSlot::kSlot0,feedforward,
+            rev::spark::SparkClosedLoopController::ArbFFUnits::kVoltage)==rev::REVLibError::kOk;
       }
       void SetBrake(bool enabled) override
       {
+        if(brake_==enabled) return;
         rev::spark::SparkMaxConfig settings;
         settings.SetIdleMode(enabled ? rev::spark::SparkBaseConfig::IdleMode::kBrake : rev::spark::SparkBaseConfig::IdleMode::kCoast);
         for (auto &motor : motors_)
-          motor->Configure(settings, rev::ResetMode::kNoResetSafeParameters, rev::PersistMode::kNoPersistParameters);
+          if(motor->Configure(settings, rev::ResetMode::kNoResetSafeParameters, rev::PersistMode::kNoPersistParameters)!=rev::REVLibError::kOk) {
+            SetVoltage(0); throw std::runtime_error("Spark brake configuration failed");
+          }
+        brake_=enabled;
       }
-
     private:
+      double scale_=1, lastPosition_=0;
+      Gains gains_;
+      Gravity gravity_=Gravity::Constant;
+      bool joint_=false, brake_=true;
       MotorConfig config_;
       std::vector<std::unique_ptr<rev::spark::SparkMax>> motors_;
     };
@@ -367,12 +441,10 @@ namespace base
                                     const MotorSimulationConfig &simulation)
   {
     config.Validate();
-    if (vendor == Vendor::SparkMax && config.phoenix.enabled)
-      throw std::invalid_argument("Phoenix native control requires TalonFX");
     if (mode == Mode::Replay || replay::Active())
     {
       auto injected=std::make_unique<InjectedMotorIO>();
-      injected->nativeEnabled=config.phoenix.enabled;
+      injected->nativeEnabled=false; // Source frames select firmware versus emulation.
       return injected;
     }
     if (mode == Mode::Sim)

@@ -1,59 +1,85 @@
 # Mechanism control
 
-Software PID/feedforward remains the default for `Flywheel` and `PositionJoint`.
-To use a Talon FX onboard voltage loop on real hardware, set
-`MotorConfig::phoenix.enabled=true` before `MakeMotorIO`. Existing APIs and gain
-units are unchanged: output rotations for flywheels, and joint units configured
-by `unitsPerOutputRotation` for position joints. The adapter converts setpoints,
-PID, velocity/acceleration feedforward and limits into Phoenix mechanism rotations.
-Static and gravity gains remain volts. Software-profile requests include velocity
-and acceleration feedforward; FOC is explicitly disabled to avoid requiring Pro.
+`Flywheel` and `PositionJoint` own goals, bounded trajectory references, command
+lifetimes, zero references, and safety. `MotorIO` owns closed-loop execution and
+feedforward. Real Talon FX and Spark MAX adapters always use onboard control;
+`MotorConfig::phoenix.enabled` is retained only for source compatibility and no
+longer selects a software loop on real hardware.
 
-- `SetVelocity` sends acceleration-limited setpoints to `VelocityVoltage`.
-- `SetPosition` uses ordinary `MotionMagicVoltage`, with the configured gain
-  limits. It does not require Dynamic Motion Magic or a Phoenix Pro license.
-- `SetPositionDynamic` retains the bounded software trajectory and sends its
-  positions to onboard `PositionVoltage`. This avoids synchronous CAN
-  configuration in the enabled control loop and the Pro/CANivore requirement of
-  Phoenix's dynamic request.
-- `SetPositionUnprofiled` sends an unprofiled onboard `PositionVoltage` goal.
-  Software-only adapters retain their existing position profile.
+`MotorControlConfig` carries gains, physical units, gravity, and joint limits.
+`ConfigureControl` returns the execution kind (`true` for firmware, `false` for
+the IO emulator); a real configuration failure throws and never falls back to
+software. Native reconfiguration requires disabled state, stops first, and
+latches failures until a successful disabled reconfiguration. Failed control
+requests similarly stop and latch. An arbitrary external encoder callback is
+supported by emulated IO, but rejected for real onboard control: use the adapter's
+coherent position and velocity feedback instead.
+
+Public gains retain volts and physical mechanism units. Flywheel positions use
+output rotations; joint coordinates use `unitsPerOutputRotation` (metres for a
+drum circumference). Adapters convert public coordinates to output rotations.
+PID gains must be commissioned on the selected vendor hardware; firmware sample
+rates, filtering, integrator limiting, and saturation differ from the emulator.
+The conversion is not a promise of identical firmware transients.
+
+- `SetVelocity` sends acceleration-limited references to onboard velocity control.
+- `SetPosition` uses ordinary unlicensed Phoenix Motion Magic or REV MAXMotion.
+- `SetPositionDynamic` sends the existing bounded software trajectory to onboard
+  position control, avoiding synchronous enabled CAN reconfiguration.
+- `SetPositionUnprofiled` sends the final position directly.
+- Direct voltage and SysId requests override closed-loop control and retain
+  physical software limit protection.
+
+## Talon FX
 
 `MotorConfig::gearRatio` maps integrated rotor turns to output turns. For a
 CANcoder, select `PhoenixControlConfig::Feedback::RemoteCANcoder`, set
 `remoteSensorId`, and set `sensorToMechanismRatio` to sensor turns per output
-turn (normally 1 for an output-mounted encoder). `sensorReversed` selects its
-positive direction. Configure and retain ownership of the CANcoder separately,
-including its zero offset and publication rate; it must share the Talon's CAN
-bus. `rotorToSensorRatio` describes the rotor/sensor relationship. Both position
-and velocity then come from the same Phoenix-selected feedback source. Fused and
-synchronized licensed feedback modes are intentionally not selected.
+turn. `sensorReversed` selects the sensor's positive direction. The application
+owns CANcoder initialization and offset configuration. Fused/Synchronized feedback
+is deliberately not selected because it requires vendor licensing assumptions.
+FOC is disabled. Primary inversion is configured on the device; follower reversal
+is relative to the primary. Hardware soft limits retain physical coordinates
+across `ResetPosition`.
 
-The primary `reversed` flag sets motor direction; subsequent flags oppose the
-primary through Phoenix followers. Verify motor and remote-sensor positive
-feedback direction before enabling any mechanism. Numeric/native unit tests and
-simulation do not establish hardware direction, calibration or stability.
+## Spark MAX
 
-Disabled, disconnected, invalid/nonfinite feedback, stop and command cancellation
-all send zero voltage, overriding any native request. Physical software limits
-are also configured on the primary Talon; logical `ResetPosition()` does not
-move those physical limits or rewrite the sensor. Runtime native gain changes
-require disabled state and stop the previous request before applying bounded
-Phoenix configuration calls. Configuration failures throw rather than silently
-running an unconfigured controller. Native gravity supports constant/elevator
-and cosine/arm behavior; nonzero sine gravity requires the software controller.
-Do not attach a separate external encoder callback to a native-controlled joint.
+The adapter uses REVLib 2026.0.5 `SetSetpoint`, firmware PID, MAXMotion, native
+followers, and firmware soft limits. Spark controllers use roboRIO CAN. Primary
+encoder position conversion is `1 / gearRatio`; velocity conversion is
+`1 / (60 * gearRatio)`, so references are output rotations and rotations/second.
+`SparkControlConfig::Feedback::AbsoluteEncoder` selects the attached duty-cycle
+absolute encoder with its own sensor/output ratio, zero offset, and direction.
+The configured sensor must be physically in phase with positive motor effort.
 
-Desktop plants deliberately use the existing software control path and explicit
-plant clock, without constructing Talon controllers. This is a model-level
-fallback, not firmware simulation. Replay constructs only injected IO: logs
-record whether the source used native control, and native sources recompute
-`Mechanism/<name>/NativeRequest` (kind, physical target, velocity, acceleration and profile limits).
-Firmware voltage is a recorded measured input, not a recomputed result. Simulation
-sources retain software control during replay. This boundary supports comparing
-new setpoint logic without claiming to replay Phoenix firmware.
+REV PID output is duty cycle: public voltage-domain PID gains are divided by the
+12 V nominal compensation voltage and multiplied by the physical scale. REV's
+new feedforward gains already use volts; they are not duty-normalized. Native
+MAXMotion constraints use converted encoder velocity units. Basic position mode
+receives trajectory velocity/acceleration as arbitrary voltage feedforward.
+Gravity uses onboard constant/cosine terms where supported; sine gravity (and
+non-unit Talon cosine coordinates) is calculated in the adapter from its cached
+sensor sample as arbitrary feedforward. This is feedforward, not a roboRIO PID.
+No persistent flash writes are performed during runtime configuration.
 
-Existing `SysIdQuasistatic` and `SysIdDynamic` already use WPILib SysId routines,
-record measured applied voltage/current and mechanism units, and stop on final
-completion/cancellation. They override native loops through `SetVoltage`; no
-parallel characterization abstraction is needed.
+## Simulation and replay
+
+Simulated/injected IO share one explicit-time controller emulator. Its integral,
+derivative, and feedforward equations preserve the previous variable-timestep
+contract; WPILib's fixed-period PIDController would discard history if recreated
+for changing tick durations. Controller state is owned by IO, never by Mechanism.
+`Read` is observational, `Control` uses the supplied (including replay-substituted)
+snapshot without another sensor read, and only `StepSimulation` advances physics.
+
+Recorded `nativeControl` selects the original source boundary during replay.
+Old software-source logs execute the IO emulator and produce the same voltage
+request keys; native-source logs recompute `NativeRequest` and compare goals and
+profiles. Neither replay nor simulated plants claim to reproduce vendor firmware.
+Factories remain lazy: replay constructs no vendor devices or physical plants.
+
+Existing WPILib SysId commands record measured applied voltage/current and stop
+on cancellation/completion; they do not need a second characterization API.
+
+Vendor references: [REV closed-loop control](https://docs.revrobotics.com/revlib/spark/closed-loop),
+[REV MAXMotion](https://docs.revrobotics.com/revlib/spark/closed-loop/maxmotion-position-control).
+Pinned local headers and desktop/roboRIO compilation are the API authority.
