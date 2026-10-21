@@ -18,18 +18,17 @@ PhotonPieceDetection::PhotonPieceDetection(PieceDetectionConfig config,std::func
 }
 void PhotonPieceDetection::Periodic() {
   const auto input=replay::ProcessInputs("PieceDetection/"+config_.name,[this] {
-    std::optional<PieceRay> ray;
-    if(source_)ray=source_();
+    if(source_)lastRay_=source_();
     else for(const auto &result:camera_->GetAllUnreadResults()) {
-      ray.reset();
+      lastRay_.reset();
       if(result.HasTargets()) {
         const auto &t=result.GetBestTarget();
-        ray=PieceRay{result.GetTimestamp(),t.GetYaw(),t.GetPitch()};
+        lastRay_=PieceRay{result.GetTimestamp(),t.GetYaw(),t.GetPitch()};
       }
     }
     wpi::json value={{"now",frc::RobotController::GetFPGATime()*1e-6},{"ray",nullptr}};
-    if(ray&&std::isfinite(ray->timestamp.value())&&std::isfinite(ray->yawDegrees)&&std::isfinite(ray->pitchDegrees))
-      value["ray"]={ray->timestamp.value(),ray->yawDegrees,ray->pitchDegrees};
+    if(lastRay_&&std::isfinite(lastRay_->timestamp.value())&&std::isfinite(lastRay_->yawDegrees)&&std::isfinite(lastRay_->pitchDegrees))
+      value["ray"]={lastRay_->timestamp.value(),lastRay_->yawDegrees,lastRay_->pitchDegrees};
     return value;
   });
   target_.reset();
