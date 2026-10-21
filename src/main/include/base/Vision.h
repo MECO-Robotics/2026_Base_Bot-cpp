@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <array>
+#include <vector>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Transform3d.h>
 #include <networktables/DoubleArrayTopic.h>
@@ -24,6 +25,13 @@ struct VisionConfig {
   double maxZ = 0.75;
   double maxSingleTagAmbiguity = 0.3;
   bool megatag2 = false;
+  int minTagCount = 1;
+  std::vector<int> allowedTagIds; // Empty accepts all positive IDs.
+  int minAllowedTagCount = 1;
+  double linearStdDevBaseline = .02;
+  double angularStdDevBaseline = .06;
+  double cameraStdDevFactor = 1;
+  double megatag2LinearFactor = 1; // Preserve existing C++ covariance by default.
 };
 // Consumes Limelight blue-origin poses. Camera calibration and field layout remain deployment inputs.
 class Vision : public frc2::SubsystemBase {
