@@ -30,3 +30,10 @@ explicitly for the missing input rather than inventing measurements.
 Translation characterization does not add steer/rotation characterization or
 change native odometry timing. Hardware SysId requires a safe test area and
 separate operator authorization; no physical tuning is claimed by native tests.
+
+Characterization requests 50 Hz voltage status updates without waiting on CAN.
+It requires valid native odometry and voltage status, with timestamps no older
+than 100 ms. The health result is recorded with measured inputs, so replay also
+reproduces feedback loss even when stale numeric values remain finite. Unhealthy
+or malformed feedback applies zero voltage before failing the routine. This is
+a conservative characterization gate, not a general CAN fault detector.
