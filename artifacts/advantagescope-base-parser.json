@@ -1,0 +1,276 @@
+{
+  "passed": true,
+  "advantageScopeVersion": "26.0.0",
+  "log": "/home/brian/Documents/FRC/2026_Base_Bot-cpp-finalize/artifacts/advantagescope-base-sample.wpilog",
+  "workerSha256": "dd8c29e3b5d760f6b625b32a7b621f1bb02b03e22eb6dd5236455202dd68026b",
+  "parser": "Installed unmodified hub$wpilogWorker.js + hub$wpilogIndexer.wasm",
+  "fields": [
+    {
+      "key": "NT:/AdvantageScope/Drive/MeasuredStates",
+      "type": "SwerveModuleState[]",
+      "sampleCount": 30,
+      "typeWarning": false,
+      "decodedNumbers": [
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/length",
+          "sampleCount": 1,
+          "last": 4,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/0/speed",
+          "sampleCount": 29,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/0/angle/value",
+          "sampleCount": 7,
+          "last": -0.7577865092155067,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/1/speed",
+          "sampleCount": 29,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/1/angle/value",
+          "sampleCount": 7,
+          "last": 0.7577865092155067,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/2/speed",
+          "sampleCount": 28,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/2/angle/value",
+          "sampleCount": 7,
+          "last": 0.7577865092155067,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/3/speed",
+          "sampleCount": 29,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/MeasuredStates/3/angle/value",
+          "sampleCount": 7,
+          "last": -0.7577865092155067,
+          "typeWarning": false
+        }
+      ]
+    },
+    {
+      "key": "NT:/AdvantageScope/Drive/Pose",
+      "type": "Pose2d",
+      "sampleCount": 59,
+      "typeWarning": false,
+      "decodedNumbers": [
+        {
+          "key": "NT:/AdvantageScope/Drive/Pose/translation/x",
+          "sampleCount": 59,
+          "last": 0.2371621452555344,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/Pose/translation/y",
+          "sampleCount": 45,
+          "last": 0.014139654056237114,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/Pose/rotation/value",
+          "sampleCount": 32,
+          "last": -0.3508501683292187,
+          "typeWarning": false
+        }
+      ]
+    },
+    {
+      "key": "NT:/AdvantageScope/Drive/RobotPose",
+      "type": "Pose3d",
+      "sampleCount": 59,
+      "typeWarning": false,
+      "decodedNumbers": [
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/translation/x",
+          "sampleCount": 59,
+          "last": 0.2371621452555344,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/translation/y",
+          "sampleCount": 45,
+          "last": 0.014139654056237114,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/translation/z",
+          "sampleCount": 1,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/rotation/q/w",
+          "sampleCount": 31,
+          "last": 0.9846524393266004,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/rotation/q/x",
+          "sampleCount": 1,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/rotation/q/y",
+          "sampleCount": 1,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/RobotPose/rotation/q/z",
+          "sampleCount": 32,
+          "last": -0.1745267135087793,
+          "typeWarning": false
+        }
+      ]
+    },
+    {
+      "key": "NT:/AdvantageScope/Drive/Speeds",
+      "type": "ChassisSpeeds",
+      "sampleCount": 30,
+      "typeWarning": false,
+      "decodedNumbers": [
+        {
+          "key": "NT:/AdvantageScope/Drive/Speeds/vx",
+          "sampleCount": 29,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/Speeds/vy",
+          "sampleCount": 8,
+          "last": 0,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/Speeds/omega",
+          "sampleCount": 27,
+          "last": 0,
+          "typeWarning": false
+        }
+      ]
+    },
+    {
+      "key": "NT:/AdvantageScope/Drive/TargetStates",
+      "type": "SwerveModuleState[]",
+      "sampleCount": 11,
+      "typeWarning": false,
+      "decodedNumbers": [
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/length",
+          "sampleCount": 1,
+          "last": 4,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/0/speed",
+          "sampleCount": 6,
+          "last": -1.480744453740736,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/0/angle/value",
+          "sampleCount": 11,
+          "last": -0.7853981633974485,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/1/speed",
+          "sampleCount": 6,
+          "last": 1.480744453740736,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/1/angle/value",
+          "sampleCount": 11,
+          "last": 0.7853981633974483,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/2/speed",
+          "sampleCount": 6,
+          "last": -1.480744453740736,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/2/angle/value",
+          "sampleCount": 11,
+          "last": 0.7853981633974483,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/3/speed",
+          "sampleCount": 6,
+          "last": 1.480744453740736,
+          "typeWarning": false
+        },
+        {
+          "key": "NT:/AdvantageScope/Drive/TargetStates/3/angle/value",
+          "sampleCount": 11,
+          "last": -0.7853981633974483,
+          "typeWarning": false
+        }
+      ]
+    }
+  ],
+  "metadata": [
+    {
+      "key": "NT:/Metadata/Language",
+      "name": "Language",
+      "wpilibType": "string",
+      "sampleCount": 1,
+      "last": "C++",
+      "typeWarning": false
+    },
+    {
+      "key": "NT:/Metadata/Project",
+      "name": "Project",
+      "wpilibType": "string",
+      "sampleCount": 1,
+      "last": "2026_Base_Bot-cpp",
+      "typeWarning": false
+    },
+    {
+      "key": "NT:/Metadata/Telemetry",
+      "name": "Telemetry",
+      "wpilibType": "string",
+      "sampleCount": 1,
+      "last": "WPILib structs / NT4 / WPILOG",
+      "typeWarning": false
+    },
+    {
+      "key": "NT:/Metadata/WPILib",
+      "name": "WPILib",
+      "wpilibType": "string",
+      "sampleCount": 1,
+      "last": "2026.2.1",
+      "typeWarning": false
+    }
+  ],
+  "errors": [],
+  "timestampRangeSeconds": [
+    0.003163,
+    29.434257
+  ],
+  "layout": "/home/brian/Documents/FRC/2026_Base_Bot-cpp-finalize/artifacts/advantagescope-base-layout.json",
+  "layoutValidation": "Generated from installed 26.0.0 export/restore schema; GUI import not exercised"
+}

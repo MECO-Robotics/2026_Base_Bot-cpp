@@ -1,0 +1,168 @@
+{
+  "version": "26.0.0",
+  "hubs": [
+    {
+      "x": 50,
+      "y": 50,
+      "width": 1280,
+      "height": 800,
+      "state": {
+        "sidebar": {
+          "width": 300,
+          "expanded": [
+            "NT:",
+            "NT:/AdvantageScope",
+            "NT:/AdvantageScope/Drive"
+          ]
+        },
+        "tabs": {
+          "selected": 0,
+          "tabs": [
+            {
+              "type": 2,
+              "title": "MECO Field Pose",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "robot",
+                    "logKey": "NT:/AdvantageScope/Drive/Pose",
+                    "logType": "Pose2d",
+                    "visible": true,
+                    "options": {
+                      "bumpers": ""
+                    }
+                  }
+                ],
+                "field": "FRC:Evergreen",
+                "orientation": 0,
+                "size": "large"
+              },
+              "controllerUUID": "af7667f5-b7bc-42fd-a409-98ef9179c366",
+              "renderer": null,
+              "controlsHeight": 180
+            },
+            {
+              "type": 3,
+              "title": "MECO 3D Pose",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "axes",
+                    "logKey": "NT:/AdvantageScope/Drive/RobotPose",
+                    "logType": "Pose3d",
+                    "visible": true,
+                    "options": {}
+                  }
+                ],
+                "game": "FRC:Evergreen"
+              },
+              "controllerUUID": "8cc735f7-14ba-44c6-b494-be3a6159bdb8",
+              "renderer": null,
+              "controlsHeight": 180
+            },
+            {
+              "type": 1,
+              "title": "MECO Chassis Speeds",
+              "controller": {
+                "leftSources": [
+                  {
+                    "type": "smooth",
+                    "logKey": "NT:/AdvantageScope/Drive/Speeds/vx",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#2b66a2",
+                      "size": "normal"
+                    }
+                  },
+                  {
+                    "type": "smooth",
+                    "logKey": "NT:/AdvantageScope/Drive/Speeds/vy",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#af2437",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "rightSources": [
+                  {
+                    "type": "smooth",
+                    "logKey": "NT:/AdvantageScope/Drive/Speeds/omega",
+                    "logType": "Number",
+                    "visible": true,
+                    "options": {
+                      "color": "#3b875a",
+                      "size": "normal"
+                    }
+                  }
+                ],
+                "discreteSources": [],
+                "leftLockedRange": null,
+                "rightLockedRange": null,
+                "leftUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "rightUnitConversion": {
+                  "autoTarget": null,
+                  "preset": null
+                },
+                "leftFilter": 0,
+                "rightFilter": 0
+              },
+              "controllerUUID": "452dc7fc-199e-4a9d-a555-dd0d2ae261df",
+              "renderer": null,
+              "controlsHeight": 180
+            },
+            {
+              "type": 9,
+              "title": "MECO Swerve",
+              "controller": {
+                "sources": [
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageScope/Drive/MeasuredStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#ff0000",
+                      "arrangement": "0,1,2,3"
+                    }
+                  },
+                  {
+                    "type": "states",
+                    "logKey": "NT:/AdvantageScope/Drive/TargetStates",
+                    "logType": "SwerveModuleState[]",
+                    "visible": true,
+                    "options": {
+                      "color": "#0000ff",
+                      "arrangement": "0,1,2,3"
+                    }
+                  }
+                ],
+                "maxSpeed": 4.572,
+                "sizeX": 0.6731,
+                "sizeY": 0.6731,
+                "orientation": 0
+              },
+              "controllerUUID": "c30dd571-2fe8-439b-94eb-bf399b5e1ea0",
+              "renderer": null,
+              "controlsHeight": 180
+            },
+            {
+              "type": 12,
+              "title": "MECO Build Metadata",
+              "controller": null,
+              "controllerUUID": "b74716f8-0ef1-47e0-ade5-1275da45c1e9",
+              "renderer": null,
+              "controlsHeight": 180
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "satellites": []
+}

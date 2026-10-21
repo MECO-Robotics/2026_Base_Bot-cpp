@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="2" failures="0" disabled="0" errors="0" time="0.004" timestamp="2026-10-19T12:47:22.260" name="AllTests">
+  <testsuite name="MechanismSimulation" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-10-19T12:47:22.260">
+    <testcase name="PollingFrequencyDoesNotAdvancePhysics" file="/home/brian/Documents/FRC/2026_Base_Bot-cpp-finalize/src/test/cpp/MechanismTest.cpp" line="173" status="run" result="completed" time="0." timestamp="2026-10-19T12:47:22.260" classname="MechanismSimulation">
+      <properties>
+        <property name="position_rotations" value="4.4271888572824381"/>
+        <property name="velocity_rotations_per_second" value="7.9241196115786998"/>
+      </properties>
+    </testcase>
+  </testsuite>
+  <testsuite name="DeterministicSimulation" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.003" timestamp="2026-10-19T12:47:22.260">
+    <testcase name="ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime" file="/home/brian/Documents/FRC/2026_Base_Bot-cpp-finalize/src/test/cpp/DeterministicSimulationTest.cpp" line="67" status="run" result="completed" time="0.003" timestamp="2026-10-19T12:47:22.260" classname="DeterministicSimulation">
+      <properties>
+        <property name="delayed_final_position_rotations" value="11.545182749071172"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -10,7 +10,7 @@ TEST(DriveConfig, RejectsUnsafeConfigurationBeforeDeviceConstruction) {
   good.pigeon=good.modules[0].drive;
   good.bus=""; // Phoenix default-bus alias is supported.
   EXPECT_NO_THROW(good.Validate());
-  for(int fault=0;fault<6;++fault) {
+  for(int fault=0;fault<10;++fault) {
     base::DriveConfig bad;
     switch(fault) {
       case 0:bad.driveRatio=0;break;
@@ -19,6 +19,10 @@ TEST(DriveConfig, RejectsUnsafeConfigurationBeforeDeviceConstruction) {
       case 3:bad.modules[1].encoder=bad.modules[0].encoder;break;
       case 4:for(auto& m:bad.modules)m.yMeters=0;break;
       case 5:bad.pigeon=63;break;
+      case 6:bad.odometryHz=-1;break;
+      case 7:bad.autoTranslationKP=-1;break;
+      case 8:bad.autoRotationKP=std::numeric_limits<double>::infinity();break;
+      case 9:bad.odometryHz=std::numeric_limits<double>::quiet_NaN();break;
     }
     EXPECT_THROW(base::Drive{bad},std::invalid_argument)<<fault;
   }

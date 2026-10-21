@@ -135,7 +135,7 @@ namespace base
       registration=sim::GetSimulationRuntime().Register({
         [this](double dt) {ReadVoltages();physics.BeforePhysics(dt);},
         [this](double dt) {physics.AfterPhysics(dt);WriteSensors();},
-        [this] {Reset(frc::Pose2d{});},
+        [this] {owner.ResetSimulation(frc::Pose2d{});},
         [this] {return physics.SupplyCurrent(sim::GetSimulationRuntime().BusVoltage());}});
     }
     void ReadVoltages() {
@@ -202,7 +202,7 @@ namespace base
         simulation.rollInertia,simulation.pitchInertia,simulation.wheelInertia,simulation.steerInertia,
         simulation.longitudinalStiffness,simulation.lateralStiffness,simulation.suspensionRestLength,
         simulation.suspensionTravel,simulation.suspensionStiffness,simulation.suspensionDamping}) positive(v);
-    for(double v:{cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
+    for(double v:{odometryHz,autoTranslationKP,autoRotationKP,cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
     for(double v:{couplingRatio,simulation.centerOfMassX,simulation.centerOfMassY,simulation.centerOfMassZ}) finite(v);
     // Talons share a device type; CANcoders and Pigeon have separate type IDs.
     std::set<int> motors,encoders;
@@ -254,7 +254,7 @@ namespace base
                        .WithDriveFrictionVoltage(.1_V);
     auto make = [&](int i)
     { const auto& m=config_.modules[i]; return factory.CreateModuleConstants(m.steer,m.drive,m.encoder,units::turn_t{m.offsetTurns},units::meter_t{m.xMeters},units::meter_t{m.yMeters},m.driveInverted,m.steerInverted,m.encoderInverted); };
-    native_ = std::make_unique<NativeDrive>(s::SwerveDrivetrainConstants{}.WithCANBusName(config_.bus).WithPigeon2Id(config_.pigeon), make(0), make(1), make(2), make(3));
+    native_ = std::make_unique<NativeDrive>(s::SwerveDrivetrainConstants{}.WithCANBusName(config_.bus).WithPigeon2Id(config_.pigeon), units::hertz_t{config_.odometryHz}, make(0), make(1), make(2), make(3));
 #ifndef __FRC_ROBORIO__
     if(frc::RobotBase::IsSimulation() && sim::GetSimulationRuntime().World())
       simulation_=std::make_unique<Simulation>(*this);
@@ -327,7 +327,10 @@ namespace base
   }
   sim::DrivePhysics* Drive::SimulationPhysics() { return simulation_?&simulation_->physics:nullptr; }
   void Drive::ResetSimulation(const frc::Pose2d& pose) {
-    if(simulation_) simulation_->Reset(pose);
+    if(simulation_) {
+      simulation_->Reset(pose);
+      if(poseResetCallback_)poseResetCallback_(pose);
+    }
   }
 #endif
   frc::Pose2d Drive::Pose() const { return ReadInputs().pose; }
@@ -335,6 +338,10 @@ namespace base
   void Drive::ResetPose(const frc::Pose2d &pose) {
     replay::RecordOutput("Drive/ResetPose",{pose.X().value(),pose.Y().value(),pose.Rotation().Radians().value()});
     if(native_)native_->ResetPose(pose);
+    if(poseResetCallback_)poseResetCallback_(pose);
+  }
+  void Drive::SetPoseResetCallback(std::function<void(const frc::Pose2d&)> callback) {
+    poseResetCallback_=std::move(callback);
   }
   void Drive::AddVision(const frc::Pose2d &pose, units::second_t time, std::array<double, 3> noise) {
     wpi::json deviations=wpi::json::array();
@@ -379,6 +386,16 @@ namespace base
     // Operator commands update every 20 ms; ApplyRobotSpeeds does not discretize.
     RunVelocity(frc::ChassisSpeeds::Discretize(robotSpeeds, .02_s));
   }
+  void Drive::RunHeading(double x, double y, frc::Rotation2d heading, double kp, double maxOmega) {
+    if(!std::isfinite(x)||!std::isfinite(y)||!std::isfinite(heading.Radians().value())||
+       !std::isfinite(kp)||kp<0||!std::isfinite(maxOmega)||maxOmega<0) {
+      Stop();
+      throw std::invalid_argument("RunHeading requires finite translation, heading and nonnegative gains/limits");
+    }
+    const double error=(heading-Pose().Rotation()).Radians().value();
+    RunVelocity({units::meters_per_second_t{x},units::meters_per_second_t{y},
+                 units::radians_per_second_t{std::clamp(kp*error,-maxOmega,maxOmega)}});
+  }
   void Drive::Stop() { RunVelocity(frc::ChassisSpeeds{}); }
   void Drive::StopWithX() {
     requestedSpeeds_ = {};
@@ -393,7 +410,8 @@ namespace base
       locations.emplace_back(units::meter_t{m.xMeters}, units::meter_t{m.yMeters});
     pathplanner::RobotConfig rc{units::kilogram_t{config_.massKg}, units::kilogram_square_meter_t{config_.moi},
                                 pathplanner::ModuleConfig{units::meter_t{config_.wheelRadius}, units::meters_per_second_t{config_.maxSpeed}, config_.cof, frc::DCMotor::KrakenX60FOC(1).WithReduction(config_.driveRatio), units::ampere_t{config_.driveCurrent}, 1}, locations};
-    autoController_=std::make_shared<pathplanner::PPHolonomicDriveController>(pathplanner::PIDConstants{5,0,0},pathplanner::PIDConstants{5,0,0});
+    if(config_.autoConfigFromGUI)rc=pathplanner::RobotConfig::fromGUISettings();
+    autoController_=std::make_shared<pathplanner::PPHolonomicDriveController>(pathplanner::PIDConstants{config_.autoTranslationKP,0,0},pathplanner::PIDConstants{config_.autoRotationKP,0,0});
     pathplanner::AutoBuilder::configure([this]
                                         { return Pose(); }, [this](const auto &pose)
                                         { ResetPose(pose); }, [this]

@@ -40,7 +40,7 @@ instead, set `C_Cpp.default.configurationProvider` to
 
 ## Verified simulation check
 
-The [parity audit](docs/parity-audit-2026-10-21.md) records the current desktop/roboRIO Debug and Release build, 52 native tests per configuration, headless practice checks, replay comparison and numerical model evidence. These checks establish software behavior, not physical calibration or hardware acceptance.
+The [finalization merge notes](docs/finalization-merge.md) record the latest integration checks. The preceding [parity audit](docs/parity-audit-2026-10-21.md) records its desktop/roboRIO build, 52-test baseline, headless practice, replay and numerical evidence. These checks establish software behavior, not physical calibration or hardware acceptance.
 
 For the regular graphical simulator use `./gradlew simulateNative`. For a repeatable Windows or Linux headless check, run these in separate terminals:
 
@@ -93,6 +93,10 @@ automatically registers simulated IO with the shared clock. The shared [battery 
 - `base/ModelFeedforward.h` and `base/MechanismTuning.h`: [WPILib model coefficients and safe dashboard transactions](docs/mechanism-tuning.md), with disabled gain updates and an explicit Test-mode command.
 - `base/QuestNav.h` and `base/PieceDetection.h`: queued 5 ms QuestNav tracking and mounted camera-ray piece localization, with raw-input code replay.
 - `RobotContainer`: illustrative base drivetrain configuration and controller mappings. Base motor IDs and zero offsets are examples copied from Java, not a commissioned robot configuration.
+
+The finalization branch integration and its conflict resolutions are recorded in
+[the merge notes](docs/finalization-merge.md). Offline explicit-time mechanism
+control is described in [its contract](docs/explicit-time-control.md).
 
 ## Port status
 

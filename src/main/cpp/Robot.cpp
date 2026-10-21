@@ -1,6 +1,7 @@
 #include "Robot.h"
 #include "base/Replay.h"
 #include "base/Telemetry.h"
+#include "base/AdvantageScope.h"
 #include <frc/DataLogManager.h>
 #include <frc/DriverStation.h>
 #include <frc/RobotController.h>
@@ -15,6 +16,7 @@ Robot::Robot() : replayInitialized_((base::replay::InitializeFromEnvironment(),t
 
   // Record canonical NT values and their struct schemas once for log playback.
   frc::DataLogManager::LogNetworkTables(true);
+  base::PublishTelemetryMetadata("2026_Base_Bot-cpp");
   frc::DriverStation::StartDataLog(frc::DataLogManager::GetLog());
   frc::RobotController::SetBrownoutVoltage(units::volt_t{6});
 }

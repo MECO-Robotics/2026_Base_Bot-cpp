@@ -19,3 +19,12 @@ Assumptions: the requested “1016-specific” means 2026-specific; native repla
 API references: [WPILib command ownership](https://docs.wpilib.org/en/stable/docs/software/commandbased/commands.html), [Phoenix swerve](https://v6.docs.ctr-electronics.com/en/latest/docs/api-reference/mechanisms/swerve/swerve-overview.html). The actual pinned vendor headers are the compile-time API authority.
 
 Native swerve drive gains use rotor turns, unlike the Java base's wheel-turn closed loop. The base drive P/D/V defaults are divided by the drive gear ratio; static voltage and azimuth-turn steering gains are unchanged. The season Java CTRE swerve gains are already rotor-based and must be copied directly. This distinction was confirmed against the pinned Phoenix 26.1.2 `SwerveModuleConstants.hpp` and `SwerveModule.hpp` headers and a running native simulation.
+
+## Finalization branch integration
+
+The historical finalization branch is merged with conflict resolutions recorded in
+[the merge notes](finalization-merge.md). Current Jolt clock ownership, canonical
+asynchronous telemetry, native mechanism control and full frame replay take
+precedence over superseded implementations from that branch. Offline explicit-time
+control and legacy mechanism-log readers remain available without adding a second
+robot simulation clock or duplicate live logging.

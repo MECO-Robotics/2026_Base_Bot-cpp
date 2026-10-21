@@ -85,6 +85,8 @@ class MotorIO {
   virtual bool SetNative(const NativeControlRequest&) { return false; }
   // Explicit plant advancement (0..1 s); real/replay adapters remain observational.
   virtual void StepSimulation(units::second_t) {}
+  // Offline compatibility entry point; callers must retain one physics owner.
+  void AdvanceSimulation(units::second_t dt) { StepSimulation(dt); }
 };
 // Factories are lazy: replay never constructs a controller or simulator.
 std::unique_ptr<MotorIO> MakeMotorIO(Mode mode, Vendor vendor, const MotorConfig& config,
@@ -111,6 +113,14 @@ class Mechanism : public frc2::SubsystemBase {
             Gravity gravity=Gravity::Constant,
             std::function<double()> externalEncoder={}, EncoderCalibration calibration={});
   void Periodic() override;
+  // Same-owner-thread API: control, setters, getters and telemetry must not race.
+  // Explicit control tick (0 < dt <= 100 ms) for offline multirate harnesses.
+  // Never enables a disabled DS. External scheduling suppresses default control
+  // only; the world remains the sole physics owner.
+  void Control(units::second_t dt, bool enabled=true);
+  void UseExternalScheduling(bool enabled=true) { externalScheduling_=enabled; }
+  // Observational snapshot only; does not read sensors or advance control/physics.
+  void PublishTelemetry() const;
   void SetVelocity(double velocity);
   void SetPosition(double position);
   // Native PositionVoltage when supported; ordinary SetPosition uses Motion Magic.
@@ -124,7 +134,7 @@ class Mechanism : public frc2::SubsystemBase {
   const Gains& GetGains() const { return gains_; }
   bool IsPositionControlled() const { return joint_; }
   bool AtSetpoint() const;
-  bool VelocityControlActive() const { return control_==Control::Velocity; }
+  bool VelocityControlActive() const { return control_==ControlMode::Velocity; }
   double VelocitySetpoint() const { return target_; }
   double Position() const { return physicalPosition_ - zeroOffset_; }
   double Velocity() const { return inputs_.velocity * units_; }
@@ -136,10 +146,10 @@ class Mechanism : public frc2::SubsystemBase {
   frc2::CommandPtr VoltageCommand(std::function<double()> voltage);
  private:
   void ApplyVoltage(double volts);
-  void PublishTelemetry() const;
-  enum class Control { Stopped, Voltage, Velocity, Position };
+  enum class ControlMode { Stopped, Voltage, Velocity, Position };
   std::unique_ptr<MotorIO> io_;
   Gains gains_;
+  bool externalScheduling_=false;
   bool joint_, native_=false, nativeFault_=false, motionMagic_=true, unprofiled_=false;
   double units_, physicalPosition_=0, zeroOffset_=0, target_=0, voltage_=0;
   double profiledPosition_=0, profiledVelocity_=0, previousError_=0, integral_=0;
@@ -148,7 +158,7 @@ class Mechanism : public frc2::SubsystemBase {
   std::function<double()> externalEncoder_;
   EncoderCalibration calibration_;
   MotorInputs inputs_;
-  Control control_=Control::Stopped;
+  ControlMode control_=ControlMode::Stopped;
 };
 class Flywheel final : public Mechanism {
  public:

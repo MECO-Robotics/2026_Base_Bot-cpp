@@ -1,0 +1,288 @@
+> Task :compileFrcUserProgramLinuxathenaDebugExecutableFrcUserProgramCpp
+> Task :compileFrcUserProgramLinuxathenaReleaseExecutableFrcUserProgramCpp
+> Task :linkFrcUserProgramLinuxathenaReleaseExecutable
+> Task :frcUserProgramLinuxathenaReleaseExecutable
+> Task :linkFrcUserProgramLinuxathenaDebugExecutable
+> Task :frcUserProgramLinuxathenaDebugExecutable
+> Task :compileFrcUserProgramLinuxx86-64DebugExecutableFrcUserProgramCpp
+> Task :linkFrcUserProgramLinuxx86-64DebugExecutable
+> Task :frcUserProgramLinuxx86-64DebugExecutable
+> Task :checkFrcUserProgramLinuxathenaDebugExecutable UP-TO-DATE
+> Task :checkFrcUserProgramLinuxathenaReleaseExecutable UP-TO-DATE
+> Task :compileFrcUserProgramLinuxx86-64ReleaseExecutableFrcUserProgramCpp
+> Task :linkFrcUserProgramLinuxx86-64ReleaseExecutable
+> Task :frcUserProgramLinuxx86-64ReleaseExecutable
+> Task :assemble
+> Task :compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramTestCpp
+> Task :compileFrcUserProgramTestLinuxx86-64DebugGoogleTestExeFrcUserProgramCpp
+> Task :linkFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :frcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :installFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+
+> Task :runFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+HAL Extensions: No extensions found
+[==========] Running 29 tests from 18 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from DriveOwnership
+[ RUN      ] DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+[       OK ] DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner (171 ms)
+[----------] 1 test from DriveOwnership (171 ms total)
+
+[----------] 5 tests from QuestNav
+[ RUN      ] QuestNav.SuppressesUninitializedAndAlignsMountingOffset
+[       OK ] QuestNav.SuppressesUninitializedAndAlignsMountingOffset (0 ms)
+[ RUN      ] QuestNav.RejectsStaleLostAndRepeatedFramesAndRequiresFreshAlignment
+[       OK ] QuestNav.RejectsStaleLostAndRepeatedFramesAndRequiresFreshAlignment (0 ms)
+[ RUN      ] QuestNav.RestartAndStaleResetRequireRelocalization
+[       OK ] QuestNav.RestartAndStaleResetRequireRelocalization (0 ms)
+[ RUN      ] QuestNav.ReplacingAlignmentYawDoesNotAverageIncompatibleTranslations
+[       OK ] QuestNav.ReplacingAlignmentYawDoesNotAverageIncompatibleTranslations (0 ms)
+[ RUN      ] QuestNav.RejectedFieldPoseCannotRemainReadyDespiteLiveTracking
+[       OK ] QuestNav.RejectedFieldPoseCannotRemainReadyDespiteLiveTracking (0 ms)
+[----------] 5 tests from QuestNav (0 ms total)
+
+[----------] 2 tests from QuestNavTransport
+[ RUN      ] QuestNavTransport.DecodesPinnedSchemaAndRejectsMalformedMessages
+[       OK ] QuestNavTransport.DecodesPinnedSchemaAndRejectsMalformedMessages (0 ms)
+[ RUN      ] QuestNavTransport.NativeNtInjectionKeepsCaptureTimeAndDetectsRestart
+[       OK ] QuestNavTransport.NativeNtInjectionKeepsCaptureTimeAndDetectsRestart (1 ms)
+[----------] 2 tests from QuestNavTransport (2 ms total)
+
+[----------] 5 tests from DriveTarget
+[ RUN      ] DriveTarget.DisabledCannotResurrectTargetAndStaleCommandsStop
+[       OK ] DriveTarget.DisabledCannotResurrectTargetAndStaleCommandsStop (0 ms)
+[ RUN      ] DriveTarget.ForcesAreCoherentAndInvalidInputStops
+[       OK ] DriveTarget.ForcesAreCoherentAndInvalidInputStops (0 ms)
+[ RUN      ] DriveTarget.HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw
+[       OK ] DriveTarget.HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw (0 ms)
+[ RUN      ] DriveTarget.StationaryBrakeLatchesUntilDisabledOrReplaced
+[       OK ] DriveTarget.StationaryBrakeLatchesUntilDisabledOrReplaced (0 ms)
+[ RUN      ] DriveTarget.DisableRacingAuthorizationInvalidatesOldEpoch
+[       OK ] DriveTarget.DisableRacingAuthorizationInvalidatesOldEpoch (0 ms)
+[----------] 5 tests from DriveTarget (0 ms total)
+
+[----------] 1 test from AdvantageScopeTelemetry
+[ RUN      ] AdvantageScopeTelemetry.NativeStructSchemasUnitsOrderingAndClearsSurviveNTLogRoundTrip
+[       OK ] AdvantageScopeTelemetry.NativeStructSchemasUnitsOrderingAndClearsSurviveNTLogRoundTrip (3 ms)
+[----------] 1 test from AdvantageScopeTelemetry (3 ms total)
+
+[----------] 1 test from MotorInputLog
+[ RUN      ] MotorInputLog.NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware
+[       OK ] MotorInputLog.NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware (0 ms)
+[----------] 1 test from MotorInputLog (0 ms total)
+
+[----------] 1 test from MechanismConfig
+[ RUN      ] MechanismConfig.RejectsInvalidMappingAndLimits
+[       OK ] MechanismConfig.RejectsInvalidMappingAndLimits (0 ms)
+[----------] 1 test from MechanismConfig (0 ms total)
+
+[----------] 1 test from MechanismEncoder
+[ RUN      ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale
+[       OK ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale (0 ms)
+[----------] 1 test from MechanismEncoder (0 ms total)
+
+[----------] 1 test from MechanismControl
+[ RUN      ] MechanismControl.DisabledAndSoftLimitsPreventVoltage
+[       OK ] MechanismControl.DisabledAndSoftLimitsPreventVoltage (0 ms)
+[----------] 1 test from MechanismControl (0 ms total)
+
+[----------] 1 test from MechanismReference
+[ RUN      ] MechanismReference.ResetRetainsPhysicalSoftLimits
+[       OK ] MechanismReference.ResetRetainsPhysicalSoftLimits (0 ms)
+[----------] 1 test from MechanismReference (0 ms total)
+
+[----------] 1 test from MechanismIO
+[ RUN      ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves
+[       OK ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves (0 ms)
+[----------] 1 test from MechanismIO (0 ms total)
+
+[----------] 2 tests from MechanismSimulation
+[ RUN      ] MechanismSimulation.ClosedLoopVelocityConverges
+[       OK ] MechanismSimulation.ClosedLoopVelocityConverges (9 ms)
+[ RUN      ] MechanismSimulation.HighReductionConvergesToMotorFreeSpeedWithoutNumericalOscillation
+[       OK ] MechanismSimulation.HighReductionConvergesToMotorFreeSpeedWithoutNumericalOscillation (6 ms)
+[----------] 2 tests from MechanismSimulation (15 ms total)
+
+[----------] 1 test from MechanismJoint
+[ RUN      ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits
+[       OK ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits (0 ms)
+[----------] 1 test from MechanismJoint (0 ms total)
+
+[----------] 1 test from MechanismProfile
+[ RUN      ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection
+[       OK ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection (0 ms)
+[----------] 1 test from MechanismProfile (0 ms total)
+
+[----------] 1 test from MechanismFlywheel
+[ RUN      ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap
+[       OK ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap (0 ms)
+[----------] 1 test from MechanismFlywheel (0 ms total)
+
+[----------] 2 tests from MechanismTuning
+[ RUN      ] MechanismTuning.AppliesAtomicValidatedGainsOnlyWhileDisabled
+[       OK ] MechanismTuning.AppliesAtomicValidatedGainsOnlyWhileDisabled (0 ms)
+[ RUN      ] MechanismTuning.UnchangedDashboardPreservesDynamicProfileConstraints
+[       OK ] MechanismTuning.UnchangedDashboardPreservesDynamicProfileConstraints (0 ms)
+[----------] 2 tests from MechanismTuning (1 ms total)
+
+[----------] 1 test from DeterministicSimulation
+[ RUN      ] DeterministicSimulation.MultirateReplayRetainsSensorLatencyAndOrdering
+[       OK ] DeterministicSimulation.MultirateReplayRetainsSensorLatencyAndOrdering (0 ms)
+[----------] 1 test from DeterministicSimulation (0 ms total)
+
+[----------] 1 test from ModelFeedforward
+[ RUN      ] ModelFeedforward.MatchesMotorPhysicsAcrossRotationalAndLinearCoordinates
+[       OK ] ModelFeedforward.MatchesMotorPhysicsAcrossRotationalAndLinearCoordinates (0 ms)
+[----------] 1 test from ModelFeedforward (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 29 tests from 18 test suites ran. (197 ms total)
+[  PASSED  ] 29 tests.
+[phoenix-diagnostics] Server shutdown cleanly. (dur:0)
+	
+[phoenix] Library shutdown cleanly
+	
+
+> Task :checkFrcUserProgramTestLinuxx86-64DebugGoogleTestExe
+> Task :checkFrcUserProgramLinuxx86-64DebugExecutable
+> Task :compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramCpp
+> Task :compileFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExeFrcUserProgramTestCpp
+> Task :linkFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :frcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :installFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+
+> Task :runFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+HAL Extensions: No extensions found
+[==========] Running 29 tests from 18 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from DriveOwnership
+[ RUN      ] DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner
+[phoenix] CANbus Connected: sim
+[phoenix] CANbus Network Up: sim
+[       OK ] DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner (177 ms)
+[----------] 1 test from DriveOwnership (177 ms total)
+
+[----------] 5 tests from QuestNav
+[ RUN      ] QuestNav.SuppressesUninitializedAndAlignsMountingOffset
+[       OK ] QuestNav.SuppressesUninitializedAndAlignsMountingOffset (0 ms)
+[ RUN      ] QuestNav.RejectsStaleLostAndRepeatedFramesAndRequiresFreshAlignment
+[       OK ] QuestNav.RejectsStaleLostAndRepeatedFramesAndRequiresFreshAlignment (0 ms)
+[ RUN      ] QuestNav.RestartAndStaleResetRequireRelocalization
+[       OK ] QuestNav.RestartAndStaleResetRequireRelocalization (0 ms)
+[ RUN      ] QuestNav.ReplacingAlignmentYawDoesNotAverageIncompatibleTranslations
+[       OK ] QuestNav.ReplacingAlignmentYawDoesNotAverageIncompatibleTranslations (0 ms)
+[ RUN      ] QuestNav.RejectedFieldPoseCannotRemainReadyDespiteLiveTracking
+[       OK ] QuestNav.RejectedFieldPoseCannotRemainReadyDespiteLiveTracking (0 ms)
+[----------] 5 tests from QuestNav (0 ms total)
+
+[----------] 2 tests from QuestNavTransport
+[ RUN      ] QuestNavTransport.DecodesPinnedSchemaAndRejectsMalformedMessages
+[       OK ] QuestNavTransport.DecodesPinnedSchemaAndRejectsMalformedMessages (0 ms)
+[ RUN      ] QuestNavTransport.NativeNtInjectionKeepsCaptureTimeAndDetectsRestart
+[       OK ] QuestNavTransport.NativeNtInjectionKeepsCaptureTimeAndDetectsRestart (0 ms)
+[----------] 2 tests from QuestNavTransport (0 ms total)
+
+[----------] 5 tests from DriveTarget
+[ RUN      ] DriveTarget.DisabledCannotResurrectTargetAndStaleCommandsStop
+[       OK ] DriveTarget.DisabledCannotResurrectTargetAndStaleCommandsStop (0 ms)
+[ RUN      ] DriveTarget.ForcesAreCoherentAndInvalidInputStops
+[       OK ] DriveTarget.ForcesAreCoherentAndInvalidInputStops (0 ms)
+[ RUN      ] DriveTarget.HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw
+[       OK ] DriveTarget.HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw (0 ms)
+[ RUN      ] DriveTarget.StationaryBrakeLatchesUntilDisabledOrReplaced
+[       OK ] DriveTarget.StationaryBrakeLatchesUntilDisabledOrReplaced (0 ms)
+[ RUN      ] DriveTarget.DisableRacingAuthorizationInvalidatesOldEpoch
+[       OK ] DriveTarget.DisableRacingAuthorizationInvalidatesOldEpoch (0 ms)
+[----------] 5 tests from DriveTarget (0 ms total)
+
+[----------] 1 test from AdvantageScopeTelemetry
+[ RUN      ] AdvantageScopeTelemetry.NativeStructSchemasUnitsOrderingAndClearsSurviveNTLogRoundTrip
+[       OK ] AdvantageScopeTelemetry.NativeStructSchemasUnitsOrderingAndClearsSurviveNTLogRoundTrip (0 ms)
+[----------] 1 test from AdvantageScopeTelemetry (0 ms total)
+
+[----------] 1 test from MotorInputLog
+[ RUN      ] MotorInputLog.NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware
+[       OK ] MotorInputLog.NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware (0 ms)
+[----------] 1 test from MotorInputLog (0 ms total)
+
+[----------] 1 test from MechanismConfig
+[ RUN      ] MechanismConfig.RejectsInvalidMappingAndLimits
+[       OK ] MechanismConfig.RejectsInvalidMappingAndLimits (0 ms)
+[----------] 1 test from MechanismConfig (0 ms total)
+
+[----------] 1 test from MechanismEncoder
+[ RUN      ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale
+[       OK ] MechanismEncoder.AppliesDirectionBeforeOffsetAndScale (0 ms)
+[----------] 1 test from MechanismEncoder (0 ms total)
+
+[----------] 1 test from MechanismControl
+[ RUN      ] MechanismControl.DisabledAndSoftLimitsPreventVoltage
+[       OK ] MechanismControl.DisabledAndSoftLimitsPreventVoltage (0 ms)
+[----------] 1 test from MechanismControl (0 ms total)
+
+[----------] 1 test from MechanismReference
+[ RUN      ] MechanismReference.ResetRetainsPhysicalSoftLimits
+[       OK ] MechanismReference.ResetRetainsPhysicalSoftLimits (0 ms)
+[----------] 1 test from MechanismReference (0 ms total)
+
+[----------] 1 test from MechanismIO
+[ RUN      ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves
+[       OK ] MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves (0 ms)
+[----------] 1 test from MechanismIO (0 ms total)
+
+[----------] 2 tests from MechanismSimulation
+[ RUN      ] MechanismSimulation.ClosedLoopVelocityConverges
+[       OK ] MechanismSimulation.ClosedLoopVelocityConverges (1 ms)
+[ RUN      ] MechanismSimulation.HighReductionConvergesToMotorFreeSpeedWithoutNumericalOscillation
+[       OK ] MechanismSimulation.HighReductionConvergesToMotorFreeSpeedWithoutNumericalOscillation (3 ms)
+[----------] 2 tests from MechanismSimulation (4 ms total)
+
+[----------] 1 test from MechanismJoint
+[ RUN      ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits
+[       OK ] MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits (0 ms)
+[----------] 1 test from MechanismJoint (0 ms total)
+
+[----------] 1 test from MechanismProfile
+[ RUN      ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection
+[       OK ] MechanismProfile.ReversingDeceleratesBeforeChangingDirection (0 ms)
+[----------] 1 test from MechanismProfile (0 ms total)
+
+[----------] 1 test from MechanismFlywheel
+[ RUN      ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap
+[       OK ] MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap (0 ms)
+[----------] 1 test from MechanismFlywheel (0 ms total)
+
+[----------] 2 tests from MechanismTuning
+[ RUN      ] MechanismTuning.AppliesAtomicValidatedGainsOnlyWhileDisabled
+[       OK ] MechanismTuning.AppliesAtomicValidatedGainsOnlyWhileDisabled (0 ms)
+[ RUN      ] MechanismTuning.UnchangedDashboardPreservesDynamicProfileConstraints
+[       OK ] MechanismTuning.UnchangedDashboardPreservesDynamicProfileConstraints (0 ms)
+[----------] 2 tests from MechanismTuning (0 ms total)
+
+[----------] 1 test from DeterministicSimulation
+[ RUN      ] DeterministicSimulation.MultirateReplayRetainsSensorLatencyAndOrdering
+[       OK ] DeterministicSimulation.MultirateReplayRetainsSensorLatencyAndOrdering (0 ms)
+[----------] 1 test from DeterministicSimulation (0 ms total)
+
+[----------] 1 test from ModelFeedforward
+[ RUN      ] ModelFeedforward.MatchesMotorPhysicsAcrossRotationalAndLinearCoordinates
+[       OK ] ModelFeedforward.MatchesMotorPhysicsAcrossRotationalAndLinearCoordinates (0 ms)
+[----------] 1 test from ModelFeedforward (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 29 tests from 18 test suites ran. (183 ms total)
+[  PASSED  ] 29 tests.
+[phoenix-diagnostics] Server shutdown cleanly. (dur:0)
+	
+[phoenix] Library shutdown cleanly
+	
+
+> Task :checkFrcUserProgramTestLinuxx86-64ReleaseGoogleTestExe
+> Task :checkFrcUserProgramLinuxx86-64ReleaseExecutable
+> Task :check
+> Task :build
+
+BUILD SUCCESSFUL in 2m 2s
+18 actionable tasks: 18 executed

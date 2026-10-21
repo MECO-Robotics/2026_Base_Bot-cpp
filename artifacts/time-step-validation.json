@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-19",
+  "branch": "codex/finalize-cpp-migration",
+  "validatedCommit": "fa56b1cad80bf027bcdea2007e4f551f3e26f647",
+  "build": {
+    "command": "JAVA_HOME=/home/brian/wpilib/2026/jdk ./gradlew build --max-workers=2",
+    "passed": true,
+    "platforms": [
+      "desktop",
+      "roboRIO"
+    ],
+    "configurations": [
+      "debug",
+      "release"
+    ],
+    "testsPerConfiguration": 35,
+    "log": "time-step-build.log"
+  },
+  "pollingHz": [
+    50,
+    100,
+    250
+  ],
+  "numerical": {
+    "PollingFrequencyDoesNotAdvancePhysics": {
+      "position_rotations": 4.427188857282438,
+      "velocity_rotations_per_second": 7.9241196115787
+    },
+    "ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime": {
+      "delayed_final_position_rotations": 11.545182749071172
+    }
+  },
+  "virtualTimeTest": {
+    "durationSeconds": 2,
+    "controlHz": 250,
+    "commandHz": 50,
+    "sensorLatencySeconds": 0.008,
+    "disabledAtSeconds": 1.6,
+    "traceSamplesCompared": 500,
+    "repeatTracesEqual": true,
+    "scope": "Actual mechanism controller and command scheduler, not Phoenix whole robot"
+  },
+  "smokes": {
+    "drive": {
+      "passed": true,
+      "evidence": "time-step-drive-smoke.json"
+    }
+  },
+  "advantageScope": {
+    "passed": true,
+    "version": "26.0.0",
+    "evidence": "time-step-advantagescope.json"
+  },
+  "genericSourceByteIdenticalAcrossRepos": true,
+  "preservedPaths": [
+    "build.gradle",
+    "vendordeps",
+    "src/main/deploy"
+  ],
+  "commits": [
+    "6fd6628b1f2246639e300cd18eef11bc94573dd6 Advance mechanism physics explicitly instead of on sensor reads",
+    "844bcbe0a8356ced3dcce63a7283f80a7dd0ae27 Make mechanism control timestep-aware and isolate telemetry publication",
+    "97b303a66de9ffb1895ab7115db97653301bd319 Exercise real mechanism commands with virtual time and delayed sensors",
+    "55da517f4b5bfd8e51d81eb6e4fb3b7e605cd6c9 Invalidate retained drive targets when robot thread observes disable",
+    "d6c2a8ad6cb8d2df7e274115f46ae13db9b6f3c2 Keep explicit replay enable state subordinate to hardware disable",
+    "7f3f4143c4c7fe743bba81615cae54f46ae8171d Document explicit-time contracts and unresolved native replay boundaries",
+    "fa56b1cad80bf027bcdea2007e4f551f3e26f647 Protect external encoder fault neutralization during explicit control"
+  ],
+  "binarySha256": {
+    "build/exe/frcUserProgram/linuxathena/debug/frcUserProgram": "c9c7ac2016786b82a8a8c3e95531f085bc2e8b0f547bb476c24e102f7838727d",
+    "build/exe/frcUserProgram/linuxathena/release/frcUserProgram": "d48588810944a71c604652fe0684e6401440d1c7c638a216db0bd19325654e1e",
+    "build/exe/frcUserProgram/linuxx86-64/debug/frcUserProgram": "e91df144e111678e9660eb5dc86924388d272d46fcb2c8ac0727a459e1154d15",
+    "build/exe/frcUserProgram/linuxx86-64/release/frcUserProgram": "4e5ca300d9cbad6902ac63ee98015955a296252953bcef56ee1a2e78962c5492"
+  },
+  "priorityStatus": {
+    "1": "implemented and tested",
+    "2": "mechanism/controller/scheduler/latency integration implemented; live Phoenix virtual-time stepping incomplete",
+    "3": "implemented with default 20ms retained",
+    "4": "implemented; single owner thread; high-rate raw input capture not added",
+    "5": "incomplete: whole-robot replay chronology and native estimator restoration remain open",
+    "6": "application audit and disable regression complete; vendor allocations/locks, hardware jitter and CAN behavior unverified",
+    "7": "native and headless regression evidence; source season configuration preserved",
+    "8": "documented version/platform boundary; explicit-time APIs prepared; no 2027 target tested"
+  },
+  "migrationComplete": false,
+  "hardwareDeployment": false,
+  "hardwareValidation": false,
+  "remotePush": false,
+  "limitations": [
+    "Whole-robot deterministic replay not completed",
+    "Phoenix live vendor control/DAQ/estimator threads are not single-step controlled",
+    "No end-to-end compatible hoot fixture or estimator checkpoint",
+    "2027 WPILib/vendor ABI target unverified",
+    "No measured performance gains, physical commissioning, or hardware timing evidence"
+  ]
+}

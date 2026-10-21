@@ -1,0 +1,90 @@
+{
+  "baseline": "a2e8a6e",
+  "throughCommit": "e0e4a85d6152fed696fd08906d17b8f26dcb5978",
+  "commits": [
+    {
+      "commit": "5e9d4a6bd27b07ac8fa7083c13a43f404a07a336",
+      "subject": "Add deterministic multirate replay and model feedforward helpers"
+    },
+    {
+      "commit": "bb74fa6246509c0bfd84941e40bdd73501a456f1",
+      "subject": "Add deterministic QuestNav alignment and validation adapter"
+    },
+    {
+      "commit": "df7cdb41dcace92b67c5d79a58e83397f8ba26ab",
+      "subject": "Restore opt-in transactional disabled-only mechanism gain tuning"
+    },
+    {
+      "commit": "604c7ec04221efa7645350d5461835a4c47a2490",
+      "subject": "Record versioned native motor input logs and load timestamped replay"
+    },
+    {
+      "commit": "0c744810a38e6fa86041ae1ac8e33e463b4c2018",
+      "subject": "Read pinned QuestNav protobuf frames and device diagnostics over NT"
+    },
+    {
+      "commit": "fe2af88cc8c28daf49812ab23b498cb6b5ed4704",
+      "subject": "Run drivetrain intent and heading feedback on the Phoenix control thread"
+    },
+    {
+      "commit": "da2d56e131218644b9268193df31df2721ec602e",
+      "subject": "Preserve native NT injection timestamps and test restart detection"
+    },
+    {
+      "commit": "42c59efea00d07507bb0234eac67111dd13fb7a1",
+      "subject": "Invalidate intent across disable racing target authorization"
+    },
+    {
+      "commit": "88b022e53def7e030b19e36cf7ad699266658cb0",
+      "subject": "test(drive): verify scheduler preemption and disable ownership"
+    },
+    {
+      "commit": "cd89cc77138a235a25fed657ae61b6990174fc4d",
+      "subject": "test(drive): use current scheduler scheduling API"
+    },
+    {
+      "commit": "a3eae3ae86921fb9c817cb39c46d6a9acb1f82bd",
+      "subject": "Publish fixed-size drive snapshots and decimate CAN diagnostics"
+    },
+    {
+      "commit": "b89725745c6891864854a13ea05968537c242eb2",
+      "subject": "Advance native swerve simulation on an independent 4 ms notifier"
+    },
+    {
+      "commit": "302409c6ef787fc11fffefd69b19a491588409e8",
+      "subject": "Preserve replay sensor faults and dynamic profile constraints during tuning"
+    },
+    {
+      "commit": "70e846867af11d8252b91db65429cf455c69d952",
+      "subject": "Hide Phoenix hardware and estimation types behind the drive API"
+    },
+    {
+      "commit": "7f9a0f4622582f246931bd5589bfd8f9929fa444",
+      "subject": "Notify external localization adapters on every drivetrain pose reset"
+    },
+    {
+      "commit": "fb064b593267c9b2cd0616b3929eee7360d11dcb",
+      "subject": "Require a validated field pose for QuestNav readiness"
+    },
+    {
+      "commit": "48d6ca83d91a94d4ce7755c1704141a104c798fc",
+      "subject": "Promote reusable native swerve model and autonomous configuration upstream"
+    },
+    {
+      "commit": "fa19e4430a557cf76b641da3affd9b088accff40",
+      "subject": "Cover shared localization reset notification without locking observers"
+    },
+    {
+      "commit": "7c3bbe98e82c59fa87afacac1a6e2a54280d9687",
+      "subject": "Document control scheduling, tuning, replay and migration evidence boundaries"
+    },
+    {
+      "commit": "674b5cb419eccfc59f6c1efa054f65aca6b7019d",
+      "subject": "Stabilize geared motor simulation with bounded adaptive Euler steps"
+    },
+    {
+      "commit": "e0e4a85d6152fed696fd08906d17b8f26dcb5978",
+      "subject": "Publish mechanism voltage and sensor telemetry while disabled"
+    }
+  ]
+}

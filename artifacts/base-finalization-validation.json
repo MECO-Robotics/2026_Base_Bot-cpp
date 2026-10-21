@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-19",
+  "branch": "codex/finalize-cpp-migration",
+  "sourceCommit": "e0e4a85d6152fed696fd08906d17b8f26dcb5978",
+  "hardwareValidation": false,
+  "deployed": false,
+  "build": {
+    "command": "./gradlew build --max-workers=2",
+    "passed": true,
+    "targets": [
+      "linuxathena debug",
+      "linuxathena release",
+      "linuxx86-64 debug",
+      "linuxx86-64 release"
+    ],
+    "log": "base-finalization-build.log"
+  },
+  "nativeTests": {
+    "debug": {
+      "passed": 28,
+      "failed": 0
+    },
+    "release": {
+      "passed": 28,
+      "failed": 0
+    }
+  },
+  "simulation": {
+    "base-finalization-sim-smoke.json": {
+      "passed": true,
+      "checks": {
+        "initial_disabled_stationary": true,
+        "forward_velocity": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "pose_changes_on_drive": true,
+        "reverse_velocity": true,
+        "turn_velocity": true,
+        "final_disabled_stationary": true
+      },
+      "sha256": "b1b33728fed628fe4ad8fa9bf76cf743402d42ac10ad28db3288f5c66e1c1dc9"
+    }
+  },
+  "limitations": [
+    "No physical hardware, calibration, field acceptance or real-time CAN FD load/jitter validation",
+    "Deterministic offline harness and MotorIO replay do not constitute deterministic whole-robot playback",
+    "QuestNav wire/native fixtures use synthetic measurements, not a physical headset"
+  ],
+  "staticEstimates": {
+    "commandPeriodMs": 20,
+    "seasonNativePeriodMs": 4,
+    "controlEvaluationsPerCommand": 5,
+    "uniformFeedbackWaitMeanMs": {
+      "previousHeadingLoop": 10,
+      "nativeHeadingLoop": 2
+    },
+    "movingTargetWatchdogMs": 100,
+    "desktopTargetPacketBytes": 152,
+    "poseSpeedPublishCallReductionFraction": 0.8
+  },
+  "simulationSourceNote": "Base drive smoke used the preceding build before promotion of existing season-only mechanism simulation/disabled telemetry; drivetrain implementation unchanged."
+}

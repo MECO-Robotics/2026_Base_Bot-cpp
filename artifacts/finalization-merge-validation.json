@@ -1,0 +1,167 @@
+{
+  "parents": [
+    "1804b01",
+    "601b841"
+  ],
+  "buildSourceHash": "b3f427e2d3dba6333dd47320f7020bf989777d954dccd753306aeb76106100d3",
+  "preCommitMergeBuildDirty": true,
+  "build": {
+    "command": "./gradlew build prepareHeadlessSimulation --max-workers=2 --console=plain",
+    "result": "passed",
+    "targets": [
+      "Linux desktop Debug",
+      "Linux desktop Release",
+      "roboRIO Debug",
+      "roboRIO Release"
+    ],
+    "nativeTests": {
+      "Debug": 64,
+      "Release": 64
+    },
+    "focusedTests": 33
+  },
+  "smoke": {
+    "backend": "jolt-3d",
+    "passed": true,
+    "checks": {
+      "practice_start_field_frame": true,
+      "intake_captures": true,
+      "disable_held_intake_stops": true,
+      "intake_recaptures": true,
+      "launch_releases_one": true,
+      "practice_reset_field_frame": true,
+      "ModuleStates_forward_vectors": true,
+      "ModuleTargets_forward_vectors": true,
+      "ModuleStates_turn_vectors": true,
+      "ModuleTargets_turn_vectors": true,
+      "autonomous_without_choice_does_not_drive": true,
+      "forward_pose_changes": true,
+      "forward_truth_moves": true,
+      "initial_disabled_stationary": true,
+      "forward_speed_tracking": true,
+      "reverse_speed_tracking": true,
+      "turn_speed_tracking": true,
+      "negative_turn_velocity": true,
+      "spin_reversal_velocity": true,
+      "zero_input_stops": true,
+      "final_disabled_stationary": true,
+      "turn_heading_matches_rate": true,
+      "negative_turn_heading_matches_rate": true,
+      "spin_reversal_heading_matches_rate": true,
+      "stopping_heading_matches_rate": true,
+      "collider_wireframe_struct": true,
+      "RobotTruth_struct_present": true,
+      "Pieces_struct_present": true,
+      "Pose_struct_present": true,
+      "truth_positive_spin": true,
+      "truth_negative_spin": true,
+      "power_finite_and_physical": true,
+      "loaded_battery_sags": true,
+      "disabled_battery_recovers": true
+    }
+  },
+  "parser": {
+    "passed": true,
+    "version": "26.0.0",
+    "workerSha256": "dd8c29e3b5d760f6b625b32a7b621f1bb02b03e22eb6dd5236455202dd68026b",
+    "structuredFieldCount": 36,
+    "canonicalLayoutAsserted": true,
+    "metadata": [
+      {
+        "key": "NT:/Metadata/Project",
+        "name": "Project",
+        "wpilibType": "string",
+        "sampleCount": 1,
+        "last": "2026_Base_Bot-cpp",
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Metadata/Language",
+        "name": "Language",
+        "wpilibType": "string",
+        "sampleCount": 1,
+        "last": "C++",
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Metadata/WPILib",
+        "name": "WPILib",
+        "wpilibType": "string",
+        "sampleCount": 1,
+        "last": "2026.2.1",
+        "typeWarning": false
+      },
+      {
+        "key": "NT:/Metadata/Telemetry",
+        "name": "Telemetry",
+        "wpilibType": "string",
+        "sampleCount": 1,
+        "last": "WPILib structs / NT4 / WPILOG",
+        "typeWarning": false
+      }
+    ]
+  },
+  "replay": {
+    "scope": "recorded sensor/DS inputs injected into rerun C++ commands; Phoenix estimator and camera processing are recorded boundaries",
+    "checks": {
+      "complete": true,
+      "frameCount": true,
+      "sourceHash": true,
+      "replayMode": true,
+      "sourceMetadata": true,
+      "inputsAndClockPreserved": true,
+      "outputsRecorded": true
+    },
+    "completed": true,
+    "frameCount": 1024,
+    "outputFramesDifferent": 613,
+    "outputDifferenceCounts": {
+      "Drive/ModuleTargets": 613
+    },
+    "sourceSha256": "55b7f190633937f9aa008ee326ba37b36f1ab6720e05dfcfeda6f3776b5862fc",
+    "replaySha256": "6960a1f10943e97df6e26c4e8f05815344f5d7c1c84d76b9891bababd05f3c2c",
+    "sourceMetadata": {
+      "buildDirty": true,
+      "buildRevision": "1804b01c5aa4cbe8e99ccd176a36bc67c66d4601",
+      "buildSourceHash": "b3f427e2d3dba6333dd47320f7020bf989777d954dccd753306aeb76106100d3",
+      "mode": "live",
+      "schemaVersion": 1
+    },
+    "replayMetadata": {
+      "buildDirty": true,
+      "buildRevision": "1804b01c5aa4cbe8e99ccd176a36bc67c66d4601",
+      "buildSourceHash": "b3f427e2d3dba6333dd47320f7020bf989777d954dccd753306aeb76106100d3",
+      "mode": "replay",
+      "schemaVersion": 1,
+      "sourceFile": "/home/brian/Documents/FRC/2026_Base_Bot-cpp/logs/FRC_20261021_172421.wpilog",
+      "sourceFileHashFnv1a64": "9583668937126952103",
+      "sourceFileSha256": "55b7f190633937f9aa008ee326ba37b36f1ab6720e05dfcfeda6f3776b5862fc",
+      "sourceMetadata": {
+        "buildDirty": true,
+        "buildRevision": "1804b01c5aa4cbe8e99ccd176a36bc67c66d4601",
+        "buildSourceHash": "b3f427e2d3dba6333dd47320f7020bf989777d954dccd753306aeb76106100d3",
+        "mode": "live",
+        "schemaVersion": 1
+      }
+    },
+    "recordingStatus": {
+      "failed": 0,
+      "highWater": 23,
+      "rejected": 0,
+      "written": 1024
+    },
+    "source": "/home/brian/Documents/FRC/2026_Base_Bot-cpp/logs/FRC_20261021_172421.wpilog",
+    "replayLog": "/tmp/finalization-merge-final-replayed.wpilog"
+  },
+  "logs": [
+    "/tmp/finalization-merge-final-build.log",
+    "/tmp/finalization-merge-final-smoke.log",
+    "/tmp/finalization-merge-final-parser.json",
+    "/tmp/finalization-merge-final-replay.log"
+  ],
+  "limitations": [
+    "No hardware deployment/calibration",
+    "No fresh Windows/macOS run",
+    "Native Phoenix module targets remain the documented replay approximation"
+  ]
+}

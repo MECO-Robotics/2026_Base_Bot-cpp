@@ -327,3 +327,57 @@ TEST(MechanismNative, FailedReconfigurationLatchesStopUntilDisabledRecovery) {
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
 }
+
+TEST(MechanismControl, ExplicitTimestepScalesIntegralDerivativeAndFeedforward) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  for(double dt:{.02,.01,.004}) {
+    auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+    observed->inputs.connected=true;
+    base::Gains gains; gains.p=.3; gains.i=.4; gains.d=.002;
+    gains.v=.2; gains.a=.1; gains.maxAcceleration=2;
+    base::Flywheel wheel("TimestepTest",std::move(io),gains);
+    wheel.SetVelocity(1);
+    wheel.Control(units::second_t{dt},true);
+    const double profiledVelocity=2*dt;
+    const double expected=.3*profiledVelocity+.4*profiledVelocity*dt+
+      .002*profiledVelocity/dt+.2*profiledVelocity+.1*2;
+    EXPECT_NEAR(observed->requestedVoltage,expected,1e-12);
+    wheel.PublishTelemetry();
+    EXPECT_NEAR(observed->requestedVoltage,expected,1e-12);
+    EXPECT_THROW(wheel.Control(units::second_t{0},true),std::invalid_argument);
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+    wheel.SetVoltage(6);
+    EXPECT_THROW(wheel.Control(units::second_t{.101},true),std::invalid_argument);
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  }
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}
+
+TEST(MechanismControl, ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNotControl) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->inputs.connected=true;
+  base::Gains gains; gains.p=1; gains.maxAcceleration=2;
+  base::Flywheel wheel("ExternalTickTest",std::move(io),gains);
+  wheel.UseExternalScheduling();
+  wheel.SetVelocity(1);
+  wheel.Control(units::second_t{.004},true);
+  const double voltage=observed->requestedVoltage;
+  ASSERT_GT(voltage,0);
+  observed->inputs.velocity=100;
+  wheel.Periodic();
+  EXPECT_DOUBLE_EQ(wheel.Velocity(),0);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,voltage);
+  wheel.Control(units::second_t{.004},false);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  wheel.SetVoltage(6);
+  wheel.Control(units::second_t{.004},true);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+}

@@ -14,7 +14,6 @@ namespace base
 {
   namespace
   {
-    template<class F> struct OnExit { F run; ~OnExit() { run(); } };
     wpi::json Number(double value) { return std::isfinite(value) ? wpi::json(value) : wpi::json(nullptr); }
     double Number(const wpi::json &value) { return value.is_null() ? std::numeric_limits<double>::quiet_NaN() : value.get<double>(); }
     void Finite(double value)
@@ -93,7 +92,7 @@ namespace base
   {
     Finite(velocity);
     unprofiled_=false;
-    if (control_ != Control::Velocity)
+    if (control_ != ControlMode::Velocity)
     {
       profiledVelocity_ = Velocity();
       integral_ = 0;
@@ -101,7 +100,7 @@ namespace base
     }
     maxAcceleration_ = gains_.maxAcceleration;
     target_ = joint_ ? std::clamp(velocity, -gains_.maxVelocity, gains_.maxVelocity) : velocity;
-    control_ = Control::Velocity;
+    control_ = ControlMode::Velocity;
     replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","velocity"},{"value",target_}});
   }
   void Mechanism::SetPosition(double position) { SetPositionDynamic(position, gains_.maxVelocity, gains_.maxAcceleration); motionMagic_=true; }
@@ -115,7 +114,7 @@ namespace base
     if (!joint_ || maxVelocity <= 0 || maxAcceleration <= 0)
       throw std::invalid_argument("Invalid joint request");
     motionMagic_=false; unprofiled_=false;
-    if (control_ != Control::Position || enterSoftwareProfile)
+    if (control_ != ControlMode::Position || enterSoftwareProfile)
     {
       profiledPosition_ = physicalPosition_;
       profiledVelocity_ = Velocity();
@@ -125,19 +124,19 @@ namespace base
     target_ = std::clamp(position + zeroOffset_, gains_.minimum, gains_.maximum);
     maxVelocity_ = maxVelocity;
     maxAcceleration_ = maxAcceleration;
-    control_ = Control::Position;
+    control_ = ControlMode::Position;
     replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","position"},{"value",target_}});
   }
   void Mechanism::SetVoltage(double volts)
   {
     Finite(volts);
     voltage_ = std::clamp(volts, -12., 12.);
-    control_ = Control::Voltage;
+    control_ = ControlMode::Voltage;
     replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","voltage"},{"value",voltage_}});
   }
   void Mechanism::Stop()
   {
-    control_ = Control::Stopped;
+    control_ = ControlMode::Stopped;
     integral_ = 0;
     previousError_ = 0;
     ApplyVoltage(0);
@@ -182,14 +181,19 @@ namespace base
   bool Mechanism::AtSetpoint() const
   {
     if (!inputs_.connected || !std::isfinite(physicalPosition_) || !std::isfinite(Velocity()) ||
-        (control_ != Control::Position && control_ != Control::Velocity))
+        (control_ != ControlMode::Position && control_ != ControlMode::Velocity))
       return false;
-    return std::abs((control_ == Control::Position ? physicalPosition_ : Velocity()) - target_) <= gains_.tolerance;
+    return std::abs((control_ == ControlMode::Position ? physicalPosition_ : Velocity()) - target_) <= gains_.tolerance;
   }
   void Mechanism::Periodic()
   {
-    constexpr double dt = .02;
-    const auto report=OnExit{[this]{PublishTelemetry();}};
+    if (!externalScheduling_) Control(units::second_t{.02});
+    PublishTelemetry();
+  }
+  void Mechanism::Control(units::second_t timestep, bool enabled)
+  {
+    const double dt=timestep.value();
+    if (!std::isfinite(dt) || dt<=0 || dt>.1) { Stop(); throw std::invalid_argument("Invalid mechanism control timestep"); }
     const auto input=replay::ProcessInputs("Mechanism/"+GetName(),[this] {
       const auto value=io_->Read();
       return wpi::json{{"position",Number(value.position)},{"velocity",Number(value.velocity)},
@@ -223,7 +227,7 @@ namespace base
       Stop();
       return;
     }
-    if (frc::DriverStation::IsDisabled())
+    if (!enabled || frc::DriverStation::IsDisabled())
     {
       integral_ = 0;
       previousError_ = 0;
@@ -233,12 +237,12 @@ namespace base
       return;
     }
     double volts = 0, profileAcceleration=0;
-    if (control_ == Control::Voltage)
+    if (control_ == ControlMode::Voltage)
       volts = voltage_;
-    else if (control_ == Control::Velocity || control_ == Control::Position)
+    else if (control_ == ControlMode::Velocity || control_ == ControlMode::Position)
     {
       double previousVelocity = profiledVelocity_;
-      if (control_ == Control::Position)
+      if (control_ == ControlMode::Position)
       {
         double distance = target_ - profiledPosition_;
         double desired = std::copysign(std::min(maxVelocity_, std::sqrt(2 * maxAcceleration_ * std::abs(distance))), distance);
@@ -258,7 +262,7 @@ namespace base
       else
         profiledVelocity_ += std::clamp(target_ - profiledVelocity_, -maxAcceleration_ * dt, maxAcceleration_ * dt);
       profileAcceleration=(profiledVelocity_-previousVelocity)/dt;
-      double error = control_ == Control::Position ? profiledPosition_ - physicalPosition_ : profiledVelocity_ - Velocity();
+      double error = control_ == ControlMode::Position ? profiledPosition_ - physicalPosition_ : profiledVelocity_ - Velocity();
       integral_ = std::clamp(integral_ + error * dt, -12., 12.);
       volts = gains_.p * error + gains_.i * integral_ + gains_.d * (error - previousError_) / dt;
       previousError_ = error;
@@ -272,14 +276,14 @@ namespace base
                                                                                                    : std::sin(angle));
       }
     }
-    if (native_ && (control_ == Control::Position || control_ == Control::Velocity))
+    if (native_ && (control_ == ControlMode::Position || control_ == ControlMode::Velocity))
     {
-      const bool outward=joint_ && control_==Control::Velocity &&
+      const bool outward=joint_ && control_==ControlMode::Velocity &&
           ((physicalPosition_<=gains_.minimum && target_<0) || (physicalPosition_>=gains_.maximum && target_>0));
       if (outward) { ApplyVoltage(0); return; }
-      const NativeControlRequest request{control_==Control::Velocity ? NativeControlRequest::Kind::Velocity :
+      const NativeControlRequest request{control_==ControlMode::Velocity ? NativeControlRequest::Kind::Velocity :
           motionMagic_ ? NativeControlRequest::Kind::MotionMagic : NativeControlRequest::Kind::Position,
-          control_==Control::Velocity ? profiledVelocity_ : motionMagic_ || unprofiled_ ? target_ : profiledPosition_,
+          control_==ControlMode::Velocity ? profiledVelocity_ : motionMagic_ || unprofiled_ ? target_ : profiledPosition_,
           maxVelocity_,maxAcceleration_,unprofiled_?0:profiledVelocity_,unprofiled_?0:profileAcceleration};
       if (!std::isfinite(request.target) || !std::isfinite(request.velocity) || !std::isfinite(request.acceleration)) { Stop(); return; }
       replay::RecordOutput("Mechanism/"+GetName()+"/NativeRequest", {{"kind",static_cast<int>(request.kind)},

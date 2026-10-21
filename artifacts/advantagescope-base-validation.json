@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-19",
+  "branch": "codex/finalize-cpp-migration",
+  "sourceCommit": "b4f19c69563f6a84ef3dcc15ad86cfbcc5f5609b",
+  "sourceTreeSha256": "0d0ace3a85d4a8acab52234f808df0a86288be93df61e0000a288d586c795484",
+  "build": {
+    "command": "./gradlew build --max-workers=2",
+    "passed": true,
+    "targets": [
+      "roboRIO debug",
+      "roboRIO release",
+      "desktop debug",
+      "desktop release"
+    ],
+    "log": "advantagescope-base-build.log"
+  },
+  "tests": {
+    "debug": {
+      "passed": 29,
+      "failed": 0
+    },
+    "release": {
+      "passed": 29,
+      "failed": 0
+    }
+  },
+  "nativeSimulation": {
+    "passed": true,
+    "evidence": "advantagescope-base-drive-smoke.json"
+  },
+  "advantageScope": {
+    "version": "26.0.0",
+    "parser": "Installed unmodified WPILOG worker and WASM indexer",
+    "passed": true,
+    "parserEvidence": "advantagescope-base-parser.json",
+    "sampleLog": "advantagescope-base-sample.wpilog",
+    "sampleSha256": "4a50ee842ebadc9a0a579f33ce00b20fb01beb72dd6d87c16269db4674d78927",
+    "layout": "advantagescope-base-layout.json",
+    "guiRenderingVerified": false
+  },
+  "hardwareDeployed": false,
+  "physicalValidation": false,
+  "limitations": [
+    "Simulation and parser evidence only; graphical import/rendering not exercised",
+    "RobotPose is estimated planar pose lifted to 3D, not independent ground truth",
+    "MotorIO replay and AdvantageScope log viewing are not whole-robot deterministic re-execution"
+  ]
+}
