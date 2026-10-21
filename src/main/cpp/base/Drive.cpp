@@ -58,6 +58,15 @@ namespace base
     };
   }
 
+  struct Drive::ReplayKinematics {
+    static frc::Translation2d Location(const DriveConfig& config, size_t i) {
+      return {units::meter_t{config.modules[i].xMeters},units::meter_t{config.modules[i].yMeters}};
+    }
+    explicit ReplayKinematics(const DriveConfig& config)
+        : value(Location(config,0),Location(config,1),Location(config,2),Location(config,3)) {}
+    frc::SwerveDriveKinematics<4> value;
+  };
+
   struct Drive::Telemetry {
     nt::StructArrayPublisher<frc::SwerveModuleState> measured =
         nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>(
@@ -237,7 +246,10 @@ namespace base
     config_.Validate();
     SetName("Drive");
     telemetry_ = std::make_shared<Telemetry>();
-    if(replay::Active()) return; // Before any Phoenix device or Jolt owner.
+    if(replay::Active()) {
+      replayKinematics_=std::make_unique<ReplayKinematics>(config_);
+      return; // Before any Phoenix device or Jolt owner.
+    }
 #ifndef __FRC_ROBORIO__
     if(frc::RobotBase::IsSimulation()&&config_.backend==DriveBackend::Phoenix) AwaitPhoenixSimulationTransport(config_);
 #endif
@@ -283,7 +295,7 @@ namespace base
     SetName("Drive");
 
   }
-  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {if(config_.backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Injected portable Drive requires SparkMaxNavX backend");config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(!replay::Active())portable_=std::make_unique<PortableSwerve>(config_,std::move(io),!frc::RobotBase::IsSimulation());}
+  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {if(config_.backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Injected portable Drive requires SparkMaxNavX backend");config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(replay::Active())replayKinematics_=std::make_unique<ReplayKinematics>(config_);else portable_=std::make_unique<PortableSwerve>(config_,std::move(io),!frc::RobotBase::IsSimulation());}
   Drive::~Drive() = default;
   Drive::Inputs Drive::ReadInputs() const {
     auto j=replay::ProcessInputs("Drive",[this] {
@@ -388,8 +400,7 @@ namespace base
     if(native_)native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity));
     else if(portable_)portable_->Velocity(speeds);
     else {
-      auto location=[this](int i){return frc::Translation2d{units::meter_t{config_.modules[i].xMeters},units::meter_t{config_.modules[i].yMeters}};};
-      frc::SwerveDriveKinematics<4> kinematics{location(0),location(1),location(2),location(3)};
+      auto& kinematics=replayKinematics_->value;
       auto targets=kinematics.ToSwerveModuleStates(speeds);
       kinematics.DesaturateWheelSpeeds(&targets,units::meters_per_second_t{config_.maxSpeed});
       auto measured=ReadInputs();

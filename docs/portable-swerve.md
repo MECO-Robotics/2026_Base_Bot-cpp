@@ -51,7 +51,9 @@ this model. Real device calibration remains a hardware acceptance step.
 
 The existing Drive input schema remains readable. New portable recordings mark
 the source backend and retain the same measured pose/speed/module-state boundary;
-replay reconstructs requests and optimized module targets without constructing
+replay retains the WPILib kinematics azimuth cache across requests, including
+zero-speed requests and estimator resets. It reconstructs requests and optimized
+module targets without constructing
 vendor devices or physics. It does not rerun the estimator from raw hardware
 batches or emulate vendor firmware. Vision pose resets remain estimator operations;
 `ResetSimulation` explicitly places the physical robot and synchronizes sensors.

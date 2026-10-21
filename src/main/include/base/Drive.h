@@ -113,6 +113,8 @@ class Drive : public frc2::SubsystemBase {
     std::array<frc::SwerveModuleState,4> states{};
   };
   Inputs ReadInputs() const;
+  struct ReplayKinematics;
+  std::unique_ptr<ReplayKinematics> replayKinematics_;
   std::array<frc::SwerveModuleState,4> replayTargets_{};
   void RecordDriveOutput();
 #ifndef __FRC_ROBORIO__

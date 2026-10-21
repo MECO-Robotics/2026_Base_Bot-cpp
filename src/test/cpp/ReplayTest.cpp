@@ -36,7 +36,8 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
     // explicit replay clock when StartCompetition bypasses the TimedRobot loop.
     frc::TimedRobot registeredNotifier;
     base::replay::InitializeFromEnvironment();
-    base::Drive drive;
+    base::DriveConfig driveConfig;driveConfig.backend=base::DriveBackend::SparkMaxNavX;
+    base::Drive drive(driveConfig);
     drive.ConfigureAuto(); // Global AutoBuilder must not own PID sendables at exit.
     base::MotorConfig motor{{51},{false},1,40,""};
     auto io=base::MakeMotorIO(base::Mode::Real,base::Vendor::TalonFX,motor);
@@ -68,9 +69,9 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
       if(base::replay::FrameIndex()==0)EXPECT_TRUE(quest.AlignToField(frc::Pose2d{units::meter_t{5},units::meter_t{4},frc::Rotation2d{}}));
       vision.Periodic();EXPECT_TRUE(vision.Connected());EXPECT_DOUBLE_EQ(vision.TargetYawDegrees(),2);
       EXPECT_NEAR(drive.Pose().Rotation().Radians().value(),1.5707963267948966,1e-12);
-      drive.FieldDrive(1,0,0);
+      drive.FieldDrive(base::replay::FrameIndex()==0?1:0,0,0);
       EXPECT_NEAR(drive.RequestedSpeeds().vx.value(),0,1e-9);
-      EXPECT_NEAR(drive.RequestedSpeeds().vy.value(),-1,1e-9);
+      EXPECT_NEAR(drive.RequestedSpeeds().vy.value(),base::replay::FrameIndex()==0?-1:0,1e-9);
       drive.ResetPose(frc::Pose2d{});
       EXPECT_NEAR(drive.Pose().Rotation().Radians().value(),1.5707963267948966,1e-12);
       EXPECT_THROW(base::replay::ProcessInputs("Missing",[]{return wpi::json{};}),std::runtime_error);
@@ -84,7 +85,7 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
   wpi::json sticks=wpi::json::array();for(int i=0;i<6;++i)sticks.push_back({{"axes",wpi::json::array()},{"povs",wpi::json::array()},{"buttons",0},{"buttonCount",0},{"xbox",false},{"type",0},{"name",""}});
   wpi::json frame={{"schemaVersion",1},{"sequence",0},{"timestampUs",100000}};
   frame["ds"]={{"enabled",true},{"autonomous",false},{"test",false},{"estop",false},{"dsAttached",true},{"fmsAttached",false},{"alliance","blue"},{"location",1},{"joysticks",sticks}};
-  frame["inputs"]={{"Drive",{{"pose",{0,0,1.5707963267948966}},{"speeds",{0,0,0}},{"states",{0,0,0,0,0,0,0,0}}}}};
+  frame["inputs"]={{"Drive",{{"backend","rev"},{"pose",{0,0,1.5707963267948966}},{"speeds",{0,0,0}},{"states",{0,0,0,0,0,0,0,0}}}}};
   frame["inputs"]["Mechanism/Probe"]={{"position",0},{"velocity",1},{"voltage",0},{"supplyVoltage",12},{"current",0},{"connected",true},{"externalEncoder",nullptr}};
   frame["inputs"]["Vision/ReplayVision/Status"]={{"connected",true},{"yaw",2}};
   frame["inputs"]["Vision/ReplayVision/Observations"]=wpi::json::array({{{"pose",{1,2,.3}},{"timestamp",.1},{"stdDevs",{.1,.1,nullptr}}}});
@@ -99,14 +100,21 @@ frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frame
   Env("FRC_REPLAY_LOG",oldInput);Env("FRC_REPLAY_OUTPUT",oldOutput);Env("FRC_REPLAY_TEST_CHILD","");
   EXPECT_EQ(result,0);EXPECT_TRUE(std::filesystem::exists(output));
   auto buffer=wpi::MemoryBuffer::GetFile(output.string());ASSERT_TRUE(buffer);
-  wpi::log::DataLogReader reader(std::move(*buffer));std::map<int,std::string> names;int count=0;
+  wpi::log::DataLogReader reader(std::move(*buffer));std::map<int,std::string> names;int count=0;std::array<double,4> idleAngles{};
   for(const auto &record:reader) {
     if(record.IsStart()){wpi::log::StartRecordData start;if(record.GetStartData(&start))names[start.entry]=std::string(start.name);continue;}
     std::string_view value;
     if(names[record.GetEntry()]!="Replay/Frames"||!record.GetString(&value))continue;
     auto replayed=wpi::json::parse(value);++count;
     EXPECT_DOUBLE_EQ(replayed["outputs"]["Mechanism/Probe/AppliedVoltageRequest"].get<double>(),count==1?6:count==2?8:0);
-    EXPECT_NEAR(replayed["outputs"]["Drive/RequestedChassisSpeeds"][1].get<double>(),-1,1e-9);
+    EXPECT_NEAR(replayed["outputs"]["Drive/RequestedChassisSpeeds"][1].get<double>(),count==1?-1:0,1e-9);
+    const auto& targets=replayed["outputs"]["Drive/ModuleTargets"];
+    ASSERT_EQ(targets.size(),8);
+    for(size_t i=0;i<4;++i) {
+      const double angle=targets[2*i+1].get<double>();
+      if(count==1){idleAngles[i]=angle;EXPECT_NEAR(angle,-1.5707963267948966,1e-12);}
+      else {EXPECT_DOUBLE_EQ(targets[2*i].get<double>(),0);EXPECT_DOUBLE_EQ(angle,idleAngles[i]);}
+    }
     EXPECT_TRUE(replayed["outputs"]["Drive/Vision"]["noise"][2].is_null());
   }
   EXPECT_EQ(count,3);
