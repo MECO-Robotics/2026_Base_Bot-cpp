@@ -7,7 +7,7 @@ requests transport frequency; it does not change the 20 ms command scheduler or
 guarantee the headset's publication rate.
 
 Supply the measured robot-to-headset `Transform3d` and a consumer (normally
-`Drive::AddVisionMeasurement`). Once fresh tracking is available, call
+`Drive::AddVision`). Once fresh tracking is available, call
 `AlignToField(robotPose)` to establish the local tracking-space to blue-origin
 field transform. This is local alignment, not the remote QuestNav POSE_RESET
 command. Tracking loss, stale receive gaps and headset restarts invalidate the
