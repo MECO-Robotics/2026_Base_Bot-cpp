@@ -9,8 +9,12 @@ no-target observations clear the result. It does not infer range from image area
 A source callback returning optional `PieceRay` enables deterministic simulation
 without constructing a camera. Native Photon mode drains unread results and uses
 the newest result, retaining a measurement only until its freshness deadline when
-no new frame arrives. An explicit no-target frame clears it immediately.
+no new frame arrives. Its field intersection remains fixed while retained. An explicit no-target frame clears it immediately.
 Replay records raw rays/clock and recomputes projection using robot pose; no
 camera is constructed. Camera calibration, object pipeline and target height are
 installation inputs. This is planar target localization, not object classification
 or an occlusion/image simulator.
+
+Projection uses robot pose when a new observation is consumed, without capture-time
+pose history compensation. Camera latency during robot motion can therefore bias
+the initial intersection; this component does not provide motion compensation.

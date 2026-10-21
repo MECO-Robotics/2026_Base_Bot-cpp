@@ -31,11 +31,16 @@ void PhotonPieceDetection::Periodic() {
       value["ray"]={lastRay_->timestamp.value(),lastRay_->yawDegrees,lastRay_->pitchDegrees};
     return value;
   });
-  target_.reset();
-  if(input.at("ray").is_null())return;
+  if(input.at("ray").is_null()){target_.reset();projectedRay_.reset();return;}
   const auto &r=input.at("ray");
   const double age=input.at("now").get<double>()-r.at(0).get<double>();
-  if(age<0||age>config_.freshness.value())return;
+  if(age<0||age>config_.freshness.value()){target_.reset();projectedRay_.reset();return;}
+  const std::array<double,3> observation{r.at(0).get<double>(),r.at(1).get<double>(),r.at(2).get<double>()};
+  // A retained camera ray is one observation, not a new measurement from the
+  // robot's latest pose. Keep its field intersection fixed until replacement.
+  if(projectedRay_&&*projectedRay_==observation)return;
+  projectedRay_=observation;
+  target_.reset();
   const double yaw=-r.at(1).get<double>()*std::numbers::pi/180;
   const double pitch=r.at(2).get<double>()*std::numbers::pi/180;
   const auto camera=robotPose_().TransformBy(config_.robotToCamera);
