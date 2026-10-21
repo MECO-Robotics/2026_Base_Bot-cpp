@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Vision.h"
 #include <gtest/gtest.h>
 #include <chrono>
@@ -38,6 +37,6 @@ static void Case_VisionIOTest_VisionIO_AggregatesOnceInSourceOrderAndStatusReads
   }
 }
 
-void Run_VisionIOTest() {
-  frc_test::RunScenario("VisionIO.AggregatesOnceInSourceOrderAndStatusReadsArePassive", Case_VisionIOTest_VisionIO_AggregatesOnceInSourceOrderAndStatusReadsArePassive);
+TEST(VisionIO, AggregatesOnceInSourceOrderAndStatusReadsArePassive) {
+  Case_VisionIOTest_VisionIO_AggregatesOnceInSourceOrderAndStatusReadsArePassive();
 }

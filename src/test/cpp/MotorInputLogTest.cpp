@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/MotorInputLog.h"
 #include <gtest/gtest.h>
 #include <limits>
@@ -45,6 +44,6 @@ static void Case_MotorInputLogTest_MotorInputLog_NativeLogRoundTripPreservesTime
   frc::sim::DriverStationSim::NotifyNewData();
 }
 
-void Run_MotorInputLogTest() {
-  frc_test::RunScenario("MotorInputLog.NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware", Case_MotorInputLogTest_MotorInputLog_NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware);
+TEST(MotorInputLog, NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware) {
+  Case_MotorInputLogTest_MotorInputLog_NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware();
 }

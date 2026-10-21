@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
 #include <chrono>
@@ -27,6 +26,6 @@ static void Case_TelemetryTest_Telemetry_SlowPublisherDoesNotBlockControlAndCoal
   EXPECT_GE(base::telemetry::Statistics().coalesced,1u);
 }
 
-void Run_TelemetryTest() {
-  frc_test::RunScenario("Telemetry.SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots", Case_TelemetryTest_Telemetry_SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots);
+TEST(Telemetry, SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots) {
+  Case_TelemetryTest_Telemetry_SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots();
 }

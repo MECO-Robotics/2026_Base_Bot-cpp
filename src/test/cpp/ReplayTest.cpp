@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Replay.h"
 #include "base/Drive.h"
 #include "base/Mechanism.h"
@@ -103,8 +102,8 @@ frame["inputs"]["Mechanism/ConfigProbe"]={{"position",0},{"velocity",0},{"voltag
 frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frames",wpi::json::array({{{"timestampUs",100000+20000*i},{"data",packet}}})}};if(i==2)frame["inputs"]["Mechanism/Probe"]["connected"]=false;entry.Append(frame.dump(),100000+20000*i);}log.Flush();}
   const auto oldInput=Saved("FRC_REPLAY_LOG"),oldOutput=Saved("FRC_REPLAY_OUTPUT");
   Env("FRC_REPLAY_LOG",source.string());Env("FRC_REPLAY_OUTPUT",output.string());Env("FRC_REPLAY_TEST_CHILD","1");
-  const auto command="\""+::testing::internal::GetArgvs().at(0)+"\" --gtest_filter=Consolidated.ReplayAndLogging";
-  int result=std::system(command.c_str());
+  const auto command="\""+::testing::internal::GetArgvs().at(0)+"\" --gtest_filter=Replay.RecomputesFromInputsWithoutConstructingNativeDrive";
+    int result=std::system(command.c_str());
   Env("FRC_REPLAY_LOG",oldInput);Env("FRC_REPLAY_OUTPUT",oldOutput);Env("FRC_REPLAY_TEST_CHILD","");
   EXPECT_EQ(result,0);EXPECT_TRUE(std::filesystem::exists(output));
   auto buffer=wpi::MemoryBuffer::GetFile(output.string());ASSERT_TRUE(buffer);
@@ -129,6 +128,6 @@ frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frame
   std::filesystem::remove_all(dir);
 }
 
-void Run_ReplayTest() {
-  frc_test::RunScenario("Replay.RecomputesFromInputsWithoutConstructingNativeDrive", Case_ReplayTest_Replay_RecomputesFromInputsWithoutConstructingNativeDrive);
+TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
+  Case_ReplayTest_Replay_RecomputesFromInputsWithoutConstructingNativeDrive();
 }

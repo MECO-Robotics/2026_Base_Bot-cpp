@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include <gtest/gtest.h>
 #include <limits>
@@ -29,6 +28,6 @@ static void Case_DriveConfigTest_DriveConfig_RejectsUnsafeConfigurationBeforeDev
   }
 }
 
-void Run_DriveConfigTest() {
-  frc_test::RunScenario("DriveConfig.RejectsUnsafeConfigurationBeforeDeviceConstruction", Case_DriveConfigTest_DriveConfig_RejectsUnsafeConfigurationBeforeDeviceConstruction);
+TEST(DriveConfig, RejectsUnsafeConfigurationBeforeDeviceConstruction) {
+  Case_DriveConfigTest_DriveConfig_RejectsUnsafeConfigurationBeforeDeviceConstruction();
 }

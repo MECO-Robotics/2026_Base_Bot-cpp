@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/PortableSwerve.h"
 #include "base/Drive.h"
 #include <frc/RobotController.h>
@@ -132,10 +131,22 @@ static void Case_PortableSwerveTest_PortableSwerve_InjectedDriveAcquiresAndExecu
   }
 }
 
-void Run_PortableSwerveTest() {
-  frc_test::RunScenario("PortableSwerve.EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests", Case_PortableSwerveTest_PortableSwerve_EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests);
-  frc_test::RunScenario("PortableSwerve.WheelForceAddsOnlyProjectedTorqueVoltage", Case_PortableSwerveTest_PortableSwerve_WheelForceAddsOnlyProjectedTorqueVoltage);
-  frc_test::RunScenario("PortableSwerve.ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration", Case_PortableSwerveTest_PortableSwerve_ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration);
-  frc_test::RunScenario("PortableSwerve.BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset", Case_PortableSwerveTest_PortableSwerve_BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset);
-  frc_test::RunScenario("PortableSwerve.InjectedDriveAcquiresAndExecutesThroughPublicPeriodic", Case_PortableSwerveTest_PortableSwerve_InjectedDriveAcquiresAndExecutesThroughPublicPeriodic);
+TEST(PortableSwerve, EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests) {
+  Case_PortableSwerveTest_PortableSwerve_EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests();
+}
+
+TEST(PortableSwerve, WheelForceAddsOnlyProjectedTorqueVoltage) {
+  Case_PortableSwerveTest_PortableSwerve_WheelForceAddsOnlyProjectedTorqueVoltage();
+}
+
+TEST(PortableSwerve, ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration) {
+  Case_PortableSwerveTest_PortableSwerve_ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration();
+}
+
+TEST(PortableSwerve, BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset) {
+  Case_PortableSwerveTest_PortableSwerve_BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset();
+}
+
+TEST(PortableSwerve, InjectedDriveAcquiresAndExecutesThroughPublicPeriodic) {
+  Case_PortableSwerveTest_PortableSwerve_InjectedDriveAcquiresAndExecutesThroughPublicPeriodic();
 }

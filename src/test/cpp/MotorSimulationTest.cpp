@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include <cmath>
 #include <numbers>
@@ -142,12 +141,30 @@ static void Case_MotorSimulationTest_MotorSimulation_RuntimeBusClampsPartialVolt
   io.reset(); clock.Reset();
 }
 
-void Run_MotorSimulationTest() {
-  frc_test::RunScenario("MotorSimulation.HighReductionConvergesWithoutNumericalReversal", Case_MotorSimulationTest_MotorSimulation_HighReductionConvergesWithoutNumericalReversal);
-  frc_test::RunScenario("MotorSimulation.CurrentLimitBoundsStartupAcceleration", Case_MotorSimulationTest_MotorSimulation_CurrentLimitBoundsStartupAcceleration);
-  frc_test::RunScenario("MotorSimulation.ReadsDoNotAdvanceAndRuntimeOwnsLifetime", Case_MotorSimulationTest_MotorSimulation_ReadsDoNotAdvanceAndRuntimeOwnsLifetime);
-  frc_test::RunScenario("MotorSimulation.GravityAndTravelStopsAllowMotionAway", Case_MotorSimulationTest_MotorSimulation_GravityAndTravelStopsAllowMotionAway);
-  frc_test::RunScenario("MotorSimulation.RejectsInvalidConfigurationAndTime", Case_MotorSimulationTest_MotorSimulation_RejectsInvalidConfigurationAndTime);
-  frc_test::RunScenario("MotorSimulation.HeldTravelStopReportsStallCurrent", Case_MotorSimulationTest_MotorSimulation_HeldTravelStopReportsStallCurrent);
-  frc_test::RunScenario("MotorSimulation.RuntimeBusClampsPartialVoltageAndRecovers", Case_MotorSimulationTest_MotorSimulation_RuntimeBusClampsPartialVoltageAndRecovers);
+TEST(MotorSimulation, HighReductionConvergesWithoutNumericalReversal) {
+  Case_MotorSimulationTest_MotorSimulation_HighReductionConvergesWithoutNumericalReversal();
+}
+
+TEST(MotorSimulation, CurrentLimitBoundsStartupAcceleration) {
+  Case_MotorSimulationTest_MotorSimulation_CurrentLimitBoundsStartupAcceleration();
+}
+
+TEST(MotorSimulation, ReadsDoNotAdvanceAndRuntimeOwnsLifetime) {
+  Case_MotorSimulationTest_MotorSimulation_ReadsDoNotAdvanceAndRuntimeOwnsLifetime();
+}
+
+TEST(MotorSimulation, GravityAndTravelStopsAllowMotionAway) {
+  Case_MotorSimulationTest_MotorSimulation_GravityAndTravelStopsAllowMotionAway();
+}
+
+TEST(MotorSimulation, RejectsInvalidConfigurationAndTime) {
+  Case_MotorSimulationTest_MotorSimulation_RejectsInvalidConfigurationAndTime();
+}
+
+TEST(MotorSimulation, HeldTravelStopReportsStallCurrent) {
+  Case_MotorSimulationTest_MotorSimulation_HeldTravelStopReportsStallCurrent();
+}
+
+TEST(MotorSimulation, RuntimeBusClampsPartialVoltageAndRecovers) {
+  Case_MotorSimulationTest_MotorSimulation_RuntimeBusClampsPartialVoltageAndRecovers();
 }

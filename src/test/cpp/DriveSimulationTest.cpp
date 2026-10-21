@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include <gtest/gtest.h>
 #include <frc/simulation/DriverStationSim.h>
@@ -72,6 +71,6 @@ static void Case_DriveSimulationTest_DriveSimulation_PhoenixFeedbackTracksPhysic
   EXPECT_NEAR(drive.Pose().Rotation().Degrees().value(),30,1e-6);
 }
 
-void Run_DriveSimulationTest() {
-  frc_test::RunScenario("DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries", Case_DriveSimulationTest_DriveSimulation_PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries);
+TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
+  Case_DriveSimulationTest_DriveSimulation_PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries();
 }

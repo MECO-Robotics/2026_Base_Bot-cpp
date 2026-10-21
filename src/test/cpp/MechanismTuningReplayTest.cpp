@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/MechanismTuning.h"
 #include "base/Replay.h"
 #include "base/Telemetry.h"
@@ -83,7 +82,7 @@ static void Case_MechanismTuningReplayTest_MechanismTuningReplay_ReexecutesRawTr
   TuningEnv("FRC_REPLAY_LOG",input.string()); TuningEnv("FRC_REPLAY_OUTPUT",output.string());
   TuningEnv("FRC_TUNING_REPLAY_CHILD","1");
   int result=std::system(("\""+::testing::internal::GetArgvs().at(0)+
-    "\" --gtest_filter=Consolidated.MechanismControlAndTuning").c_str());
+    "\" --gtest_filter=MechanismTuningReplay.ReexecutesRawTransactionsAgainstRecordedEnableState").c_str());
   TuningEnv("FRC_REPLAY_LOG",oldIn); TuningEnv("FRC_REPLAY_OUTPUT",oldOut); TuningEnv("FRC_TUNING_REPLAY_CHILD","");
   ASSERT_EQ(result,0);
   auto buffer=wpi::MemoryBuffer::GetFile(output.string()); ASSERT_TRUE(buffer);
@@ -103,6 +102,6 @@ static void Case_MechanismTuningReplayTest_MechanismTuningReplay_ReexecutesRawTr
   EXPECT_EQ(frames,3); std::filesystem::remove_all(dir);
 }
 
-void Run_MechanismTuningReplayTest() {
-  frc_test::RunScenario("MechanismTuningReplay.ReexecutesRawTransactionsAgainstRecordedEnableState", Case_MechanismTuningReplayTest_MechanismTuningReplay_ReexecutesRawTransactionsAgainstRecordedEnableState);
+TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState) {
+  Case_MechanismTuningReplayTest_MechanismTuningReplay_ReexecutesRawTransactionsAgainstRecordedEnableState();
 }

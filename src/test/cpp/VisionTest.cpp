@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include <networktables/RawTopic.h>
 #include <networktables/DoubleArrayTopic.h>
 #include "base/Vision.h"
@@ -119,10 +118,22 @@ static void Case_VisionTest_VisionLimelight_ConfigurableTagGateAndCovariancePres
   EXPECT_THROW(base::Vision(config,{},[]{return frc::Rotation2d{};}),std::invalid_argument);
 }
 
-void Run_VisionTest() {
-  frc_test::RunScenario("VisionLimelight.SingleTagRequiresUsableAmbiguity", Case_VisionTest_VisionLimelight_SingleTagRequiresUsableAmbiguity);
-  frc_test::RunScenario("VisionLimelight.MegaTag2DoesNotUseSingleTagAmbiguity", Case_VisionTest_VisionLimelight_MegaTag2DoesNotUseSingleTagAmbiguity);
-  frc_test::RunScenario("VisionLimelight.RejectsOverflowingCovariance", Case_VisionTest_VisionLimelight_RejectsOverflowingCovariance);
-  frc_test::RunScenario("VisionPhoton.RejectsInvalidDistanceWithFiniteCoprocPose", Case_VisionTest_VisionPhoton_RejectsInvalidDistanceWithFiniteCoprocPose);
-  frc_test::RunScenario("VisionLimelight.ConfigurableTagGateAndCovariancePreserveMegaTag2Yaw", Case_VisionTest_VisionLimelight_ConfigurableTagGateAndCovariancePreserveMegaTag2Yaw);
+TEST(VisionLimelight, SingleTagRequiresUsableAmbiguity) {
+  Case_VisionTest_VisionLimelight_SingleTagRequiresUsableAmbiguity();
+}
+
+TEST(VisionLimelight, MegaTag2DoesNotUseSingleTagAmbiguity) {
+  Case_VisionTest_VisionLimelight_MegaTag2DoesNotUseSingleTagAmbiguity();
+}
+
+TEST(VisionLimelight, RejectsOverflowingCovariance) {
+  Case_VisionTest_VisionLimelight_RejectsOverflowingCovariance();
+}
+
+TEST(VisionPhoton, RejectsInvalidDistanceWithFiniteCoprocPose) {
+  Case_VisionTest_VisionPhoton_RejectsInvalidDistanceWithFiniteCoprocPose();
+}
+
+TEST(VisionLimelight, ConfigurableTagGateAndCovariancePreserveMegaTag2Yaw) {
+  Case_VisionTest_VisionLimelight_ConfigurableTagGateAndCovariancePreserveMegaTag2Yaw();
 }

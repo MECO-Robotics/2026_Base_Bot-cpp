@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/PieceDetection.h"
 #include <gtest/gtest.h>
 #include <hal/HAL.h>
@@ -27,6 +26,6 @@ static void Case_PieceDetectionTest_PieceDetection_MountFieldTransformFreshnessA
   frc::sim::ResumeTiming();
 }
 
-void Run_PieceDetectionTest() {
-  frc_test::RunScenario("PieceDetection.MountFieldTransformFreshnessAndNoTarget", Case_PieceDetectionTest_PieceDetection_MountFieldTransformFreshnessAndNoTarget);
+TEST(PieceDetection, MountFieldTransformFreshnessAndNoTarget) {
+  Case_PieceDetectionTest_PieceDetection_MountFieldTransformFreshnessAndNoTarget();
 }

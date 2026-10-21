@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/DeterministicSimulation.h"
 #include <gtest/gtest.h>
 #include <vector>
@@ -98,7 +97,10 @@ static void Case_DeterministicSimulationTest_DeterministicSimulation_ActualContr
   EXPECT_EQ(first,run());
 }
 
-void Run_DeterministicSimulationTest() {
-  frc_test::RunScenario("DeterministicSimulation.MultirateReplayRetainsSensorLatencyAndOrdering", Case_DeterministicSimulationTest_DeterministicSimulation_MultirateReplayRetainsSensorLatencyAndOrdering);
-  frc_test::RunScenario("DeterministicSimulation.ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime", Case_DeterministicSimulationTest_DeterministicSimulation_ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime);
+TEST(DeterministicSimulation, MultirateReplayRetainsSensorLatencyAndOrdering) {
+  Case_DeterministicSimulationTest_DeterministicSimulation_MultirateReplayRetainsSensorLatencyAndOrdering();
+}
+
+TEST(DeterministicSimulation, ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime) {
+  Case_DeterministicSimulationTest_DeterministicSimulation_ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime();
 }

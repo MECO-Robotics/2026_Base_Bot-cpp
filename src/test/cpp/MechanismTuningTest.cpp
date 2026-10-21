@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/MechanismTuning.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
@@ -65,7 +64,10 @@ static void Case_MechanismTuningTest_MechanismTuning_TestCommandOwnsAndStopsMech
   State(false,false); base::telemetry::Flush();
 }
 
-void Run_MechanismTuningTest() {
-  frc_test::RunScenario("MechanismTuning.AtomicGainsAndRejectedRequestsNeverApplyLater", Case_MechanismTuningTest_MechanismTuning_AtomicGainsAndRejectedRequestsNeverApplyLater);
-  frc_test::RunScenario("MechanismTuning.TestCommandOwnsAndStopsMechanismWithoutLatchedRequests", Case_MechanismTuningTest_MechanismTuning_TestCommandOwnsAndStopsMechanismWithoutLatchedRequests);
+TEST(MechanismTuning, AtomicGainsAndRejectedRequestsNeverApplyLater) {
+  Case_MechanismTuningTest_MechanismTuning_AtomicGainsAndRejectedRequestsNeverApplyLater();
+}
+
+TEST(MechanismTuning, TestCommandOwnsAndStopsMechanismWithoutLatchedRequests) {
+  Case_MechanismTuningTest_MechanismTuning_TestCommandOwnsAndStopsMechanismWithoutLatchedRequests();
 }

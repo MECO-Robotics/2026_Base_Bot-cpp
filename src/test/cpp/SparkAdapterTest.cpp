@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include "base/detail/SparkControl.h"
 #include <rev/SparkMax.h>
@@ -102,9 +101,18 @@ static void Case_SparkAdapterTest_SparkAdapter_PidMillisecondsPreservePhysicalVo
   EXPECT_THROW(base::detail::ConfigureSparkPid(config.closedLoop,gains,scale),std::invalid_argument);
 }
 
-void Run_SparkAdapterTest() {
-  frc_test::RunScenario("SparkAdapter.DefaultRealAdapterUsesOnboardPhysicalSetpoints", Case_SparkAdapterTest_SparkAdapter_DefaultRealAdapterUsesOnboardPhysicalSetpoints);
-  frc_test::RunScenario("SparkAdapter.GravityModeReconfigurationRetainsSelectedCompensation", Case_SparkAdapterTest_SparkAdapter_GravityModeReconfigurationRetainsSelectedCompensation);
-  frc_test::RunScenario("SparkAdapter.ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears", Case_SparkAdapterTest_SparkAdapter_ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears);
-  frc_test::RunScenario("SparkAdapter.PidMillisecondsPreservePhysicalVoltage", Case_SparkAdapterTest_SparkAdapter_PidMillisecondsPreservePhysicalVoltage);
+TEST(SparkAdapter, DefaultRealAdapterUsesOnboardPhysicalSetpoints) {
+  Case_SparkAdapterTest_SparkAdapter_DefaultRealAdapterUsesOnboardPhysicalSetpoints();
+}
+
+TEST(SparkAdapter, GravityModeReconfigurationRetainsSelectedCompensation) {
+  Case_SparkAdapterTest_SparkAdapter_GravityModeReconfigurationRetainsSelectedCompensation();
+}
+
+TEST(SparkAdapter, ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears) {
+  Case_SparkAdapterTest_SparkAdapter_ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears();
+}
+
+TEST(SparkAdapter, PidMillisecondsPreservePhysicalVoltage) {
+  Case_SparkAdapterTest_SparkAdapter_PidMillisecondsPreservePhysicalVoltage();
 }

@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include "base/PortableSwerve.h"
 #include <gtest/gtest.h>
@@ -62,6 +61,6 @@ static void Case_DriveSystemBoundary_FieldDriveRespectsModeAllianceAndHeading() 
   EXPECT_DOUBLE_EQ(drive.RequestedSpeeds().omega.value(),0);
 }
 
-void Run_DriveSystemBoundaryTest() {
-  frc_test::RunScenario("DriveSystemBoundary.FieldDriveRespectsModeAllianceAndHeading", Case_DriveSystemBoundary_FieldDriveRespectsModeAllianceAndHeading);
+TEST(DriveSystemBoundary, FieldDriveRespectsModeAllianceAndHeading) {
+  Case_DriveSystemBoundary_FieldDriveRespectsModeAllianceAndHeading();
 }

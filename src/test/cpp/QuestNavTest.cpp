@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include <networktables/RawTopic.h>
 #include "base/QuestNav.h"
 #include "QuestNavFixtures.h"
@@ -72,7 +71,10 @@ static void Case_QuestNavTest_QuestNav_MalformedTrackingLossAndStaleDataDoNotFus
   EXPECT_FALSE(quest.Connected());EXPECT_FALSE(quest.Aligned());EXPECT_FALSE(quest.AlignToField(frc::Pose2d{}));EXPECT_EQ(observations,0);
 }
 
-void Run_QuestNavTest() {
-  frc_test::RunScenario("QuestNav.OfficialProtocolQueueMountAlignmentAndRestart", Case_QuestNavTest_QuestNav_OfficialProtocolQueueMountAlignmentAndRestart);
-  frc_test::RunScenario("QuestNav.MalformedTrackingLossAndStaleDataDoNotFuse", Case_QuestNavTest_QuestNav_MalformedTrackingLossAndStaleDataDoNotFuse);
+TEST(QuestNav, OfficialProtocolQueueMountAlignmentAndRestart) {
+  Case_QuestNavTest_QuestNav_OfficialProtocolQueueMountAlignmentAndRestart();
+}
+
+TEST(QuestNav, MalformedTrackingLossAndStaleDataDoNotFuse) {
+  Case_QuestNavTest_QuestNav_MalformedTrackingLossAndStaleDataDoNotFuse();
 }

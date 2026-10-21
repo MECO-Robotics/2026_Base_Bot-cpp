@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
@@ -459,27 +458,90 @@ static void Case_MechanismTest_MechanismAdapter_NativeAndEmulatedSourcesRetainTh
   ASSERT_TRUE(emulated.voltage); EXPECT_FALSE(io.nativeRequest);
 }
 
-void Run_MechanismTest() {
-  frc_test::RunScenario("MechanismConfig.RejectsInvalidMappingAndLimits", Case_MechanismTest_MechanismConfig_RejectsInvalidMappingAndLimits);
-  frc_test::RunScenario("MechanismEncoder.AppliesDirectionBeforeOffsetAndScale", Case_MechanismTest_MechanismEncoder_AppliesDirectionBeforeOffsetAndScale);
-  frc_test::RunScenario("MechanismControl.DisabledAndSoftLimitsPreventVoltage", Case_MechanismTest_MechanismControl_DisabledAndSoftLimitsPreventVoltage);
-  frc_test::RunScenario("MechanismReference.ResetRetainsPhysicalSoftLimits", Case_MechanismTest_MechanismReference_ResetRetainsPhysicalSoftLimits);
-  frc_test::RunScenario("MechanismIO.ReplayDoesNotConstructHardwareAndSimulationMoves", Case_MechanismTest_MechanismIO_ReplayDoesNotConstructHardwareAndSimulationMoves);
-  frc_test::RunScenario("MechanismSimulation.ClosedLoopVelocityConverges", Case_MechanismTest_MechanismSimulation_ClosedLoopVelocityConverges);
-  frc_test::RunScenario("MechanismJoint.VelocityModeUsesVelocityErrorAndPhysicalLimits", Case_MechanismTest_MechanismJoint_VelocityModeUsesVelocityErrorAndPhysicalLimits);
-  frc_test::RunScenario("MechanismProfile.ReversingDeceleratesBeforeChangingDirection", Case_MechanismTest_MechanismProfile_ReversingDeceleratesBeforeChangingDirection);
-  frc_test::RunScenario("MechanismFlywheel.VelocityTargetHasNoJointProfileSpeedCap", Case_MechanismTest_MechanismFlywheel_VelocityTargetHasNoJointProfileSpeedCap);
-  frc_test::RunScenario("MechanismSafety.InvalidExternalFeedbackStopsPreviousOutput", Case_MechanismTest_MechanismSafety_InvalidExternalFeedbackStopsPreviousOutput);
-  frc_test::RunScenario("MechanismSafety.OverflowingControlOutputStopsInsteadOfSaturating", Case_MechanismTest_MechanismSafety_OverflowingControlOutputStopsInsteadOfSaturating);
-  frc_test::RunScenario("MechanismProfile.CloseTargetDoesNotViolateAccelerationAtCrossing", Case_MechanismTest_MechanismProfile_CloseTargetDoesNotViolateAccelerationAtCrossing);
-  frc_test::RunScenario("MechanismSafety.DisconnectedFeedbackStopsAndCannotReportAtSetpoint", Case_MechanismTest_MechanismSafety_DisconnectedFeedbackStopsAndCannotReportAtSetpoint);
-  frc_test::RunScenario("MechanismControl.SwitchingToPositionHoldClearsVelocityPidHistory", Case_MechanismTest_MechanismControl_SwitchingToPositionHoldClearsVelocityPidHistory);
-  frc_test::RunScenario("MechanismProfile.VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition", Case_MechanismTest_MechanismProfile_VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition);
-  frc_test::RunScenario("MechanismNative.RequestsProfiledPhysicalCoordinatesAndStopsOnFaults", Case_MechanismTest_MechanismNative_RequestsProfiledPhysicalCoordinatesAndStopsOnFaults);
-  frc_test::RunScenario("MechanismNative.FailedReconfigurationLatchesStopUntilDisabledRecovery", Case_MechanismTest_MechanismNative_FailedReconfigurationLatchesStopUntilDisabledRecovery);
-  frc_test::RunScenario("MechanismControl.ExplicitTimestepScalesIntegralDerivativeAndFeedforward", Case_MechanismTest_MechanismControl_ExplicitTimestepScalesIntegralDerivativeAndFeedforward);
-  frc_test::RunScenario("MechanismControl.ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNotControl", Case_MechanismTest_MechanismControl_ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNotControl);
-  frc_test::RunScenario("MechanismAdapter.IoOwnsControllerAndUsesSuppliedFeedbackWithoutReadingAgain", Case_MechanismTest_MechanismAdapter_IoOwnsControllerAndUsesSuppliedFeedbackWithoutReadingAgain);
-  frc_test::RunScenario("MechanismAdapter.NativeRequestFailureLatchesUntilDisabledReconfiguration", Case_MechanismTest_MechanismAdapter_NativeRequestFailureLatchesUntilDisabledReconfiguration);
-  frc_test::RunScenario("MechanismAdapter.NativeAndEmulatedSourcesRetainTheirReplayBoundary", Case_MechanismTest_MechanismAdapter_NativeAndEmulatedSourcesRetainTheirReplayBoundary);
+TEST(MechanismConfig, RejectsInvalidMappingAndLimits) {
+  Case_MechanismTest_MechanismConfig_RejectsInvalidMappingAndLimits();
+}
+
+TEST(MechanismEncoder, AppliesDirectionBeforeOffsetAndScale) {
+  Case_MechanismTest_MechanismEncoder_AppliesDirectionBeforeOffsetAndScale();
+}
+
+TEST(MechanismControl, DisabledAndSoftLimitsPreventVoltage) {
+  Case_MechanismTest_MechanismControl_DisabledAndSoftLimitsPreventVoltage();
+}
+
+TEST(MechanismReference, ResetRetainsPhysicalSoftLimits) {
+  Case_MechanismTest_MechanismReference_ResetRetainsPhysicalSoftLimits();
+}
+
+TEST(MechanismIO, ReplayDoesNotConstructHardwareAndSimulationMoves) {
+  Case_MechanismTest_MechanismIO_ReplayDoesNotConstructHardwareAndSimulationMoves();
+}
+
+TEST(MechanismSimulation, ClosedLoopVelocityConverges) {
+  Case_MechanismTest_MechanismSimulation_ClosedLoopVelocityConverges();
+}
+
+TEST(MechanismJoint, VelocityModeUsesVelocityErrorAndPhysicalLimits) {
+  Case_MechanismTest_MechanismJoint_VelocityModeUsesVelocityErrorAndPhysicalLimits();
+}
+
+TEST(MechanismProfile, ReversingDeceleratesBeforeChangingDirection) {
+  Case_MechanismTest_MechanismProfile_ReversingDeceleratesBeforeChangingDirection();
+}
+
+TEST(MechanismFlywheel, VelocityTargetHasNoJointProfileSpeedCap) {
+  Case_MechanismTest_MechanismFlywheel_VelocityTargetHasNoJointProfileSpeedCap();
+}
+
+TEST(MechanismSafety, InvalidExternalFeedbackStopsPreviousOutput) {
+  Case_MechanismTest_MechanismSafety_InvalidExternalFeedbackStopsPreviousOutput();
+}
+
+TEST(MechanismSafety, OverflowingControlOutputStopsInsteadOfSaturating) {
+  Case_MechanismTest_MechanismSafety_OverflowingControlOutputStopsInsteadOfSaturating();
+}
+
+TEST(MechanismProfile, CloseTargetDoesNotViolateAccelerationAtCrossing) {
+  Case_MechanismTest_MechanismProfile_CloseTargetDoesNotViolateAccelerationAtCrossing();
+}
+
+TEST(MechanismSafety, DisconnectedFeedbackStopsAndCannotReportAtSetpoint) {
+  Case_MechanismTest_MechanismSafety_DisconnectedFeedbackStopsAndCannotReportAtSetpoint();
+}
+
+TEST(MechanismControl, SwitchingToPositionHoldClearsVelocityPidHistory) {
+  Case_MechanismTest_MechanismControl_SwitchingToPositionHoldClearsVelocityPidHistory();
+}
+
+TEST(MechanismProfile, VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition) {
+  Case_MechanismTest_MechanismProfile_VelocityEntryRestoresConfiguredAccelerationAfterDynamicPosition();
+}
+
+TEST(MechanismNative, RequestsProfiledPhysicalCoordinatesAndStopsOnFaults) {
+  Case_MechanismTest_MechanismNative_RequestsProfiledPhysicalCoordinatesAndStopsOnFaults();
+}
+
+TEST(MechanismNative, FailedReconfigurationLatchesStopUntilDisabledRecovery) {
+  Case_MechanismTest_MechanismNative_FailedReconfigurationLatchesStopUntilDisabledRecovery();
+}
+
+TEST(MechanismControl, ExplicitTimestepScalesIntegralDerivativeAndFeedforward) {
+  Case_MechanismTest_MechanismControl_ExplicitTimestepScalesIntegralDerivativeAndFeedforward();
+}
+
+TEST(MechanismControl, ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNotControl) {
+  Case_MechanismTest_MechanismControl_ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNotControl();
+}
+
+TEST(MechanismAdapter, IoOwnsControllerAndUsesSuppliedFeedbackWithoutReadingAgain) {
+  Case_MechanismTest_MechanismAdapter_IoOwnsControllerAndUsesSuppliedFeedbackWithoutReadingAgain();
+}
+
+TEST(MechanismAdapter, NativeRequestFailureLatchesUntilDisabledReconfiguration) {
+  Case_MechanismTest_MechanismAdapter_NativeRequestFailureLatchesUntilDisabledReconfiguration();
+}
+
+TEST(MechanismAdapter, NativeAndEmulatedSourcesRetainTheirReplayBoundary) {
+  Case_MechanismTest_MechanismAdapter_NativeAndEmulatedSourcesRetainTheirReplayBoundary();
 }

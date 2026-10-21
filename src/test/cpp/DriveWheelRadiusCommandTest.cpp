@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include "base/Replay.h"
 #include <gtest/gtest.h>
@@ -60,7 +59,7 @@ static void Case_DriveWheelRadiusCommandTest_DriveWheelRadiusCommand_OwnsDriveSt
   {std::error_code error;wpi::log::DataLogWriter log(source.string(),error);ASSERT_FALSE(error);wpi::log::StringLogEntry entry(log,"Replay/Frames");for(int i=0;i<5;++i){if(i==4)frame["inputs"]["Drive/WheelRadius"]["healthy"]=false;frame["sequence"]=i;frame["timestampUs"]=100000+i*20000;entry.Append(frame.dump(),100000+i*20000);}log.Flush();}
   auto oldSource=SavedValue("FRC_REPLAY_LOG"),oldOutput=SavedValue("FRC_REPLAY_OUTPUT");
   Environment("FRC_REPLAY_LOG",source.string());Environment("FRC_REPLAY_OUTPUT",output.string());Environment("FRC_RADIUS_CHILD","1");
-  auto result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=Consolidated.DriveCharacterizationAndRadius").c_str());
+  auto result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=DriveWheelRadiusCommand.OwnsDriveStopsOnInterruptionAndReplaysFeedbackFailure").c_str());
   Environment("FRC_REPLAY_LOG",oldSource);Environment("FRC_REPLAY_OUTPUT",oldOutput);Environment("FRC_RADIUS_CHILD","");ASSERT_EQ(result,0);
   auto buffer=wpi::MemoryBuffer::GetFile(output.string());ASSERT_TRUE(buffer);
   wpi::log::DataLogReader reader(std::move(*buffer));std::map<int,std::string> names;int results=0;
@@ -77,6 +76,6 @@ static void Case_DriveWheelRadiusCommandTest_DriveWheelRadiusCommand_OwnsDriveSt
   EXPECT_EQ(results,2);std::filesystem::remove_all(directory);
 }
 
-void Run_DriveWheelRadiusCommandTest() {
-  frc_test::RunScenario("DriveWheelRadiusCommand.OwnsDriveStopsOnInterruptionAndReplaysFeedbackFailure", Case_DriveWheelRadiusCommandTest_DriveWheelRadiusCommand_OwnsDriveStopsOnInterruptionAndReplaysFeedbackFailure);
+TEST(DriveWheelRadiusCommand, OwnsDriveStopsOnInterruptionAndReplaysFeedbackFailure) {
+  Case_DriveWheelRadiusCommandTest_DriveWheelRadiusCommand_OwnsDriveStopsOnInterruptionAndReplaysFeedbackFailure();
 }

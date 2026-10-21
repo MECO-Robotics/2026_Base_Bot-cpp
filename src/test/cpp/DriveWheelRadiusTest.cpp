@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/DriveWheelRadius.h"
 #include <gtest/gtest.h>
 #include <numbers>
@@ -34,7 +33,10 @@ static void Case_DriveWheelRadiusTest_DriveWheelRadius_RejectsInsufficientTravel
   EXPECT_FALSE(shortRun.Add(14.02,std::numeric_limits<double>::quiet_NaN(),{0,0,0,0},true));
 }
 
-void Run_DriveWheelRadiusTest() {
-  frc_test::RunScenario("DriveWheelRadius.KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw", Case_DriveWheelRadiusTest_DriveWheelRadius_KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw);
-  frc_test::RunScenario("DriveWheelRadius.RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates", Case_DriveWheelRadiusTest_DriveWheelRadius_RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates);
+TEST(DriveWheelRadius, KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw) {
+  Case_DriveWheelRadiusTest_DriveWheelRadius_KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw();
+}
+
+TEST(DriveWheelRadius, RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates) {
+  Case_DriveWheelRadiusTest_DriveWheelRadius_RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates();
 }

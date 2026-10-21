@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/DriveTarget.h"
 #include <gtest/gtest.h>
 #include <limits>
@@ -90,11 +89,26 @@ static void Case_DriveTargetTest_DriveTarget_RobotThreadDisableInvalidatesWithou
   EXPECT_EQ(target.Consume(1.02,true).speeds.vx,2_mps);
 }
 
-void Run_DriveTargetTest() {
-  frc_test::RunScenario("DriveTarget.DisabledCannotResurrectTargetAndStaleCommandsStop", Case_DriveTargetTest_DriveTarget_DisabledCannotResurrectTargetAndStaleCommandsStop);
-  frc_test::RunScenario("DriveTarget.ForcesAreCoherentAndInvalidInputStops", Case_DriveTargetTest_DriveTarget_ForcesAreCoherentAndInvalidInputStops);
-  frc_test::RunScenario("DriveTarget.HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw", Case_DriveTargetTest_DriveTarget_HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw);
-  frc_test::RunScenario("DriveTarget.StationaryBrakeLatchesUntilDisabledOrReplaced", Case_DriveTargetTest_DriveTarget_StationaryBrakeLatchesUntilDisabledOrReplaced);
-  frc_test::RunScenario("DriveTarget.DisableRacingAuthorizationInvalidatesOldEpoch", Case_DriveTargetTest_DriveTarget_DisableRacingAuthorizationInvalidatesOldEpoch);
-  frc_test::RunScenario("DriveTarget.RobotThreadDisableInvalidatesWithoutNativeDisabledTick", Case_DriveTargetTest_DriveTarget_RobotThreadDisableInvalidatesWithoutNativeDisabledTick);
+TEST(DriveTarget, DisabledCannotResurrectTargetAndStaleCommandsStop) {
+  Case_DriveTargetTest_DriveTarget_DisabledCannotResurrectTargetAndStaleCommandsStop();
+}
+
+TEST(DriveTarget, ForcesAreCoherentAndInvalidInputStops) {
+  Case_DriveTargetTest_DriveTarget_ForcesAreCoherentAndInvalidInputStops();
+}
+
+TEST(DriveTarget, HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw) {
+  Case_DriveTargetTest_DriveTarget_HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw();
+}
+
+TEST(DriveTarget, StationaryBrakeLatchesUntilDisabledOrReplaced) {
+  Case_DriveTargetTest_DriveTarget_StationaryBrakeLatchesUntilDisabledOrReplaced();
+}
+
+TEST(DriveTarget, DisableRacingAuthorizationInvalidatesOldEpoch) {
+  Case_DriveTargetTest_DriveTarget_DisableRacingAuthorizationInvalidatesOldEpoch();
+}
+
+TEST(DriveTarget, RobotThreadDisableInvalidatesWithoutNativeDisabledTick) {
+  Case_DriveTargetTest_DriveTarget_RobotThreadDisableInvalidatesWithoutNativeDisabledTick();
 }

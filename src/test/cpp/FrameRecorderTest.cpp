@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/FrameRecorder.h"
 #include <gtest/gtest.h>
 #include <chrono>
@@ -46,7 +45,10 @@ static void Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidates
   EXPECT_FALSE(recorder.Submit({{"value",2}},200));
 }
 
-void Run_FrameRecorderTest() {
-  frc_test::RunScenario("FrameRecorder.SlowSinkPreservesSnapshotsInOrderAndReportsOverflow", Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrderAndReportsOverflow);
-  frc_test::RunScenario("FrameRecorder.SerializationFailureInvalidatesRecordingWithoutEscapingWorker", Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidatesRecordingWithoutEscapingWorker);
+TEST(FrameRecorder, SlowSinkPreservesSnapshotsInOrderAndReportsOverflow) {
+  Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrderAndReportsOverflow();
+}
+
+TEST(FrameRecorder, SerializationFailureInvalidatesRecordingWithoutEscapingWorker) {
+  Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidatesRecordingWithoutEscapingWorker();
 }

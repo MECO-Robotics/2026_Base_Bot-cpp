@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/ModelFeedforward.h"
 #include <gtest/gtest.h>
 #include <numbers>
@@ -33,7 +32,10 @@ static void Case_ModelFeedforwardTest_ModelFeedforward_RejectsInvalidPhysicalPar
       units::kilogram_t{1},units::meter_t{-1}),std::invalid_argument);
 }
 
-void Run_ModelFeedforwardTest() {
-  frc_test::RunScenario("ModelFeedforward.MatchesMotorVoltageInAngularAndLinearCoordinates", Case_ModelFeedforwardTest_ModelFeedforward_MatchesMotorVoltageInAngularAndLinearCoordinates);
-  frc_test::RunScenario("ModelFeedforward.RejectsInvalidPhysicalParameters", Case_ModelFeedforwardTest_ModelFeedforward_RejectsInvalidPhysicalParameters);
+TEST(ModelFeedforward, MatchesMotorVoltageInAngularAndLinearCoordinates) {
+  Case_ModelFeedforwardTest_ModelFeedforward_MatchesMotorVoltageInAngularAndLinearCoordinates();
+}
+
+TEST(ModelFeedforward, RejectsInvalidPhysicalParameters) {
+  Case_ModelFeedforwardTest_ModelFeedforward_RejectsInvalidPhysicalParameters();
 }

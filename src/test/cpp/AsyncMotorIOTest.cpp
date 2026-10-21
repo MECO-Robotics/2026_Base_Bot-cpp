@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
@@ -84,6 +83,6 @@ static void Case_AsyncMotorIOTest_AsyncMotorConfiguration_StalledWorkerCannotBlo
   base::telemetry::Flush();
 }
 
-void Run_AsyncMotorIOTest() {
-  frc_test::RunScenario("AsyncMotorConfiguration.StalledWorkerCannotBlockControlOrResumeOldIntent", Case_AsyncMotorIOTest_AsyncMotorConfiguration_StalledWorkerCannotBlockControlOrResumeOldIntent);
+TEST(AsyncMotorConfiguration, StalledWorkerCannotBlockControlOrResumeOldIntent) {
+  Case_AsyncMotorIOTest_AsyncMotorConfiguration_StalledWorkerCannotBlockControlOrResumeOldIntent();
 }

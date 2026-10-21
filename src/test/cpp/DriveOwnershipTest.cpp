@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include <gtest/gtest.h>
 #include <frc/DriverStation.h>
@@ -16,7 +15,7 @@ static void Case_DriveOwnershipTest_DriveOwnership_AimPreemptsJoystickAndDisable
 #else
     setenv("FRC_DRIVE_OWNERSHIP_CHILD","1",1);
 #endif
-    const int result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=Consolidated.DriveContractsAndOwnership").c_str());
+    const int result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner").c_str());
 #ifdef _WIN32
     _putenv_s("FRC_DRIVE_OWNERSHIP_CHILD", "");
 #else
@@ -86,6 +85,6 @@ static void Case_DriveOwnershipTest_DriveOwnership_AimPreemptsJoystickAndDisable
   scheduler.CancelAll();
 }
 
-void Run_DriveOwnershipTest() {
-  frc_test::RunScenario("DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner", Case_DriveOwnershipTest_DriveOwnership_AimPreemptsJoystickAndDisableCancelsOwner);
+TEST(DriveOwnership, AimPreemptsJoystickAndDisableCancelsOwner) {
+  Case_DriveOwnershipTest_DriveOwnership_AimPreemptsJoystickAndDisableCancelsOwner();
 }

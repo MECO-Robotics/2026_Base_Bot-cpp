@@ -1,4 +1,3 @@
-#include "ConsolidatedTestSupport.h"
 #include "base/Characterization.h"
 #include "base/Mechanism.h"
 #include <frc/simulation/DriverStationSim.h>
@@ -7,7 +6,6 @@
 #include <gtest/gtest.h>
 #include <memory>
 
-namespace {
 class CommandLifecycle : public testing::Test {
  protected:
   void SetUp() override {
@@ -31,19 +29,9 @@ class CommandLifecycle : public testing::Test {
     frc::sim::DriverStationSim::NotifyNewData();
   }
   void Run(int loops=2) { for(int i=0;i<loops;++i) scheduler.Run(); }
-  frc2::CommandScheduler& scheduler=frc2::CommandScheduler::GetInstance();
-  base::InjectedMotorIO* observed=nullptr;
-  std::unique_ptr<base::PositionJoint> joint;
-};
-class HeldMotorCommand : public CommandLifecycle {
- public:
-  void TestBody() override {}
-  frc2::CommandPtr MakeCommand(bool voltage) {
-    return voltage ? joint->VoltageCommand([]{return 4.;})
-                   : joint->VelocityCommand([]{return .5;});
-  }
   void VerifyHeldCommand(bool voltage) {
-    auto command=MakeCommand(voltage);
+    auto command=voltage ? joint->VoltageCommand([]{return 4.;})
+                         : joint->VelocityCommand([]{return .5;});
     scheduler.Schedule(command); Run();
     ASSERT_GT(observed->requestedVoltage,0);
     auto replacement=frc2::cmd::RunOnce([]{}, {joint.get()});
@@ -70,26 +58,12 @@ class HeldMotorCommand : public CommandLifecycle {
     command.Cancel(); EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
     Run(1); EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
   }
-  void RunCases() {
-    frc_test::RunScenario("velocity command owns and stops", [&]{
-      SetUp(); VerifyHeldCommand(false); TearDown();
-    });
-    frc_test::RunScenario("voltage command owns and stops", [&]{
-      SetUp(); VerifyHeldCommand(true); TearDown();
-    });
-    frc_test::RunScenario("completed position command retains hold", [&]{
-      SetUp(); VerifyPositionHold(); TearDown();
-    });
-    frc_test::RunScenario("SysId cancellation stops output", [&]{
-      SetUp(); VerifySysIdCancellation(); TearDown();
-    });
-  }
+  frc2::CommandScheduler& scheduler=frc2::CommandScheduler::GetInstance();
+  base::InjectedMotorIO* observed=nullptr;
+  std::unique_ptr<base::PositionJoint> joint;
 };
 
-
-}
-
-void Run_CommandLifecycle() {
-  HeldMotorCommand cases;
-  frc_test::RunScenario("held ownership and cancellation", [&]{ cases.RunCases(); });
-}
+TEST_F(CommandLifecycle, VelocityCommandOwnsAndStopsOnReplacementOrDisable) { VerifyHeldCommand(false); }
+TEST_F(CommandLifecycle, VoltageCommandOwnsAndStopsOnReplacementOrDisable) { VerifyHeldCommand(true); }
+TEST_F(CommandLifecycle, CompletedPositionCommandRetainsHold) { VerifyPositionHold(); }
+TEST_F(CommandLifecycle, SysIdCancellationStopsOutput) { VerifySysIdCancellation(); }
