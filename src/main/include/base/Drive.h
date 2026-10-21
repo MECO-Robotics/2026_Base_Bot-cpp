@@ -66,6 +66,8 @@ class Drive : public frc2::SubsystemBase {
   void ConfigureAuto();
   // WPILib translation SysId, using native Phoenix voltage requests.
   frc2::CommandPtr Characterize(bool dynamic, frc2::sysid::Direction direction);
+  // Opt-in low-speed spin commissioning; reports estimates without changing config.
+  frc2::CommandPtr CharacterizeWheelRadius();
   frc2::CommandPtr Joystick(std::function<double()> x, std::function<double()> y, std::function<double()> omega);
   frc2::CommandPtr Aim(std::function<double()> x, std::function<double()> y, std::function<frc::Rotation2d()> heading);
   const DriveConfig& Config() const { return config_; }
