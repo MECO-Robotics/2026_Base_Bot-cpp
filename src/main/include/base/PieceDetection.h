@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <array>
 #include <optional>
 #include <memory>
 #include <string>
@@ -32,5 +33,6 @@ class PhotonPieceDetection : public frc2::SubsystemBase {
   std::unique_ptr<photon::PhotonCamera> camera_;
   std::optional<frc::Translation3d> target_;
   std::optional<PieceRay> lastRay_;
+  std::optional<std::array<double,3>> projectedRay_;
 };
 }
