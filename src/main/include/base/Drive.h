@@ -41,6 +41,7 @@ struct DriveConfig {
   double steerKP = 25, steerKD = 0, steerKS = 0, steerKV = 2.5;
   double driveCurrent = 40, steerCurrent = 40, slipCurrent = 50;
   double massKg = 74.088, moi = 6.883, cof = 1.2;
+  void Validate() const;
   std::array<ModuleConfig, 4> modules{{
     {31,41,21,0,.33655,.33655}, {32,42,22,0,.33655,-.33655},
     {33,43,23,0,-.33655,.33655}, {34,44,24,0,-.33655,-.33655}}};

@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <set>
 #include <frc/DriverStation.h>
 #include <frc/RobotBase.h>
 #ifndef __FRC_ROBORIO__
@@ -190,8 +191,37 @@ namespace base
     }
   };
 #endif
+  void DriveConfig::Validate() const {
+    auto finite=[](double value) { if(!std::isfinite(value)) throw std::invalid_argument("DriveConfig requires finite values"); };
+    auto positive=[&](double value) { finite(value); if(value<=0) throw std::invalid_argument("DriveConfig requires positive physical dimensions, ratios and limits"); };
+    auto nonnegative=[&](double value) { finite(value); if(value<0) throw std::invalid_argument("DriveConfig requires nonnegative gains, friction and damping"); };
+    if(bus.empty()) throw std::invalid_argument("DriveConfig requires a CAN bus name");
+    for(double v:{driveRatio,steerRatio,wheelRadius,maxSpeed,maxAngularRate,driveCurrent,steerCurrent,slipCurrent,massKg,moi,
+        simulation.bumperHalfLength,simulation.bumperHalfWidth,simulation.bumperHalfHeight,simulation.rideHeight,
+        simulation.rollInertia,simulation.pitchInertia,simulation.wheelInertia,simulation.steerInertia,
+        simulation.longitudinalStiffness,simulation.lateralStiffness,simulation.suspensionRestLength,
+        simulation.suspensionTravel,simulation.suspensionStiffness,simulation.suspensionDamping}) positive(v);
+    for(double v:{cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
+    for(double v:{couplingRatio,simulation.centerOfMassX,simulation.centerOfMassY,simulation.centerOfMassZ}) finite(v);
+    // Talons share a device type; CANcoders and Pigeon have separate type IDs.
+    std::set<int> motors,encoders;
+    auto id=[](int v){if(v<0||v>62)throw std::invalid_argument("DriveConfig CAN IDs must be in [0,62]");};
+    id(pigeon);
+    double twiceArea=0;
+    for(size_t i=0;i<modules.size();++i) {
+      const auto& m=modules[i]; id(m.drive);id(m.steer);id(m.encoder);
+      if(!motors.insert(m.drive).second||!motors.insert(m.steer).second||!encoders.insert(m.encoder).second)
+        throw std::invalid_argument("DriveConfig repeats a CAN device identity on its bus");
+      finite(m.offsetTurns);finite(m.xMeters);finite(m.yMeters);
+      for(size_t j=0;j<i;++j) if(std::hypot(m.xMeters-modules[j].xMeters,m.yMeters-modules[j].yMeters)<1e-6)
+        throw std::invalid_argument("DriveConfig module locations must be distinct");
+    }
+    for(size_t i=1;i+1<modules.size();++i) twiceArea+=std::abs((modules[i].xMeters-modules[0].xMeters)*(modules[i+1].yMeters-modules[0].yMeters)-(modules[i].yMeters-modules[0].yMeters)*(modules[i+1].xMeters-modules[0].xMeters));
+    if(twiceArea<1e-9)throw std::invalid_argument("DriveConfig module geometry must span a plane");
+  }
   Drive::Drive(DriveConfig config) : config_(std::move(config))
   {
+    config_.Validate();
     SetName("Drive");
     telemetry_ = std::make_shared<Telemetry>();
     if(replay::Active()) return; // Before any Phoenix device or Jolt owner.
