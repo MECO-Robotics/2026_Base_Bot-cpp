@@ -60,7 +60,14 @@ receives trajectory velocity/acceleration as arbitrary voltage feedforward.
 Gravity uses onboard constant/cosine terms where supported; sine gravity (and
 non-unit Talon cosine coordinates) is calculated in the adapter from its cached
 sensor sample as arbitrary feedforward. This is feedforward, not a roboRIO PID.
-No persistent flash writes are performed during runtime configuration.
+No persistent flash writes are performed during runtime configuration. Startup
+establishes 20 ms always-on health frames, then acknowledges and confirms cleared
+boot reset warnings before the full device configuration
+(disabled-only, bounded to 250 ms per motor). Subsequent sticky
+reset warnings from the primary or any follower latch the group unhealthy and
+stop every motor: a device reset may lose inversion, feedback ratios, followers,
+and limits. Restart robot code to rebuild the complete configuration; changing
+gains alone cannot recover this fault, and no enabled auto-configuration occurs.
 
 ## Simulation and replay
 

@@ -2,6 +2,8 @@
 #include "base/detail/SparkControl.h"
 #include "base/Replay.h"
 #include <algorithm>
+#include <chrono>
+#include <thread>
 #include <numbers>
 #include <stdexcept>
 #include <ctre/phoenix6/TalonFX.hpp>
@@ -20,6 +22,14 @@
 namespace base
 {
   namespace detail {
+    bool SparkDeviceConfigured(rev::spark::SparkMax& motor, bool& resetLatched) {
+      const auto warnings=motor.GetStickyWarnings();
+      const bool warningStatus=motor.GetLastError()==rev::REVLibError::kOk;
+      resetLatched=resetLatched || warnings.hasReset;
+      const auto faults=motor.GetFaults();
+      return warningStatus && motor.GetLastError()==rev::REVLibError::kOk &&
+             faults.rawBits==0 && !resetLatched;
+    }
     void ConfigureSparkGravity(rev::spark::FeedForwardConfig& settings, double volts,
                                double scale, Gravity gravity, bool joint) {
       // Each setter selects a mode and overwrites the shared gravity parameter.
@@ -177,8 +187,38 @@ namespace base
           throw std::invalid_argument("SparkMax requires roboRIO CAN bus");
         for (size_t i=0;i<config_.ids.size();++i)
         {
+          if(frc::DriverStation::IsEnabled())
+            throw std::logic_error("Spark startup configuration requires disabled state");
           auto motor = std::make_unique<rev::spark::SparkMax>(config_.ids[i], rev::spark::SparkLowLevel::MotorType::kBrushless);
+          // Persisted signal periods may be slow or disabled. Establish bounded
+          // health-frame delivery before waiting for cleared boot history.
+          rev::spark::SparkMaxConfig healthSignals;
+          healthSignals.signals.FaultsPeriodMs(20).FaultsAlwaysOn(true)
+              .WarningsPeriodMs(20).WarningsAlwaysOn(true);
+          if(motor->Configure(healthSignals,rev::ResetMode::kNoResetSafeParameters,
+              rev::PersistMode::kNoPersistParameters)!=rev::REVLibError::kOk)
+            throw std::runtime_error("Spark startup health signal configuration failed");
+          // Clear and confirm boot history before writing configuration. A reset
+          // during or after configuration must remain visible to runtime checks.
+          if(motor->ClearFaults()!=rev::REVLibError::kOk)
+            throw std::runtime_error("Spark startup reset acknowledgement failed");
+          const auto deadline=std::chrono::steady_clock::now()+std::chrono::milliseconds{250};
+          while(true) {
+            if(frc::DriverStation::IsEnabled())
+              throw std::logic_error("Spark startup acknowledgement requires disabled state");
+            const auto warnings=motor->GetStickyWarnings();
+            if(motor->GetLastError()!=rev::REVLibError::kOk)
+              throw std::runtime_error("Spark startup warning read failed");
+            if(!warnings.hasReset) break;
+            if(std::chrono::steady_clock::now()>=deadline)
+              throw std::runtime_error("Spark startup reset acknowledgement timed out");
+            std::this_thread::sleep_for(std::chrono::milliseconds{5});
+          }
+          if(frc::DriverStation::IsEnabled())
+            throw std::logic_error("Spark full configuration requires disabled state");
           rev::spark::SparkMaxConfig settings;
+          settings.signals.FaultsPeriodMs(20).FaultsAlwaysOn(true)
+              .WarningsPeriodMs(20).WarningsAlwaysOn(true);
           settings.SmartCurrentLimit(config_.currentLimit).SetIdleMode(rev::spark::SparkBaseConfig::IdleMode::kBrake);
           settings.VoltageCompensation(12);
           if (i==0) settings.Inverted(config_.reversed.front());
@@ -198,6 +238,7 @@ namespace base
       }
       MotorInputs Read() override
       {
+        const bool configured=CheckConfigured();
         auto &motor = *motors_.front();
         const bool absolute=config_.spark.feedback==SparkControlConfig::Feedback::AbsoluteEncoder;
         double position = absolute ? motor.GetAbsoluteEncoder().GetPosition() : motor.GetEncoder().GetPosition();
@@ -212,16 +253,18 @@ namespace base
         connected = (motor.GetLastError() == rev::REVLibError::kOk) && connected;
         lastPosition_=position;
         return {position, velocity, (config_.reversed.front()?-1:1)*appliedOutput*supplyVoltage,
-                supplyVoltage, current, connected};
+                supplyVoltage, current, connected && configured};
       }
       void SetVoltage(double volts) override
       {
+        if(!CheckConfigured()) { StopAll(); return; }
         // Native followers remain followers even while stopping or characterizing.
         motors_.front()->SetVoltage(units::volt_t{volts});
       }
       bool ConfigureNative(const Gains& gains, double scale, Gravity gravity, bool joint) override
       {
         if (frc::DriverStation::IsEnabled()) throw std::logic_error("Motor configuration requires disabled state");
+        if(!CheckConfigured()) { StopAll(); throw std::runtime_error("Spark reset requires robot restart and full configuration"); }
         scale_=scale; gains_=gains; gravity_=gravity; joint_=joint;
         for (double value:{gains.p*scale/12,gains.i*scale/12,gains.d*scale/12,
                            gains.v*scale,gains.a*scale,gains.minimum/scale,gains.maximum/scale,
@@ -245,6 +288,7 @@ namespace base
       }
       bool SetNative(const NativeControlRequest& request) override
       {
+        if(!CheckConfigured()) { StopAll(); return false; }
         const double target=request.target/scale_;
         double feedforward=0;
         auto type=rev::spark::SparkLowLevel::ControlType::kPosition;
@@ -281,10 +325,18 @@ namespace base
         brake_=enabled;
       }
     private:
+      bool CheckConfigured() {
+        bool healthy=true;
+        for(auto& motor:motors_) {
+          healthy=detail::SparkDeviceConfigured(*motor,resetLatched_) && healthy;
+        }
+        return healthy && !resetLatched_;
+      }
+      void StopAll() { for(auto& motor:motors_) motor->SetVoltage(units::volt_t{0}); }
       double scale_=1, lastPosition_=0;
       Gains gains_;
       Gravity gravity_=Gravity::Constant;
-      bool joint_=false, brake_=true;
+      bool joint_=false, brake_=true, resetLatched_=false;
       MotorConfig config_;
       std::vector<std::unique_ptr<rev::spark::SparkMax>> motors_;
     };

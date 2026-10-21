@@ -2,6 +2,7 @@
 #include "base/detail/SparkControl.h"
 #include <rev/SparkMax.h>
 #include <rev/config/SparkMaxConfig.h>
+#include <rev/sim/SparkSimFaultManager.h>
 #include <frc/simulation/DriverStationSim.h>
 #include <frc/simulation/SimDeviceSim.h>
 #include <hal/HAL.h>
@@ -50,4 +51,26 @@ TEST(SparkAdapter, GravityModeReconfigurationRetainsSelectedCompensation) {
     EXPECT_NEAR(feedforward.getkG(),1.75,1e-6);
     EXPECT_NEAR(feedforward.getkCosRatio(),mode==base::Gravity::Constant ? 0 : .5,1e-6);
   }
+}
+
+TEST(SparkAdapter, ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears) {
+  HAL_Initialize(500,0);
+  rev::spark::SparkMax leader{53,rev::spark::SparkLowLevel::MotorType::kBrushless};
+  rev::spark::SparkMax follower{54,rev::spark::SparkLowLevel::MotorType::kBrushless};
+  rev::spark::SparkSimFaultManager faults{&follower};
+  bool resetLatched=false;
+  ASSERT_TRUE(base::detail::SparkDeviceConfigured(leader,resetLatched));
+  ASSERT_TRUE(base::detail::SparkDeviceConfigured(follower,resetLatched));
+  faults.SetFaults(rev::spark::SparkBase::Faults{0x4}); // Active sensor fault.
+  EXPECT_FALSE(base::detail::SparkDeviceConfigured(follower,resetLatched));
+  EXPECT_FALSE(resetLatched);
+  faults.SetFaults(rev::spark::SparkBase::Faults{0});
+  ASSERT_TRUE(base::detail::SparkDeviceConfigured(follower,resetLatched));
+  faults.SetStickyWarnings(rev::spark::SparkBase::Warnings{0x40});
+  EXPECT_FALSE(base::detail::SparkDeviceConfigured(follower,resetLatched));
+  EXPECT_TRUE(resetLatched);
+  // Clearing warning history externally does not reconstruct lost settings.
+  faults.SetStickyWarnings(rev::spark::SparkBase::Warnings{0});
+  EXPECT_FALSE(base::detail::SparkDeviceConfigured(follower,resetLatched));
+  EXPECT_FALSE(base::detail::SparkDeviceConfigured(leader,resetLatched));
 }
