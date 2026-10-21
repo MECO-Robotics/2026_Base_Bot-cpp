@@ -2,6 +2,7 @@
 #include "base/Replay.h"
 #include "base/Telemetry.h"
 #include <cmath>
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -10,6 +11,22 @@
 namespace base
 {
   namespace {
+    void Validate(const VisionConfig &c) {
+      if(c.name.empty()||c.minTagCount<1||c.minAllowedTagCount<1)
+        throw std::invalid_argument("Invalid vision name/tag counts");
+      for(double v:{c.fieldLength,c.fieldWidth,c.maxZ,c.linearStdDevBaseline,
+          c.angularStdDevBaseline,c.cameraStdDevFactor,c.megatag2LinearFactor})
+        if(!std::isfinite(v)||v<=0)throw std::invalid_argument("Invalid vision geometry/covariance");
+      if(!std::isfinite(c.maxSingleTagAmbiguity)||c.maxSingleTagAmbiguity<0)
+        throw std::invalid_argument("Invalid vision ambiguity");
+      const auto q=c.robotToCamera.Rotation().GetQuaternion();
+      for(double v:{c.robotToCamera.X().value(),c.robotToCamera.Y().value(),c.robotToCamera.Z().value(),q.W(),q.X(),q.Y(),q.Z()})
+        if(!std::isfinite(v))throw std::invalid_argument("Invalid vision mount");
+      for(int id:c.allowedTagIds)if(id<=0)throw std::invalid_argument("Invalid vision tag ID");
+    }
+    bool Allowed(const VisionConfig &c,int id) {
+      return id>0&&(c.allowedTagIds.empty()||std::find(c.allowedTagIds.begin(),c.allowedTagIds.end(),id)!=c.allowedTagIds.end());
+    }
     wpi::json Encode(const VisionObservation &o) {
       auto deviations=wpi::json::array();
       for(double value:o.stdDevs) deviations.push_back(std::isfinite(value)?wpi::json(value):wpi::json(nullptr));
@@ -29,6 +46,7 @@ namespace base
                  std::function<frc::Rotation2d()> heading)
       : config_(std::move(config)), consumer_(std::move(consumer)), heading_(std::move(heading))
   {
+    Validate(config_);
     if (config_.megatag2 && !heading_)
       throw std::invalid_argument("MegaTag 2 requires heading supplier");
     if(replay::Active()) return;
@@ -73,7 +91,7 @@ namespace base
       bool finite = true;
       for (double value : v)
         finite &= std::isfinite(value);
-      if (!finite || v[7] < 1 || v[9] <= 0 || v[6] < 0 || std::abs(v[2]) > config_.maxZ ||
+      if (sample.time<=0 || !finite || v[7] < config_.minTagCount || std::floor(v[7])!=v[7] || v[9] <= 0 || v[6] < 0 || std::abs(v[2]) > config_.maxZ ||
           v[0] < 0 || v[0] > config_.fieldLength || v[1] < 0 || v[1] > config_.fieldWidth)
         continue;
       // MT1 needs usable single-tag ambiguity (raw fiducial element 17).
@@ -81,13 +99,21 @@ namespace base
       if (!config_.megatag2 && v[7] == 1 &&
           (v.size() <= 17 || v[17] < 0 || v[17] > config_.maxSingleTagAmbiguity))
         continue;
+      if(!config_.allowedTagIds.empty()) {
+        int allowed=0;
+        for(size_t i=11;i+6<v.size();i+=7)
+          if(v[i]>0&&v[i]<=INT32_MAX&&std::floor(v[i])==v[i]&&Allowed(config_,static_cast<int>(v[i])))++allowed;
+        if(allowed<config_.minAllowedTagCount)continue;
+      }
       const double scale = v[9] * v[9] / v[7];
       if (!std::isfinite(scale) || scale <= 0)
         continue;
       VisionObservation observation{
           frc::Pose2d{units::meter_t{v[0]}, units::meter_t{v[1]}, frc::Rotation2d{units::degree_t{v[5]}}},
           units::second_t{sample.time * 1e-6 - v[6] * 1e-3},
-          {0.02 * scale, 0.02 * scale, config_.megatag2 ? std::numeric_limits<double>::infinity() : 0.06 * scale}};
+          {config_.linearStdDevBaseline * scale * config_.cameraStdDevFactor * (config_.megatag2?config_.megatag2LinearFactor:1), config_.linearStdDevBaseline * scale * config_.cameraStdDevFactor * (config_.megatag2?config_.megatag2LinearFactor:1), config_.megatag2 ? std::numeric_limits<double>::infinity() : config_.angularStdDevBaseline * scale * config_.cameraStdDevFactor}};
+      if(observation.timestamp.value()<0||!std::isfinite(observation.stdDevs[0])||
+          (!config_.megatag2&&!std::isfinite(observation.stdDevs[2])))continue;
       accepted.push_back(Encode(observation));
     }
     return accepted;
@@ -101,6 +127,7 @@ namespace base
   PhotonVision::PhotonVision(VisionConfig config, frc::AprilTagFieldLayout layout,
                              std::function<void(const VisionObservation &)> consumer)
       : config_(std::move(config)), consumer_(std::move(consumer)) {
+    Validate(config_);
     if(!replay::Active()) {
       camera_=std::make_unique<photon::PhotonCamera>(config_.name);
       estimator_=std::make_unique<photon::PhotonPoseEstimator>(std::move(layout),config_.robotToCamera);
@@ -119,8 +146,13 @@ namespace base
       auto estimate = estimator_->EstimateCoprocMultiTagPose(result);
       if (!estimate)
         estimate = estimator_->EstimateLowestAmbiguityPose(result);
-      if (!estimate || estimate->targetsUsed.empty())
+      if (!estimate || estimate->targetsUsed.size()<static_cast<size_t>(config_.minTagCount))
         continue;
+      if(!config_.allowedTagIds.empty()) {
+        int allowed=0;
+        for(const auto &target:estimate->targetsUsed)if(Allowed(config_,target.GetFiducialId()))++allowed;
+        if(allowed<config_.minAllowedTagCount)continue;
+      }
       const auto &pose = estimate->estimatedPose;
       if (!std::isfinite(pose.X().value()) || !std::isfinite(pose.Y().value()) ||
           !std::isfinite(pose.Z().value()) || !std::isfinite(pose.Rotation().Z().value()) ||
@@ -128,7 +160,7 @@ namespace base
           pose.Y().value() < 0 || pose.X().value() > config_.fieldLength ||
           pose.Y().value() > config_.fieldWidth)
         continue;
-      if (!std::isfinite(estimate->timestamp.value()))
+      if (!std::isfinite(estimate->timestamp.value()) || estimate->timestamp.value()<0)
         continue;
       if (estimate->targetsUsed.size() == 1)
       {
@@ -144,7 +176,9 @@ namespace base
       const double scale = distance * distance / estimate->targetsUsed.size();
       if (!std::isfinite(scale) || scale <= 0)
         continue;
-      accepted.push_back(Encode({pose.ToPose2d(), estimate->timestamp, {0.02*scale,0.02*scale,0.06*scale}}));
+      if(!std::isfinite(config_.linearStdDevBaseline*scale*config_.cameraStdDevFactor)||
+          !std::isfinite(config_.angularStdDevBaseline*scale*config_.cameraStdDevFactor))continue;
+      accepted.push_back(Encode({pose.ToPose2d(), estimate->timestamp, {config_.linearStdDevBaseline*scale*config_.cameraStdDevFactor,config_.linearStdDevBaseline*scale*config_.cameraStdDevFactor,config_.angularStdDevBaseline*scale*config_.cameraStdDevFactor}}));
     }
     return accepted;
     });

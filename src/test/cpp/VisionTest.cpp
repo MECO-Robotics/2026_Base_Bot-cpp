@@ -8,7 +8,7 @@
 
 namespace {
 std::vector<double> SingleTagPose(double ambiguity) {
-  return {1, 2, 0, 0, 0, 30, 20, 1, 0, 2, 1,
+  return {1, 2, 0, 0, 0, 30, 0, 1, 0, 2, 1,
           1, 0, 0, 1, 2, 2, ambiguity};
 }
 }
@@ -99,4 +99,19 @@ TEST(VisionPhoton, RejectsInvalidDistanceWithFiniteCoprocPose) {
   ++result.metadata.captureTimestampMicros;
   publish();
   EXPECT_EQ(observations, 1);
+}
+
+TEST(VisionLimelight, ConfigurableTagGateAndCovariancePreserveMegaTag2Yaw) {
+  base::VisionConfig config;
+  config.name="test-limelight-tag-gate";config.megatag2=true;
+  config.allowedTagIds={2};config.cameraStdDevFactor=3;config.megatag2LinearFactor=.5;
+  std::vector<base::VisionObservation> observations;
+  base::Vision vision(config,[&](const auto &o){observations.push_back(o);},[]{return frc::Rotation2d{};});
+  auto pub=nt::NetworkTableInstance::GetDefault().GetTable(config.name)->GetDoubleArrayTopic("botpose_orb_wpiblue").Publish();
+  auto pose=SingleTagPose(.9);pub.Set(pose);vision.Periodic();EXPECT_TRUE(observations.empty());
+  pose[11]=2;pub.Set(pose);vision.Periodic();ASSERT_EQ(observations.size(),1u);
+  EXPECT_NEAR(observations[0].stdDevs[0],.12,1e-12);
+  EXPECT_TRUE(std::isinf(observations[0].stdDevs[2]));
+  config.cameraStdDevFactor=0;
+  EXPECT_THROW(base::Vision(config,{},[]{return frc::Rotation2d{};}),std::invalid_argument);
 }
