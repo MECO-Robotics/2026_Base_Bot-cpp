@@ -8,6 +8,7 @@
 #endif
 #include <frc2/command/SubsystemBase.h>
 #include <frc2/command/CommandPtr.h>
+#include <frc2/command/sysid/SysIdRoutine.h>
 #include <ctre/phoenix6/swerve/SwerveDrivetrain.hpp>
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <ctre/phoenix6/CANcoder.hpp>
@@ -63,6 +64,8 @@ class Drive : public frc2::SubsystemBase {
   void Stop();
   void StopWithX();
   void ConfigureAuto();
+  // WPILib translation SysId, using native Phoenix voltage requests.
+  frc2::CommandPtr Characterize(bool dynamic, frc2::sysid::Direction direction);
   frc2::CommandPtr Joystick(std::function<double()> x, std::function<double()> y, std::function<double()> omega);
   frc2::CommandPtr Aim(std::function<double()> x, std::function<double()> y, std::function<frc::Rotation2d()> heading);
   const DriveConfig& Config() const { return config_; }
