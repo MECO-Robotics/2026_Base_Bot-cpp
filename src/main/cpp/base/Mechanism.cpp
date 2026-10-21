@@ -27,10 +27,13 @@ namespace base
     if (ids.empty() || ids.size() != reversed.size() || gearRatio <= 0 || currentLimit <= 0)
       throw std::invalid_argument("Invalid motor configuration");
     Finite(gearRatio);
-    if (phoenix.enabled && (phoenix.remoteSensorId < 0 || phoenix.remoteSensorId > 62 ||
+    if ((phoenix.remoteSensorId < 0 || phoenix.remoteSensorId > 62 ||
         !std::isfinite(phoenix.rotorToSensorRatio) || phoenix.rotorToSensorRatio <= 0 ||
         !std::isfinite(phoenix.sensorToMechanismRatio) || phoenix.sensorToMechanismRatio <= 0))
       throw std::invalid_argument("Invalid Phoenix feedback configuration");
+    if (!std::isfinite(spark.sensorToMechanismRatio) || spark.sensorToMechanismRatio<=0 ||
+        !std::isfinite(spark.zeroOffset) || spark.zeroOffset<0 || spark.zeroOffset>=1 ||
+        (spark.feedback!=SparkControlConfig::Feedback::PrimaryEncoder && spark.feedback!=SparkControlConfig::Feedback::AbsoluteEncoder)) throw std::invalid_argument("Invalid Spark feedback configuration");
     std::set<int> seen;
     for (int id : ids)
       if (id < 0 || id > 62 || !seen.insert(id).second)
@@ -68,7 +71,7 @@ namespace base
       throw std::invalid_argument("Invalid mechanism IO or units");
     gains_.Validate(joint_);
     calibration_.Validate();
-    native_=io_->ConfigureNative(gains_, units_, gravity_, joint_);
+    native_=io_->ConfigureControl({gains_,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)});
     if (native_ && externalEncoder_)
       throw std::invalid_argument("Native control requires the motor adapter feedback, not an external encoder callback");
     SetName(name);
@@ -80,10 +83,11 @@ namespace base
       throw std::logic_error("Native gain configuration requires disabled state");
     if (native_) {
       Stop(); nativeFault_=true;
-      if(!io_->ConfigureNative(gains, units_, gravity_, joint_))
+      if(!io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)}))
         throw std::runtime_error("Native controller reconfiguration lost capability");
       nativeFault_=false;
     }
+    if (!native_) io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)});
     gains_ = gains;
     maxVelocity_ = gains.maxVelocity;
     maxAcceleration_ = gains.maxAcceleration;
@@ -95,8 +99,7 @@ namespace base
     if (control_ != ControlMode::Velocity)
     {
       profiledVelocity_ = Velocity();
-      integral_ = 0;
-      previousError_ = 0;
+      io_->ResetControl();
     }
     maxAcceleration_ = gains_.maxAcceleration;
     target_ = joint_ ? std::clamp(velocity, -gains_.maxVelocity, gains_.maxVelocity) : velocity;
@@ -118,8 +121,7 @@ namespace base
     {
       profiledPosition_ = physicalPosition_;
       profiledVelocity_ = Velocity();
-      integral_ = 0;
-      previousError_ = 0;
+      io_->ResetControl();
     }
     target_ = std::clamp(position + zeroOffset_, gains_.minimum, gains_.maximum);
     maxVelocity_ = maxVelocity;
@@ -137,8 +139,7 @@ namespace base
   void Mechanism::Stop()
   {
     control_ = ControlMode::Stopped;
-    integral_ = 0;
-    previousError_ = 0;
+    io_->ResetControl();
     ApplyVoltage(0);
   }
   void Mechanism::SetBrake(bool enabled) {
@@ -172,7 +173,7 @@ namespace base
     target_ = physicalPosition_;
     profiledPosition_ = physicalPosition_;
     profiledVelocity_ = 0;
-    integral_ = 0;
+    io_->ResetControl();
     SetBrake(true);
     Stop();
     if (joint_)
@@ -201,7 +202,10 @@ namespace base
           {"current",Number(value.current)},{"connected",value.connected},{"nativeControl",native_},
           {"externalEncoder",externalEncoder_?Number(externalEncoder_()):wpi::json(nullptr)}};
     });
-    if(replay::Active() && !input.value("nativeControl",false)) native_=false;
+    if(replay::Active()) {
+      native_=input.value("nativeControl",false);
+      io_->UseRecordedControl(native_);
+    }
     inputs_={Number(input.at("position")),Number(input.at("velocity")),Number(input.at("voltage")),
              Number(input.at("supplyVoltage")),Number(input.at("current")),input.at("connected").get<bool>()};
     if (!inputs_.connected || nativeFault_)
@@ -229,8 +233,7 @@ namespace base
     }
     if (!enabled || frc::DriverStation::IsDisabled())
     {
-      integral_ = 0;
-      previousError_ = 0;
+      io_->ResetControl();
       profiledPosition_ = physicalPosition_;
       profiledVelocity_ = Velocity();
       ApplyVoltage(0);
@@ -262,21 +265,9 @@ namespace base
       else
         profiledVelocity_ += std::clamp(target_ - profiledVelocity_, -maxAcceleration_ * dt, maxAcceleration_ * dt);
       profileAcceleration=(profiledVelocity_-previousVelocity)/dt;
-      double error = control_ == ControlMode::Position ? profiledPosition_ - physicalPosition_ : profiledVelocity_ - Velocity();
-      integral_ = std::clamp(integral_ + error * dt, -12., 12.);
-      volts = gains_.p * error + gains_.i * integral_ + gains_.d * (error - previousError_) / dt;
-      previousError_ = error;
-      volts += gains_.v * profiledVelocity_ + gains_.a * (profiledVelocity_ - previousVelocity) / dt;
-      if (std::abs(profiledVelocity_) > 1e-9)
-        volts += std::copysign(gains_.s, profiledVelocity_);
-      if (joint_)
-      {
-        double angle = physicalPosition_ * 2 * std::numbers::pi;
-        volts += gains_.gravity * (gravity_ == Gravity::Constant ? 1 : gravity_ == Gravity::Cosine ? std::cos(angle)
-                                                                                                   : std::sin(angle));
-      }
+
     }
-    if (native_ && (control_ == ControlMode::Position || control_ == ControlMode::Velocity))
+    if (control_ == ControlMode::Position || control_ == ControlMode::Velocity)
     {
       const bool outward=joint_ && control_==ControlMode::Velocity &&
           ((physicalPosition_<=gains_.minimum && target_<0) || (physicalPosition_>=gains_.maximum && target_>0));
@@ -286,10 +277,12 @@ namespace base
           control_==ControlMode::Velocity ? profiledVelocity_ : motionMagic_ || unprofiled_ ? target_ : profiledPosition_,
           maxVelocity_,maxAcceleration_,unprofiled_?0:profiledVelocity_,unprofiled_?0:profileAcceleration};
       if (!std::isfinite(request.target) || !std::isfinite(request.velocity) || !std::isfinite(request.acceleration)) { Stop(); return; }
-      replay::RecordOutput("Mechanism/"+GetName()+"/NativeRequest", {{"kind",static_cast<int>(request.kind)},
+      if (native_) replay::RecordOutput("Mechanism/"+GetName()+"/NativeRequest", {{"kind",static_cast<int>(request.kind)},
           {"target",request.target},{"maxVelocity",request.maxVelocity},{"maxAcceleration",request.maxAcceleration},
           {"velocity",request.velocity},{"acceleration",request.acceleration}});
-      if (!io_->SetNative(request)) { Stop(); }
+      const auto result=io_->Control({request,profiledPosition_},inputs_,physicalPosition_,timestep);
+      if (result.voltage) replay::RecordOutput("Mechanism/"+GetName()+"/AppliedVoltageRequest",*result.voltage);
+      if (!result.ok) { nativeFault_=native_; Stop(); }
       return;
     }
     if (!std::isfinite(volts))

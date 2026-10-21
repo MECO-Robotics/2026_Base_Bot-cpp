@@ -20,12 +20,19 @@ enum class Mode { Real, Sim, Replay };
 enum class Vendor { TalonFX, SparkMax };
 enum class Gravity { Constant, Cosine, Sine };
 struct PhoenixControlConfig {
-  // Opt-in: software control remains the default and the simulation fallback.
+  // Legacy compatibility flag; real Talon control is always onboard.
   bool enabled=false;
   enum class Feedback { Rotor, RemoteCANcoder };
   Feedback feedback=Feedback::Rotor;
   int remoteSensorId=0;
   double rotorToSensorRatio=1, sensorToMechanismRatio=1;
+  bool sensorReversed=false;
+};
+struct SparkControlConfig {
+  enum class Feedback { PrimaryEncoder, AbsoluteEncoder };
+  Feedback feedback=Feedback::PrimaryEncoder;
+  // Absolute sensor rotations per output rotation, with zero in sensor rotations.
+  double sensorToMechanismRatio=1, zeroOffset=0;
   bool sensorReversed=false;
 };
 struct MotorConfig {
@@ -36,6 +43,7 @@ struct MotorConfig {
   int currentLimit = 40;
   std::string canBus;
   PhoenixControlConfig phoenix;
+  SparkControlConfig spark;
   void Validate() const;
 };
 struct Gains {
@@ -74,12 +82,35 @@ struct NativeControlRequest {
   double target=0, maxVelocity=1, maxAcceleration=1;
   double velocity=0, acceleration=0;
 };
+struct MotorControlConfig {
+  Gains gains;
+  double unitsPerOutputRotation=1;
+  Gravity gravity=Gravity::Constant;
+  bool positionControlled=false, externalFeedback=false;
+};
+struct MotorControlRequest {
+  NativeControlRequest native;
+  // Software trajectory reference used by sim/replay. Native profilers use the goal.
+  double profiledPosition=0;
+};
+struct MotorControlResult {
+  bool ok=false;
+  std::optional<double> voltage; // Absent for onboard firmware control.
+};
 class MotorIO {
  public:
   virtual ~MotorIO() = default;
   virtual MotorInputs Read()=0;
   virtual void SetVoltage(double volts)=0;
   virtual void SetBrake(bool brake)=0;
+  // Adapters own all PID/feedforward state and vendor conversion. Configuration
+  // returns whether firmware owns the loop; false selects the IO-owned emulator.
+  bool ConfigureControl(const MotorControlConfig&);
+  MotorControlResult Control(const MotorControlRequest&, const MotorInputs&,
+                             double physicalPosition, units::second_t dt);
+  void ResetControl();
+  // Only replay calls this, using the source frame rather than current hardware.
+  virtual void UseRecordedControl(bool native) { controlNative_=native; }
   // Native gains/requests use mechanism units; adapters own vendor conversion.
   virtual bool ConfigureNative(const Gains&, double, Gravity, bool) { return false; }
   virtual bool SetNative(const NativeControlRequest&) { return false; }
@@ -87,6 +118,10 @@ class MotorIO {
   virtual void StepSimulation(units::second_t) {}
   // Offline compatibility entry point; callers must retain one physics owner.
   void AdvanceSimulation(units::second_t dt) { StepSimulation(dt); }
+ private:
+  MotorControlConfig controlConfig_;
+  bool controlNative_=false;
+  double integral_=0, previousError_=0;
 };
 // Factories are lazy: replay never constructs a controller or simulator.
 std::unique_ptr<MotorIO> MakeMotorIO(Mode mode, Vendor vendor, const MotorConfig& config,
@@ -101,6 +136,7 @@ class InjectedMotorIO final : public MotorIO {
   std::optional<NativeControlRequest> nativeRequest;
   bool ConfigureNative(const Gains&, double, Gravity, bool) override { return nativeEnabled; }
   bool SetNative(const NativeControlRequest& request) override { nativeRequest=request; return nativeEnabled; }
+  void UseRecordedControl(bool native) override { nativeEnabled=native; MotorIO::UseRecordedControl(native); }
   MotorInputs Read() override { return inputs; }
   void SetVoltage(double volts) override { requestedVoltage=volts; nativeRequest.reset(); }
   void SetBrake(bool enabled) override { brake=enabled; }
@@ -152,7 +188,7 @@ class Mechanism : public frc2::SubsystemBase {
   bool externalScheduling_=false;
   bool joint_, native_=false, nativeFault_=false, motionMagic_=true, unprofiled_=false;
   double units_, physicalPosition_=0, zeroOffset_=0, target_=0, voltage_=0;
-  double profiledPosition_=0, profiledVelocity_=0, previousError_=0, integral_=0;
+  double profiledPosition_=0, profiledVelocity_=0;
   double maxVelocity_, maxAcceleration_;
   Gravity gravity_;
   std::function<double()> externalEncoder_;
