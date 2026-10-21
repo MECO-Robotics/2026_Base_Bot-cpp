@@ -401,8 +401,6 @@ void SimulationClock::StepRobotPeriod() {
         const double current = callback();
         if (!std::isfinite(current) || current < 0)
           throw std::runtime_error("Invalid simulated supply current");
-        if (!std::isfinite(supplyCurrent_ + current))
-          throw std::runtime_error("Simulated aggregate supply current overflow");
         supplyCurrent_ += current;
       }
     }
