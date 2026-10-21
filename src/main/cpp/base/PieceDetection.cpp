@@ -1,31 +1,62 @@
 #include "base/PieceDetection.h"
+#include <photon/PhotonCamera.h>
 #include "base/Replay.h"
 #include <frc/RobotController.h>
 #include <cmath>
 #include <numbers>
 #include <stdexcept>
 namespace base {
-PhotonPieceDetection::PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,Source source)
-    :config_(std::move(config)),robotPose_(std::move(robotPose)),source_(std::move(source)) {
-  if(config_.name.empty()||!robotPose_||!std::isfinite(config_.targetHeight.value())||
-      !std::isfinite(config_.maxDistance.value())||config_.maxDistance<=units::meter_t{0}||
-      !std::isfinite(config_.freshness.value())||config_.freshness<=units::second_t{0})
+namespace {
+void Validate(const PieceDetectionConfig &config) {
+  if(config.name.empty()||!std::isfinite(config.targetHeight.value())||
+      !std::isfinite(config.maxDistance.value())||config.maxDistance<=units::meter_t{0}||
+      !std::isfinite(config.freshness.value())||config.freshness<=units::second_t{0})
     throw std::invalid_argument("Invalid piece detection configuration");
-  const auto q=config_.robotToCamera.Rotation().GetQuaternion();
-  for(double v:{config_.robotToCamera.X().value(),config_.robotToCamera.Y().value(),config_.robotToCamera.Z().value(),q.W(),q.X(),q.Y(),q.Z()})
+  const auto q=config.robotToCamera.Rotation().GetQuaternion();
+  for(double v:{config.robotToCamera.X().value(),config.robotToCamera.Y().value(),config.robotToCamera.Z().value(),q.W(),q.X(),q.Y(),q.Z()})
     if(!std::isfinite(v))throw std::invalid_argument("Invalid piece camera mount");
-  if(!source_&&!replay::Active())camera_=std::make_unique<photon::PhotonCamera>(config_.name);
+}
+class PhotonPieceIO final : public PieceDetectionIO {
+ public:
+  explicit PhotonPieceIO(std::string name) {
+    if(!replay::Active()) camera_=std::make_unique<photon::PhotonCamera>(name);
+  }
+  std::optional<PieceRay> ReadRay() override {
+    for(const auto &result:camera_->GetAllUnreadResults()) {
+      ray_.reset();
+      if(result.HasTargets()) {
+        const auto &target=result.GetBestTarget();
+        ray_=PieceRay{result.GetTimestamp(),target.GetYaw(),target.GetPitch()};
+      }
+    }
+    return ray_;
+  }
+ private:
+  std::unique_ptr<photon::PhotonCamera> camera_;
+  std::optional<PieceRay> ray_;
+};
+}
+std::unique_ptr<PieceDetectionIO> MakePhotonPieceDetectionIO(std::string name) {
+  return std::make_unique<PhotonPieceIO>(std::move(name));
+}
+namespace {
+std::unique_ptr<PieceDetectionIO> SelectIO(const PieceDetectionConfig &config,PhotonPieceDetection::Source source) {
+  Validate(config);
+  if(source) return std::make_unique<InjectedPieceDetectionIO>(std::move(source));
+  return MakePhotonPieceDetectionIO(config.name);
+}
+}
+PhotonPieceDetection::PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,Source source)
+    :PhotonPieceDetection(config,std::move(robotPose),SelectIO(config,std::move(source))) {}
+PhotonPieceDetection::PhotonPieceDetection(PieceDetectionConfig config,std::function<frc::Pose3d()> robotPose,std::unique_ptr<PieceDetectionIO> io)
+    :config_(std::move(config)),robotPose_(std::move(robotPose)),io_(std::move(io)) {
+  Validate(config_);
+  if(!robotPose_)throw std::invalid_argument("Missing piece robot pose supplier");
+  if(!io_)throw std::invalid_argument("Null piece detection IO");
 }
 void PhotonPieceDetection::Periodic() {
   const auto input=replay::ProcessInputs("PieceDetection/"+config_.name,[this] {
-    if(source_)lastRay_=source_();
-    else for(const auto &result:camera_->GetAllUnreadResults()) {
-      lastRay_.reset();
-      if(result.HasTargets()) {
-        const auto &t=result.GetBestTarget();
-        lastRay_=PieceRay{result.GetTimestamp(),t.GetYaw(),t.GetPitch()};
-      }
-    }
+    lastRay_=io_->ReadRay();
     wpi::json value={{"now",frc::RobotController::GetFPGATime()*1e-6},{"ray",nullptr}};
     if(lastRay_&&std::isfinite(lastRay_->timestamp.value())&&std::isfinite(lastRay_->yawDegrees)&&std::isfinite(lastRay_->pitchDegrees))
       value["ray"]={lastRay_->timestamp.value(),lastRay_->yawDegrees,lastRay_->pitchDegrees};
