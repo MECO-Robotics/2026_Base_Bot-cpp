@@ -83,29 +83,31 @@ offset define gravity, with zero angle horizontal. Elevator mass adds reflected
 inertia through the configured drum radius. Model initial position and physical
 stops use radians; `MotorInputs` still reports output rotations and rotations/s.
 Standalone model checks call `StepSimulation()` explicitly; robot simulation
-automatically registers simulated IO with the shared clock.
+automatically registers simulated IO with the shared clock. The shared [battery model](docs/simulation-power.md) aggregates supply power once per robot period and applies WPILib battery sag to the next period; mechanism inputs report supply current and effective terminal voltage.
 
 ## Reusable code
 
-- `base/Drive.h`: configurable four-module TalonFX/CANcoder/Pigeon swerve, Phoenix native odometry, field driving, heading hold, X brake, vision fusion, PathPlanner autos and wheel-force feedforwards.
+- `base/Drive.h`: configurable four-module TalonFX/CANcoder/Pigeon swerve, Phoenix native odometry, field driving, heading hold, X brake, vision fusion, PathPlanner autos, wheel-force feedforwards, and [native translation SysId](docs/runtime-parity.md).
 - `base/Mechanism.h`: motor groups, flywheel and position joint subsystems; validated hardware/gains; voltage/velocity/position commands; acceleration limits, gravity feedforward, physical-coordinate soft limits, reset offsets, external encoder calibration, digital input, real/sim/injected replay IO. Angular mechanism units are rotations; linear mechanism units are metres; rates are per second.
-- `base/Vision.h`: Limelight NetworkTables and PhotonVision pose observations, timestamps, bounds/ambiguity filtering and covariance.
+- `base/Vision.h`: Limelight NetworkTables and PhotonVision pose observations, configurable tag filters and covariance.
+- `base/ModelFeedforward.h` and `base/MechanismTuning.h`: [WPILib model coefficients and safe dashboard transactions](docs/mechanism-tuning.md), with disabled gain updates and an explicit Test-mode command.
+- `base/QuestNav.h` and `base/PieceDetection.h`: queued 5 ms QuestNav tracking and mounted camera-ray piece localization, with raw-input code replay.
 - `RobotContainer`: illustrative base drivetrain configuration and controller mappings. Base motor IDs and zero offsets are examples copied from Java, not a commissioned robot configuration.
 
 ## Port status
 
-This is a native implementation, with intentional framework replacements. WPILib DataLog/NetworkTables replaces AdvantageKit; it does not read Java AdvantageKit replay logs. Phoenix's native swerve replaces Java's custom odometry/setpoint implementation and currently supports TalonFX modules, rather than the optional SparkMax/NavX drivetrain combinations. Mechanisms use software voltage PID/feedforward rather than vendor onboard motion profiles. The default base container instantiates only drive, as in Java; other subsystems are reusable library components.
+This is a native implementation, with intentional framework replacements. WPILib DataLog/NetworkTables replaces AdvantageKit; it does not read Java AdvantageKit replay logs. Phoenix's native swerve replaces Java's custom odometry/setpoint implementation and currently supports TalonFX modules, rather than the optional SparkMax/NavX drivetrain combinations. Mechanisms retain software voltage PID/feedforward by default and offer opt-in Phoenix onboard velocity, position, and Motion Magic control; see [mechanism control](docs/mechanism-control.md). The default base container instantiates only drive, as in Java; other subsystems are reusable library components.
 
 The desktop Jolt backend supplies rigid-body field contacts and generic game pieces.
 The illustrative tire, suspension, load, and piece parameters require physical calibration;
 an optional approximate 2026 collision scene supports practice, while scoring rules
-remain downstream. QuestNav pose tracking, Java URCL logging, custom AD* telemetry, piece detection localization, and the Java browser system-check dashboard are not implemented by these adapters. These gaps must not be treated as verified parity. External joint sensors are supplied through callbacks, with explicit calibration; they are not constructed automatically from Java encoder enum values.
+remain downstream. QuestNav tracking and game-piece localization are opt-in reusable components; see [QuestNav](docs/questnav.md), [camera filtering](docs/vision-configuration.md), and [piece detection](docs/piece-detection.md). Java URCL logging, custom AD* telemetry, and the Java browser system-check dashboard are intentionally not duplicated. Native PathPlanner and typed AdvantageScope telemetry remain the supported interfaces. External joint sensors are supplied through callbacks, with explicit calibration; they are not constructed automatically from Java encoder enum values.
 
 Mechanism IO must supply `connected=true` with valid feedback, including injected replay snapshots. Disconnected or nonfinite feedback stops the mechanism, and control must be requested again after feedback recovers. `AtSetpoint()` only reports success for connected, active position or velocity control.
 
 No deployment, hardware motion, sensor calibration, or field acceptance was performed as part of this port. See `docs/port-contract.md` for provenance and verification boundaries.
 
-The latest independent audit, commit list, validation evidence, numerical analysis, and remaining risks are recorded in [the 2026-10-19 audit report](artifacts/audit-2026-10-19/REPORT.md).
+The Java/C++ comparison and selective migration decisions are recorded in [the parity audit](docs/parity-audit-2026-10-21.md). Earlier numerical and framework evidence remains in [the 2026-10-19 audit report](artifacts/audit-2026-10-19/REPORT.md).
 
 ## Jolt practice simulation
 

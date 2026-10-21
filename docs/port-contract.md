@@ -10,7 +10,7 @@
 | Motor command ownership and cleanup | commands | Native subsystem and command lifetime tests |
 | Honest parity and validation claims | README | Record framework replacements and unsupported functionality |
 
-Sources: Java base commit `d1f264954190b87d7cde839e1661c430cecdb8d3`; season source commit `1797a83bfeac6318178f1886da5e24ece9b8b9d1`. The source Java base's pre-existing executable-bit change to `gradlew` is unrelated and preserved.
+Sources: initial Java base commit `d1f264954190b87d7cde839e1661c430cecdb8d3`, parity re-audit against Java origin/main `4e3422f` (see [parity audit](parity-audit-2026-10-21.md)); season source commit `1797a83bfeac6318178f1886da5e24ece9b8b9d1`. The source Java base's pre-existing executable-bit change to `gradlew` is unrelated and preserved.
 
 The Java configuration owns copied CAN IDs, ratios, offsets and tuned values. Base drive constants are illustrative; season overrides own the real season configuration. No mechanical component selection or physical parameter redesign is included. Existing source tuning is retained as source data, not reclassified as a hardware measurement.
 

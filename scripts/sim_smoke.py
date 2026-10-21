@@ -48,6 +48,8 @@ async def exercise(args):
     pose = drive.getRawTopic('Pose').subscribe('struct:Pose2d', b'')
     truth = simulation.getRawTopic('RobotTruth').subscribe('struct:Pose3d', b'')
     sim_time = simulation.getDoubleTopic('Time').subscribe(0)
+    battery = simulation.getDoubleTopic('BatteryVoltage').subscribe(float('nan'))
+    supply_current = simulation.getDoubleTopic('SupplyCurrent').subscribe(float('nan'))
     held = simulation.getDoubleTopic('Held').subscribe(-1)
     intake_active = simulation.getBooleanTopic('IntakeActive').subscribe(True)
     token = simulation.getStringTopic('RunToken').subscribe('')
@@ -105,6 +107,7 @@ async def exercise(args):
                         last_stamp = heartbeat
                         readings.append({'ntTime': speeds.time / 1e6, 'poseTime': estimated.time / 1e6,
                                          'truthTime': actual.time / 1e6, 'simulationTime': clock.value,
+                                         'batteryVoltage': battery.get(), 'supplyCurrent': supply_current.get(),
                                          'estimated': list(estimated.value),
                                          'truth': list(actual.value), 'speeds': list(speeds.value),
                                          'requestedSpeeds': struct_atom(requested, 3).value,
@@ -259,6 +262,14 @@ async def exercise(args):
                         evidence['checks'][name + '_struct_present'] = atom.time > 0 and (count > 0 or name == 'Pieces')
                     evidence['checks']['truth_positive_spin'] = evidence['samples']['turn']['truthHeadingChange'] > .5
                     evidence['checks']['truth_negative_spin'] = evidence['samples']['negative_turn']['truthHeadingChange'] < -.5
+                if args.expect_jolt:
+                    power_rows = [row for sample in evidence['samples'].values() for row in sample['trajectory']]
+                    evidence['checks']['power_finite_and_physical'] = all(
+                        finite([row['batteryVoltage'], row['supplyCurrent']]) and
+                        0 <= row['batteryVoltage'] <= 12 and row['supplyCurrent'] >= 0 for row in power_rows)
+                    loaded_voltage = min(row['batteryVoltage'] for row in power_rows)
+                    evidence['checks']['loaded_battery_sags'] = loaded_voltage < 11.9
+                    evidence['checks']['disabled_battery_recovers'] = evidence['samples']['disabled_final']['trajectory'][-1]['batteryVoltage'] > loaded_voltage + .05
                 evidence['passed'] = all(evidence['checks'].values())
             finally:
                 # Identity mismatch must never result in controls sent to another process.
