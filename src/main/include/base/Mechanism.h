@@ -19,6 +19,15 @@ namespace base {
 enum class Mode { Real, Sim, Replay };
 enum class Vendor { TalonFX, SparkMax };
 enum class Gravity { Constant, Cosine, Sine };
+struct PhoenixControlConfig {
+  // Opt-in: software control remains the default and the simulation fallback.
+  bool enabled=false;
+  enum class Feedback { Rotor, RemoteCANcoder };
+  Feedback feedback=Feedback::Rotor;
+  int remoteSensorId=0;
+  double rotorToSensorRatio=1, sensorToMechanismRatio=1;
+  bool sensorReversed=false;
+};
 struct MotorConfig {
   std::vector<int> ids;
   // Primary inversion first; subsequent true flags oppose the primary motor.
@@ -26,6 +35,7 @@ struct MotorConfig {
   double gearRatio = 1;
   int currentLimit = 40;
   std::string canBus;
+  PhoenixControlConfig phoenix;
   void Validate() const;
 };
 struct Gains {
@@ -58,12 +68,21 @@ struct MotorSimulationConfig {
   std::optional<units::radian_t> minimum, maximum;
   void Validate() const;
 };
+struct NativeControlRequest {
+  enum class Kind { Velocity, Position, MotionMagic };
+  Kind kind=Kind::Velocity;
+  double target=0, maxVelocity=1, maxAcceleration=1;
+  double velocity=0, acceleration=0;
+};
 class MotorIO {
  public:
   virtual ~MotorIO() = default;
   virtual MotorInputs Read()=0;
   virtual void SetVoltage(double volts)=0;
   virtual void SetBrake(bool brake)=0;
+  // Native gains/requests use mechanism units; adapters own vendor conversion.
+  virtual bool ConfigureNative(const Gains&, double, Gravity, bool) { return false; }
+  virtual bool SetNative(const NativeControlRequest&) { return false; }
   // Explicit plant advancement (0..1 s); real/replay adapters remain observational.
   virtual void StepSimulation(units::second_t) {}
 };
@@ -76,9 +95,12 @@ class InjectedMotorIO final : public MotorIO {
  public:
   MotorInputs inputs;
   double requestedVoltage=0;
-  bool brake=true;
+  bool brake=true, nativeEnabled=false;
+  std::optional<NativeControlRequest> nativeRequest;
+  bool ConfigureNative(const Gains&, double, Gravity, bool) override { return nativeEnabled; }
+  bool SetNative(const NativeControlRequest& request) override { nativeRequest=request; return nativeEnabled; }
   MotorInputs Read() override { return inputs; }
-  void SetVoltage(double volts) override { requestedVoltage=volts; }
+  void SetVoltage(double volts) override { requestedVoltage=volts; nativeRequest.reset(); }
   void SetBrake(bool enabled) override { brake=enabled; }
 };
 // Mechanism positions are rotations, or metres when unitsPerOutputRotation is a drum circumference.
@@ -91,12 +113,15 @@ class Mechanism : public frc2::SubsystemBase {
   void Periodic() override;
   void SetVelocity(double velocity);
   void SetPosition(double position);
+  // Native PositionVoltage when supported; ordinary SetPosition uses Motion Magic.
+  void SetPositionUnprofiled(double position);
   void SetPositionDynamic(double position, double maxVelocity, double maxAcceleration);
   void SetVoltage(double volts);
   void Stop();
   void ResetPosition();
   void SetBrake(bool enabled);
   void SetGains(Gains gains);
+  const Gains& GetGains() const { return gains_; }
   bool AtSetpoint() const;
   bool VelocityControlActive() const { return control_==Control::Velocity; }
   double VelocitySetpoint() const { return target_; }
@@ -114,7 +139,7 @@ class Mechanism : public frc2::SubsystemBase {
   enum class Control { Stopped, Voltage, Velocity, Position };
   std::unique_ptr<MotorIO> io_;
   Gains gains_;
-  bool joint_;
+  bool joint_, native_=false, nativeFault_=false, motionMagic_=true, unprofiled_=false;
   double units_, physicalPosition_=0, zeroOffset_=0, target_=0, voltage_=0;
   double profiledPosition_=0, profiledVelocity_=0, previousError_=0, integral_=0;
   double maxVelocity_, maxAcceleration_;

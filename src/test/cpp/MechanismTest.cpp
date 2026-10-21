@@ -249,3 +249,81 @@ TEST(MechanismProfile, VelocityEntryRestoresConfiguredAccelerationAfterDynamicPo
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
 }
+
+TEST(MechanismNative, RequestsProfiledPhysicalCoordinatesAndStopsOnFaults) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
+  observed->nativeEnabled=true; observed->inputs.connected=true;
+  observed->inputs.position=.25;
+  base::Gains gains; gains.minimum=0; gains.maximum=2; gains.maxVelocity=2; gains.maxAcceleration=4;
+  base::PositionJoint joint("NativeContract",std::move(io),gains,2);
+  joint.Periodic();
+  joint.SetPosition(1.5); joint.Periodic();
+  ASSERT_TRUE(observed->nativeRequest);
+  EXPECT_EQ(observed->nativeRequest->kind,base::NativeControlRequest::Kind::MotionMagic);
+  EXPECT_DOUBLE_EQ(observed->nativeRequest->target,1.5);
+  joint.ResetPosition(); joint.Periodic();
+  ASSERT_TRUE(observed->nativeRequest);
+  EXPECT_DOUBLE_EQ(joint.Position(),0);
+  EXPECT_DOUBLE_EQ(observed->nativeRequest->target,.5); // no sensor/physical-limit teleport
+  joint.SetPositionDynamic(1,.3,.7); joint.Periodic();
+  ASSERT_TRUE(observed->nativeRequest);
+  EXPECT_EQ(observed->nativeRequest->kind,base::NativeControlRequest::Kind::Position);
+  EXPECT_GT(observed->nativeRequest->target,.5);
+  EXPECT_LT(observed->nativeRequest->target,.51);
+  EXPECT_THROW(joint.SetGains(gains),std::logic_error);
+  observed->inputs.connected=false; joint.Periodic();
+  EXPECT_FALSE(observed->nativeRequest);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  observed->inputs.connected=true; observed->inputs.position=1;
+  joint.SetVelocity(1); joint.Periodic();
+  EXPECT_FALSE(observed->nativeRequest); // physical upper limit
+  observed->inputs.position=.25;
+  joint.SetVelocity(1); joint.Periodic();
+  ASSERT_TRUE(observed->nativeRequest);
+  EXPECT_GT(observed->nativeRequest->target,0);
+  EXPECT_LT(observed->nativeRequest->target,1);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData(); joint.Periodic();
+  EXPECT_FALSE(observed->nativeRequest);
+  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+}
+
+TEST(MechanismNative, FailedReconfigurationLatchesStopUntilDisabledRecovery) {
+  class ConfigurableIO final : public base::MotorIO {
+   public:
+    bool fail=false; int requests=0; double voltage=0;
+    base::MotorInputs Read() override { base::MotorInputs input; input.connected=true; return input; }
+    void SetVoltage(double value) override { voltage=value; }
+    void SetBrake(bool) override {}
+    bool ConfigureNative(const base::Gains&,double,base::Gravity,bool) override {
+      if(fail) throw std::runtime_error("configuration rejected");
+      return true;
+    }
+    bool SetNative(const base::NativeControlRequest&) override { ++requests; return true; }
+  };
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<ConfigurableIO>(); auto* observed=io.get();
+  base::Gains gains;
+  base::Flywheel wheel("NativeConfigFault",std::move(io),gains);
+  observed->fail=true;
+  EXPECT_THROW(wheel.SetGains(gains),std::runtime_error);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  wheel.SetVelocity(1); wheel.Periodic();
+  EXPECT_EQ(observed->requests,0);
+  EXPECT_DOUBLE_EQ(observed->voltage,0);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  observed->fail=false; wheel.SetGains(gains);
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  wheel.SetVelocity(1); wheel.Periodic();
+  EXPECT_EQ(observed->requests,1);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+}

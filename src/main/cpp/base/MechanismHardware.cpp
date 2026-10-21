@@ -4,6 +4,10 @@
 #include <numbers>
 #include <stdexcept>
 #include <ctre/phoenix6/TalonFX.hpp>
+#include <ctre/phoenix6/controls/VelocityVoltage.hpp>
+#include <ctre/phoenix6/controls/PositionVoltage.hpp>
+#include <ctre/phoenix6/controls/MotionMagicVoltage.hpp>
+#include <ctre/phoenix6/controls/Follower.hpp>
 #include <rev/SparkMax.h>
 #include <rev/config/SparkMaxConfig.h>
 #include <units/voltage.h>
@@ -24,6 +28,19 @@ namespace base
         {
           auto motor = std::make_unique<ctre::phoenix6::hardware::TalonFX>(config_.ids[i], config_.canBus);
           ctre::phoenix6::configs::TalonFXConfiguration settings;
+          if (config_.phoenix.enabled) {
+            settings.MotorOutput.Inverted = config_.reversed[i] ?
+                ctre::phoenix6::signals::InvertedValue::Clockwise_Positive :
+                ctre::phoenix6::signals::InvertedValue::CounterClockwise_Positive;
+            // Phoenix keeps its integrated sensor in phase with motor inversion.
+            settings.Feedback.SensorToMechanismRatio=config_.gearRatio;
+            if(config_.phoenix.feedback==PhoenixControlConfig::Feedback::RemoteCANcoder) {
+              settings.Feedback.FeedbackRemoteSensorID=config_.phoenix.remoteSensorId;
+              settings.Feedback.SensorToMechanismRatio=(config_.phoenix.sensorReversed?-1:1)*config_.phoenix.sensorToMechanismRatio;
+              settings.Feedback.FeedbackSensorSource=ctre::phoenix6::signals::FeedbackSensorSourceValue::RemoteCANcoder;
+              settings.Feedback.RotorToSensorRatio=config_.phoenix.rotorToSensorRatio;
+            }
+          }
           settings.CurrentLimits.SupplyCurrentLimit = units::ampere_t{static_cast<double>(config_.currentLimit)};
           settings.CurrentLimits.SupplyCurrentLimitEnable = true;
           settings.MotorOutput.NeutralMode = ctre::phoenix6::signals::NeutralModeValue::Brake;
@@ -40,20 +57,81 @@ namespace base
         const auto &voltage = motor.GetMotorVoltage();
         const auto &supply = motor.GetSupplyVoltage();
         const auto &current = motor.GetSupplyCurrent();
+        bool feedbackHealthy=true;
+        if(config_.phoenix.enabled && config_.phoenix.feedback==PhoenixControlConfig::Feedback::RemoteCANcoder) {
+          const auto& invalid=motor.GetFault_RemoteSensorDataInvalid();
+          feedbackHealthy=invalid.GetStatus().IsOK() && !invalid.GetValue();
+        }
         // Phoenix getters refresh their motor-owned cached signals by default.
-        double direction = config_.reversed.front() ? -1 : 1;
-        return {direction * position.GetValueAsDouble() / config_.gearRatio,
-                direction * velocity.GetValueAsDouble() / config_.gearRatio,
-                direction * voltage.GetValueAsDouble(), supply.GetValueAsDouble(), current.GetValueAsDouble(),
-                position.GetStatus().IsOK() && velocity.GetStatus().IsOK()};
+        double direction = config_.phoenix.enabled ? 1 : config_.reversed.front() ? -1 : 1;
+        const double ratio=config_.phoenix.enabled ? 1 : config_.gearRatio;
+        return {direction * position.GetValueAsDouble() / ratio,
+                direction * velocity.GetValueAsDouble() / ratio,
+                (config_.reversed.front()?-1:1) * voltage.GetValueAsDouble(), supply.GetValueAsDouble(), current.GetValueAsDouble(),
+                position.GetStatus().IsOK() && velocity.GetStatus().IsOK() && feedbackHealthy};
       }
       void SetVoltage(double volts) override
       {
+        if(config_.phoenix.enabled && volts==0) {
+          for(auto& motor:motors_) motor->SetVoltage(units::volt_t{0});
+          return;
+        }
+        if(config_.phoenix.enabled) {
+          motors_.front()->SetVoltage(units::volt_t{volts});
+          Follow(); return;
+        }
         for (size_t i = 0; i < motors_.size(); ++i)
         {
           bool reversed = i == 0 ? config_.reversed[0] : config_.reversed[0] != config_.reversed[i];
           motors_[i]->SetVoltage(units::volt_t{reversed ? -volts : volts});
         }
+      }
+      bool ConfigureNative(const Gains& gains, double scale, Gravity gravity, bool joint) override
+      {
+        if(!config_.phoenix.enabled) return false;
+        if (gravity==Gravity::Sine && gains.gravity!=0)
+          throw std::invalid_argument("Native gravity supports constant or cosine; use software for sine");
+        for(double value : {gains.p*scale,gains.i*scale,gains.d*scale,gains.v*scale,gains.a*scale,
+            gains.minimum/scale,gains.maximum/scale,gains.maxVelocity/scale,gains.maxAcceleration/scale})
+          if(!std::isfinite(value)) throw std::invalid_argument("Native control conversion overflow");
+        scale_=scale; accelerationGain_=gains.a;
+        ctre::phoenix6::configs::Slot0Configs slot;
+        slot.kP=gains.p*scale; slot.kI=gains.i*scale; slot.kD=gains.d*scale;
+        slot.kS=gains.s; slot.kV=gains.v*scale; slot.kA=gains.a*scale; slot.kG=joint?gains.gravity:0;
+        slot.GravityType=gravity==Gravity::Cosine ? ctre::phoenix6::signals::GravityTypeValue::Arm_Cosine :
+            ctre::phoenix6::signals::GravityTypeValue::Elevator_Static;
+        auto& configurator=motors_.front()->GetConfigurator();
+        ctre::phoenix6::configs::SoftwareLimitSwitchConfigs limits;
+        limits.ForwardSoftLimitEnable=joint; limits.ReverseSoftLimitEnable=joint;
+        limits.ForwardSoftLimitThreshold=units::turn_t{gains.maximum/scale};
+        limits.ReverseSoftLimitThreshold=units::turn_t{gains.minimum/scale};
+        ctre::phoenix6::configs::MotionMagicConfigs profile;
+        profile.MotionMagicCruiseVelocity=units::turns_per_second_t{gains.maxVelocity/scale};
+        profile.MotionMagicAcceleration=units::turns_per_second_squared_t{gains.maxAcceleration/scale};
+        if(!configurator.Apply(slot).IsOK() || !configurator.Apply(limits).IsOK() || !configurator.Apply(profile).IsOK())
+          throw std::runtime_error("Phoenix native control configuration failed");
+
+        return true;
+      }
+      bool SetNative(const NativeControlRequest& request) override
+      {
+        if(!config_.phoenix.enabled) return false;
+        for(double value : {request.target/scale_,request.velocity/scale_,request.acceleration/scale_,
+            accelerationGain_*request.acceleration})
+          if(!std::isfinite(value)) return false;
+        auto& motor=*motors_.front();
+        ctre::phoenix::StatusCode status;
+        if(request.kind==NativeControlRequest::Kind::Velocity)
+          status=motor.SetControl(ctre::phoenix6::controls::VelocityVoltage{units::turns_per_second_t{request.target/scale_}}
+              .WithAcceleration(units::turns_per_second_squared_t{request.acceleration/scale_}).WithEnableFOC(false));
+        else if(request.kind==NativeControlRequest::Kind::Position)
+          status=motor.SetControl(ctre::phoenix6::controls::PositionVoltage{units::turn_t{request.target/scale_}}
+              .WithVelocity(units::turns_per_second_t{request.velocity/scale_})
+              .WithFeedForward(units::volt_t{accelerationGain_*request.acceleration}).WithEnableFOC(false));
+        else {
+          status=motor.SetControl(ctre::phoenix6::controls::MotionMagicVoltage{units::turn_t{request.target/scale_}}.WithEnableFOC(false));
+        }
+        const bool followers=Follow(); return status.IsOK() && followers;
       }
       void SetBrake(bool enabled) override
       {
@@ -62,6 +140,13 @@ namespace base
       }
 
     private:
+      bool Follow() {
+        bool ok=true;
+        for(size_t i=1;i<motors_.size();++i)
+          ok=motors_[i]->SetControl(ctre::phoenix6::controls::Follower{config_.ids.front(),config_.reversed[i] ? ctre::phoenix6::signals::MotorAlignmentValue::Opposed : ctre::phoenix6::signals::MotorAlignmentValue::Aligned}).IsOK() && ok;
+        return ok;
+      }
+      double scale_=1, accelerationGain_=0;
       MotorConfig config_;
       std::vector<std::unique_ptr<ctre::phoenix6::hardware::TalonFX>> motors_;
     };
@@ -275,10 +360,17 @@ namespace base
                                     const MotorSimulationConfig &simulation)
   {
     config.Validate();
+    if (vendor == Vendor::SparkMax && config.phoenix.enabled)
+      throw std::invalid_argument("Phoenix native control requires TalonFX");
     if (mode == Mode::Replay || replay::Active())
-      return std::make_unique<InjectedMotorIO>();
+    {
+      auto injected=std::make_unique<InjectedMotorIO>();
+      injected->nativeEnabled=config.phoenix.enabled;
+      return injected;
+    }
     if (mode == Mode::Sim)
       return std::make_unique<SimMotorIO>(config, vendor, simulation);
+
     if (vendor == Vendor::SparkMax)
       return std::make_unique<SparkMotorIO>(config);
     return std::make_unique<TalonMotorIO>(config);
