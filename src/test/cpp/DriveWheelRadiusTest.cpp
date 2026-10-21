@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <numbers>
 #include <cmath>
+#include <limits>
 TEST(DriveWheelRadius, KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw) {
   std::array<double,4> distances{.3,.4,.5,.6};
   base::WheelRadiusMeasurement measurement(distances);
@@ -19,6 +20,8 @@ TEST(DriveWheelRadius, RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEsti
   base::WheelRadiusMeasurement shortRun(distances),stale(distances),unequal(distances),zero(distances);
   EXPECT_TRUE(shortRun.Add(0,0,{0,0,0,0},true));
   EXPECT_TRUE(shortRun.Add(.02,.01,{.08,.08,.08,.08},true));EXPECT_FALSE(shortRun.Valid());
+  for(int i=2;i<=700;++i)ASSERT_TRUE(shortRun.Add(i*.02,i%2?.01:0,{.08,.08,.08,.08},true));
+  EXPECT_NEAR(shortRun.YawTravel(),0,1e-12);EXPECT_FALSE(shortRun.Valid());
   EXPECT_TRUE(stale.Add(0,0,{0,0,0,0},true));EXPECT_FALSE(stale.Add(.2,.1,{1,1,1,1},true));
   EXPECT_FALSE(stale.Add(.22,.11,{1.1,1.1,1.1,1.1},true));
   for(int i=0;i<=700;++i) {
@@ -27,5 +30,5 @@ TEST(DriveWheelRadius, RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEsti
     ASSERT_TRUE(zero.Add(i*.02,yaw,{0,0,0,0},true));
   }
   EXPECT_FALSE(unequal.Valid());EXPECT_FALSE(zero.Valid());
-  EXPECT_FALSE(shortRun.Add(.04,std::numeric_limits<double>::quiet_NaN(),{0,0,0,0},true));
+  EXPECT_FALSE(shortRun.Add(14.02,std::numeric_limits<double>::quiet_NaN(),{0,0,0,0},true));
 }
