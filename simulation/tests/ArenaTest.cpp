@@ -30,6 +30,15 @@ int main() {
       p.velocity = {2, 0, 0};
       p.rollingResistance = 0;
       arena.Spawn(p);
+      const auto beforeGeometryRead = clock.World()->BodyCount();
+      auto geometry = arena.ColliderGeometry();
+      Check(geometry.size() == 2 && geometry[1].pose.position.x == 1.1 &&
+                geometry[1].halfExtents.x == .1,
+            "collider snapshot includes static geometry, excludes pieces");
+      geometry[1].pose.position.x = 100;
+      Check(arena.ColliderGeometry()[1].pose.position.x == 1.1 &&
+                clock.Time() == 0 && clock.World()->BodyCount() == beforeGeometryRead,
+            "geometry reads return independent snapshots without advancing physics");
       Step(clock, 100);
       Check(arena.Pieces()[0].state.pose.position.x < 1,
             "wall must block physical piece");
@@ -119,10 +128,26 @@ int main() {
       Check(std::abs(v.x + .5) < 1e-5 && std::abs(v.y - 4) < 1e-5,
             "launch includes rotated velocity and muzzle offset from robot COM");
     }
-    {
-      SimulationClock clock(Backend::Planar);
+    for (auto mode : {Backend::Planar, Backend::Full3D}) {
+      SimulationClock clock(mode);
       Arena arena(clock, [] { return BodyState{}; });
+      for (auto direction : {Vec3{20, 0, 0}, Vec3{-20, 0, 0},
+                             Vec3{0, 20, 0}, Vec3{0, -20, 0}}) {
+        auto hit = clock.World()->Raycast({8, 4, .9}, direction);
+        Check(hit.has_value(), "practice perimeter encloses field center");
+        auto expectedX = direction.x > 0 ? 16. : 0.;
+        auto expectedY = direction.y > 0 ? 8. : 0.;
+        Check(direction.x != 0 ? std::abs(hit->position.x - expectedX) < 1e-4
+                               : std::abs(hit->position.y - expectedY) < 1e-4,
+              "practice walls use blue-corner field coordinates");
+      }
       auto first = arena.Pieces();
+      for (const auto &piece : first) {
+        auto position = piece.state.pose.position;
+        Check(position.x > .12 && position.x < 15.88 &&
+                  position.y > .12 && position.y < 7.88,
+              "seeded pieces spawn inside positive field bounds");
+      }
       arena.Reset(2026);
       auto repeat = arena.Pieces();
       Check(first.size() == repeat.size(), "reset count");
@@ -133,7 +158,7 @@ int main() {
               "seed reset reproducibility");
       PieceSpec p;
       p.airborne = true;
-      p.pose.position = {-2, -2, 1};
+      p.pose.position = {2, 2, 1};
       p.restitution = 0;
       auto id = arena.Spawn(p);
       Step(clock, 250);

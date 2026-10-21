@@ -1,5 +1,6 @@
 #include "base/sim/SimulationWorld.h"
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 #include <source_location>
@@ -10,6 +11,17 @@ void Check(bool ok, std::source_location where = std::source_location::current()
     throw std::runtime_error("World contract failed at line " + std::to_string(where.line()));
 }
 int main() {
+  // Normal practice is 3D; explicit planar automation remains available.
+  for (const char *value : {static_cast<const char *>(nullptr), "", "jolt-planar"}) {
+#ifdef _WIN32
+    _putenv_s("FRC_SIM_PHYSICS", value ? value : "");
+#else
+    if (value) setenv("FRC_SIM_PHYSICS", value, 1);
+    else unsetenv("FRC_SIM_PHYSICS");
+#endif
+    Check(BackendFromEnvironment() ==
+          (value && std::string(value) == "jolt-planar" ? Backend::Planar : Backend::Full3D));
+  }
   for (int repeat = 0; repeat < 2; ++repeat) {
     SimulationClock clock(Backend::Planar);
     auto *w = clock.World();

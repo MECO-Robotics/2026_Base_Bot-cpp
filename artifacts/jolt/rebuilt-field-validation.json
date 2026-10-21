@@ -1,0 +1,215 @@
+{
+  "baseRevision": "453ecba712feeb0fff66000107735b68a7725438",
+  "workingTreePatch": true,
+  "platform": "Linux x86-64",
+  "sourceSha256": {
+    "simulation/include/base/sim/Arena.h": "297c3a9bc3acdc4b70224f51d34a965f104a1be1bdd3fb831ecc380d6b36d63d",
+    "simulation/include/base/sim/Rebuilt2026.h": "ce187d47171eef5503c368aeddd3e17e0a24dda61b2784c558dd0d85a0eb261a",
+    "simulation/src/Arena.cpp": "395dc31d86679a300cbf556befe3ad9ec7f19bb10445659c86b8e8fefb24efdd",
+    "simulation/src/Rebuilt2026.cpp": "e31f4566e6299bb1ccd1f4776f86c32d3170e1b376cea35d3c9a791ac2550ce1",
+    "simulation/tests/Rebuilt2026Test.cpp": "d55f021918d8d14ea4738a5f13f723cf23e0ebc37c83e059bfc09d19a4aed8b0",
+    "src/main/cpp/RobotContainer.cpp": "ace391be959fbcaf715725c7d7b4671829191744f91467e8a43e497abbb6d454",
+    "scripts/sim_smoke.py": "0660ed01a03f3bda06b4f217650003588fce2830cf1efac05dd9341b9ad038f6"
+  },
+  "build": {
+    "command": "./gradlew build prepareHeadlessSimulation --max-workers=2",
+    "passed": true,
+    "nativeTestsPerConfiguration": 30,
+    "configurations": [
+      "Debug",
+      "Release"
+    ],
+    "targets": [
+      "linuxx86-64",
+      "linuxathena"
+    ]
+  },
+  "portableModels": {
+    "configuration": "Release",
+    "command": "ctest --test-dir build/jolt-d --output-on-failure",
+    "passed": true,
+    "suites": [
+      "rebuilt_2026",
+      "world",
+      "drive_physics",
+      "arena"
+    ],
+    "bump": {
+      "peakChassisZMetres": 0.350369,
+      "settledChassisZMetres": 0.269727,
+      "peakAbsolutePitchQuaternionY": 0.128102,
+      "directions": [
+        -1,
+        1
+      ]
+    },
+    "depot": {
+      "chassisRiseMetres": 0.00771901,
+      "peakVerticalSpeedMetresPerSecond": 0.0974011
+    }
+  },
+  "application": {
+    "planar": {
+      "field": "rebuilt-2026",
+      "passed": true,
+      "checks": {
+        "practice_start_field_frame": true,
+        "intake_captures": true,
+        "disable_held_intake_stops": true,
+        "intake_recaptures": true,
+        "launch_releases_one": true,
+        "practice_reset_field_frame": true,
+        "forward_pose_changes": true,
+        "forward_truth_moves": true,
+        "initial_disabled_stationary": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "negative_turn_velocity": true,
+        "spin_reversal_velocity": true,
+        "zero_input_stops": true,
+        "final_disabled_stationary": true,
+        "turn_heading_matches_rate": true,
+        "negative_turn_heading_matches_rate": true,
+        "spin_reversal_heading_matches_rate": true,
+        "stopping_heading_matches_rate": true,
+        "RobotTruth_struct_present": true,
+        "RobotEstimated_struct_present": true,
+        "Pieces_struct_present": true,
+        "truth_positive_spin": true,
+        "truth_negative_spin": true
+      },
+      "runToken": "18927a8ebef44209b44f8b93f552e92d"
+    },
+    "3d": {
+      "field": "rebuilt-2026",
+      "passed": true,
+      "checks": {
+        "practice_start_field_frame": true,
+        "intake_captures": true,
+        "disable_held_intake_stops": true,
+        "intake_recaptures": true,
+        "launch_releases_one": true,
+        "practice_reset_field_frame": true,
+        "forward_pose_changes": true,
+        "forward_truth_moves": true,
+        "initial_disabled_stationary": true,
+        "forward_speed_tracking": true,
+        "reverse_speed_tracking": true,
+        "turn_speed_tracking": true,
+        "negative_turn_velocity": true,
+        "spin_reversal_velocity": true,
+        "zero_input_stops": true,
+        "final_disabled_stationary": true,
+        "turn_heading_matches_rate": true,
+        "negative_turn_heading_matches_rate": true,
+        "spin_reversal_heading_matches_rate": true,
+        "stopping_heading_matches_rate": true,
+        "RobotTruth_struct_present": true,
+        "RobotEstimated_struct_present": true,
+        "Pieces_struct_present": true,
+        "truth_positive_spin": true,
+        "truth_negative_spin": true
+      },
+      "runToken": "2a127a09498e4c6284364027fb347255"
+    }
+  },
+  "correctionValidation": {
+    "towerPoleCenterInchesFromWall": 41.755,
+    "trenchSupportFootprintInches": [
+      47,
+      12
+    ],
+    "trenchSupportCount": 4,
+    "trenchDriveThroughLanesOpen": true,
+    "defaultBackendUnchanged": "jolt-planar",
+    "independentNegativeControls": [
+      "old tower positions fail regression",
+      "removed supports fail regression"
+    ],
+    "colliderWireframes": "/Simulation/Colliders/BoxN",
+    "sourceSha256": {
+      "simulation/include/base/sim/Arena.h": "d68d2a6f950a33bb37bb99774dbfbec4a40f272fa985d16e70404d900e488673",
+      "simulation/include/base/sim/Rebuilt2026.h": "ce187d47171eef5503c368aeddd3e17e0a24dda61b2784c558dd0d85a0eb261a",
+      "simulation/src/Arena.cpp": "19292cb8463ab4dfd390266ffff4573276d55ad4ff005b7c7061b23e18ffc668",
+      "simulation/src/Rebuilt2026.cpp": "fc3d6c59b4a4b4e3a2223deb7bdd024dea622ccd9fce85bbf574a94615a1a5e3",
+      "simulation/tests/Rebuilt2026Test.cpp": "b0f301c13f4f532ba4a49fce4e8157223c4367358a51c3d763f85d2cb9b75451",
+      "src/main/cpp/RobotContainer.cpp": "b33c5b08dd80a390fdd989e83c807b2b9f89eb69338e2e4d869d29033f3eca21",
+      "scripts/sim_smoke.py": "1bd98d9b4e17d1ada05a5e8be922333037fe9bb5ea0564e4d7603b0d6b96c264"
+    },
+    "application": {
+      "planar": {
+        "passed": true,
+        "checks": {
+          "practice_start_field_frame": true,
+          "intake_captures": true,
+          "disable_held_intake_stops": true,
+          "intake_recaptures": true,
+          "launch_releases_one": true,
+          "practice_reset_field_frame": true,
+          "ModuleStates_forward_vectors": true,
+          "ModuleTargets_forward_vectors": true,
+          "ModuleStates_turn_vectors": true,
+          "ModuleTargets_turn_vectors": true,
+          "forward_pose_changes": true,
+          "forward_truth_moves": true,
+          "initial_disabled_stationary": true,
+          "forward_speed_tracking": true,
+          "reverse_speed_tracking": true,
+          "turn_speed_tracking": true,
+          "negative_turn_velocity": true,
+          "spin_reversal_velocity": true,
+          "zero_input_stops": true,
+          "final_disabled_stationary": true,
+          "turn_heading_matches_rate": true,
+          "negative_turn_heading_matches_rate": true,
+          "spin_reversal_heading_matches_rate": true,
+          "stopping_heading_matches_rate": true,
+          "collider_wireframe_struct": true,
+          "RobotTruth_struct_present": true,
+          "RobotEstimated_struct_present": true,
+          "Pieces_struct_present": true,
+          "truth_positive_spin": true,
+          "truth_negative_spin": true
+        },
+        "runToken": "50140597a42642a584b4d181b531c085"
+      },
+      "3d": {
+        "passed": true,
+        "checks": {
+          "practice_start_field_frame": true,
+          "intake_captures": true,
+          "disable_held_intake_stops": true,
+          "intake_recaptures": true,
+          "launch_releases_one": true,
+          "practice_reset_field_frame": true,
+          "ModuleStates_forward_vectors": true,
+          "ModuleTargets_forward_vectors": true,
+          "ModuleStates_turn_vectors": true,
+          "ModuleTargets_turn_vectors": true,
+          "forward_pose_changes": true,
+          "forward_truth_moves": true,
+          "initial_disabled_stationary": true,
+          "forward_speed_tracking": true,
+          "reverse_speed_tracking": true,
+          "turn_speed_tracking": true,
+          "negative_turn_velocity": true,
+          "spin_reversal_velocity": true,
+          "zero_input_stops": true,
+          "final_disabled_stationary": true,
+          "turn_heading_matches_rate": true,
+          "negative_turn_heading_matches_rate": true,
+          "spin_reversal_heading_matches_rate": true,
+          "stopping_heading_matches_rate": true,
+          "collider_wireframe_struct": true,
+          "RobotTruth_struct_present": true,
+          "RobotEstimated_struct_present": true,
+          "Pieces_struct_present": true,
+          "truth_positive_spin": true,
+          "truth_negative_spin": true
+        },
+        "runToken": "842ed507dd5f46a2a36ec8d2dda7e0f3"
+      }
+    }
+  }
+}

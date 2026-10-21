@@ -1,5 +1,9 @@
 # Simulation model configuration
 
+Desktop practice defaults to `jolt-3d`, including the headless launcher. Set
+`FRC_SIM_PHYSICS=jolt-planar` (or headless `--backend jolt-planar`) for planar
+automation. Unset or empty `FRC_SIM_PHYSICS` selects 3D.
+
 See the [practice quick start](../README.md#jolt-practice-simulation) for build,
 backend selection, controller bindings, AdvantageScope, and headless commands.
 All defaults demonstrate software behavior; replace them with measured robot
@@ -106,9 +110,18 @@ velocity from the center of mass to the muzzle. There is no launch when possessi
 launch commands to mechanism state in a season project; the base bindings are
 illustrative controller actions.
 
-The generic 16 m by 8 m arena is centered on the origin. It includes walls, an
-obstacle, seeded pieces, and a full-3D ramp. Season geometry, scoring, camera
-images, and game-specific interactions belong downstream. `Arena::Reset(seed)`
+The generic 16 m by 8 m arena uses a fixed blue-corner origin with bounds
+`[0,16] × [0,8]` metres: +X downfield, +Y left, +Z up, and positive yaw
+counterclockwise. Robot startup and scene reset place the chassis at `(8,4)`
+with zero yaw. Physical colliders, pieces, truth, and estimated poses share this
+frame; there is no visualization offset. Library-created arenas and benchmarks
+retain this generic scene. Desktop practice instead defaults to the optional
+[approximate 2026 field](2026-field-simulation.md), selected by
+`FRC_SIM_FIELD=rebuilt-2026`; `FRC_SIM_FIELD=generic` selects the generic walls,
+obstacle and 3D ramp. Invalid values fail startup. The 2026 scene has trench
+ground supports beside the bumps, with open drive-through lanes; bumps and open
+depot curbs are 3D-only, while hubs and separate tower
+poles block both modes. Scoring, camera images and game rules remain downstream. `Arena::Reset(seed)`
 recreates pieces and clears intake state; `SimulationClock::Reset()` resets
 registered plants and time. Container scene reset performs the coordinated
 robot placement used by the Y button.

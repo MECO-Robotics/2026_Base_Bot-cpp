@@ -79,7 +79,7 @@ struct BroadPair : JPH::ObjectVsBroadPhaseLayerFilter {
 Backend BackendFromEnvironment() {
   auto *p = std::getenv("FRC_SIM_PHYSICS");
   if (!p || std::string_view(p).empty())
-    return Backend::Planar;
+    return Backend::Full3D;
   if (std::string_view(p) == "phoenix")
     return Backend::Phoenix;
   if (std::string_view(p) == "jolt-planar")

@@ -3,6 +3,8 @@
 #include <deque>
 
 namespace base::sim {
+enum class ArenaScene { Empty, Generic, Rebuilt2026 };
+ArenaScene ArenaSceneFromEnvironment();
 using PieceId = uint64_t;
 using IntakeId = uint64_t;
 struct PieceSpec {
@@ -29,15 +31,23 @@ struct IntakeConfig {
 // arena.
 class Arena {
 public:
+  // Generic practice field: fixed blue-corner origin, +X downfield, +Y left,
+  // +Z up. Keep the starting chassis clear of the perimeter walls.
+  static constexpr double kPracticeLength = 16, kPracticeWidth = 8;
+  static constexpr Vec3 kPracticeStart{kPracticeLength / 2, kPracticeWidth / 2, 0};
   // Truth reports body-origin pose and COM velocity; COM is local to that origin.
   Arena(SimulationClock &, std::function<BodyState()> robotTruth,
         bool practiceScene = true, uint32_t seed = 2026,
         Vec3 robotCenterOfMass = {});
+  Arena(SimulationClock &, std::function<BodyState()> robotTruth,
+        ArenaScene scene, uint32_t seed = 2026, Vec3 robotCenterOfMass = {});
   ~Arena();
   Arena(const Arena &) = delete;
   Arena &operator=(const Arena &) = delete;
   PieceId Spawn(const PieceSpec &);
   void AddCollider(const BodySpec &);
+  // Static geometry used by the world, for collision visualization only.
+  std::vector<BodySpec> ColliderGeometry() const;
   void SetIntake(const IntakeConfig &);
   IntakeId RegisterIntake(const IntakeConfig &);
   void SetIntakeActive(bool active) { SetIntakeActive(0, active); }
@@ -69,7 +79,7 @@ private:
   SimulationWorld &world_;
   std::function<BodyState()> robotTruth_;
   Vec3 robotCenterOfMass_;
-  bool practiceScene_;
+  ArenaScene scene_;
   uint32_t seed_;
   PieceId nextId_{1};
   struct Intake {
@@ -78,7 +88,8 @@ private:
     std::deque<PieceId> held;
   };
   std::vector<Intake> intakes_{{IntakeConfig{}, false, {}}};
-  std::vector<BodyHandle> colliders_;
+  struct Collider { BodyHandle body; BodySpec geometry; };
+  std::vector<Collider> colliders_;
   std::vector<Piece> pieces_;
   Registration registration_;
 };

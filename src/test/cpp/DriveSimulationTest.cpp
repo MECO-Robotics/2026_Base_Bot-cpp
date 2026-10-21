@@ -9,6 +9,14 @@
 TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
   auto& clock=base::sim::GetSimulationRuntime();
   if(!clock.World()) GTEST_SKIP()<<"Phoenix diagnostic backend has no Jolt world";
+  // Full3D needs physical ground for tire contact; planar mode did not.
+  base::sim::BodySpec floor;
+  floor.halfExtents={20,20,.1};floor.pose.position.z=-.1;
+  struct Ground {
+    base::sim::SimulationWorld &world;
+    base::sim::BodyHandle body;
+    ~Ground() { world.DestroyBody(body); }
+  } ground{*clock.World(),clock.World()->CreateBody(floor)};
   frc::sim::DriverStationSim::SetDsAttached(true);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();

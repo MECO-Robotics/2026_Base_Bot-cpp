@@ -1,4 +1,7 @@
 #include "base/sim/Arena.h"
+#include "base/sim/Rebuilt2026.h"
+#include <cstdlib>
+#include <string_view>
 #include <algorithm>
 #include <cmath>
 #include <random>
@@ -44,17 +47,28 @@ bool Finite(Vec3 v) {
   return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
 }
 } // namespace
+ArenaScene ArenaSceneFromEnvironment() {
+  const char *value = std::getenv("FRC_SIM_FIELD");
+  if (!value || std::string_view(value) == "rebuilt-2026") return ArenaScene::Rebuilt2026;
+  if (std::string_view(value) == "generic") return ArenaScene::Generic;
+  throw std::invalid_argument("FRC_SIM_FIELD must be generic or rebuilt-2026");
+}
 Arena::Arena(SimulationClock &clock, std::function<BodyState()> truth,
              bool scene, uint32_t seed, Vec3 robotCenterOfMass)
+    : Arena(clock, std::move(truth), scene ? ArenaScene::Generic : ArenaScene::Empty,
+            seed, robotCenterOfMass) {}
+Arena::Arena(SimulationClock &clock, std::function<BodyState()> truth,
+             ArenaScene scene, uint32_t seed, Vec3 robotCenterOfMass)
     : clock_(clock), world_(RequireWorld(clock)), robotTruth_(std::move(truth)),
-      robotCenterOfMass_(robotCenterOfMass), practiceScene_(scene), seed_(seed) {
+      robotCenterOfMass_(robotCenterOfMass), scene_(scene), seed_(seed) {
   if (!robotTruth_)
     throw std::invalid_argument("Arena requires robot truth");
   if (!Finite(robotCenterOfMass_))
     throw std::invalid_argument("Invalid robot center of mass");
   try {
-    if (scene)
-      BuildScene();
+    if (scene == ArenaScene::Generic) BuildScene();
+    else if (scene == ArenaScene::Rebuilt2026)
+      for (const auto &body : Rebuilt2026Colliders(world_.Mode())) AddCollider(body);
     Reset(seed);
     registration_ = clock.Register({[this](double dt) { Before(dt); },
                                     [this](double dt) { After(dt); },
@@ -62,7 +76,7 @@ Arena::Arena(SimulationClock &clock, std::function<BodyState()> truth,
   } catch (...) {
     ClearPieces();
     for (auto b : colliders_)
-      world_.DestroyBody(b);
+      world_.DestroyBody(b.body);
     throw;
   }
 }
@@ -70,7 +84,7 @@ Arena::~Arena() {
   registration_ = Registration{};
   ClearPieces();
   for (auto b : colliders_)
-    world_.DestroyBody(b);
+    world_.DestroyBody(b.body);
 }
 void Arena::ClearPieces() {
   for (auto &p : pieces_)
@@ -85,11 +99,17 @@ void Arena::AddCollider(const BodySpec &spec) {
     throw std::invalid_argument("Arena collider must be static");
   auto body = world_.CreateBody(spec);
   try {
-    colliders_.push_back(body);
+    colliders_.push_back({body, spec});
   } catch (...) {
     world_.DestroyBody(body);
     throw;
   }
+}
+std::vector<BodySpec> Arena::ColliderGeometry() const {
+  std::vector<BodySpec> geometry;
+  geometry.reserve(colliders_.size());
+  for (const auto &collider : colliders_) geometry.push_back(collider.geometry);
+  return geometry;
 }
 BodyHandle Arena::CreatePiece(const PieceSpec &p, bool airborne,
                               const BodyState *state) {
@@ -261,14 +281,17 @@ void Arena::BuildScene() {
     b.halfExtents = half;
     AddCollider(b);
   };
-  box({0, 0, -0.15}, {8.2, 4.2, 0.15});
-  box({-8.1, 0, 0.5}, {0.1, 4.2, 0.5});
-  box({8.1, 0, 0.5}, {0.1, 4.2, 0.5});
-  box({0, -4.1, 0.5}, {8, 0.1, 0.5});
-  box({0, 4.1, 0.5}, {8, 0.1, 0.5});
-  box({3, 2.5, 0.4}, {0.6, 0.5, 0.4});
+  const auto center = kPracticeStart;
+  box({center.x, center.y, -0.15},
+      {kPracticeLength / 2 + .2, kPracticeWidth / 2 + .2, .15});
+  box({-.1, center.y, .5}, {.1, kPracticeWidth / 2 + .2, .5});
+  box({kPracticeLength + .1, center.y, .5}, {.1, kPracticeWidth / 2 + .2, .5});
+  box({center.x, -.1, .5}, {kPracticeLength / 2, .1, .5});
+  box({center.x, kPracticeWidth + .1, .5}, {kPracticeLength / 2, .1, .5});
+  box({center.x + 3, center.y + 2.5, .4}, {.6, .5, .4});
   if (world_.Mode() == Backend::Full3D)
-    box({-3, 2, 0.2}, {1, 0.7, 0.1}, {0, std::sin(-0.1), 0, std::cos(-0.1)});
+    box({center.x - 3, center.y + 2, .2}, {1, .7, .1},
+        {0, std::sin(-0.1), 0, std::cos(-0.1)});
 }
 void Arena::Reset(uint32_t seed) {
   ClearPieces();
@@ -276,12 +299,18 @@ void Arena::Reset(uint32_t seed) {
   for (auto &i : intakes_)
     i.active = false;
   nextId_ = 1;
-  if (!practiceScene_)
+  if (scene_ == ArenaScene::Empty)
     return;
   std::mt19937 random(seed);
-  std::uniform_real_distribution<double> x(-5, 5), y(1.3, 3.3);
+  std::uniform_real_distribution<double>
+      x(kPracticeStart.x - 5, kPracticeStart.x + 5),
+      y(kPracticeStart.y + 1.3, kPracticeStart.y + 3.3);
+  if (scene_ == ArenaScene::Rebuilt2026) {
+    x = std::uniform_real_distribution<double>(6.1, 10.4);
+    y = std::uniform_real_distribution<double>(5.3, 7.5);
+  }
   PieceSpec p;
-  p.pose.position = {0.7, 0, 0.12};
+  p.pose.position = {kPracticeStart.x + .7, kPracticeStart.y, .12};
   Spawn(p);
   for (int i = 0; i < 8; ++i) {
     p.pose.position = {x(random), y(random), 0.12};

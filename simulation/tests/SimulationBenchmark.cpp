@@ -27,11 +27,12 @@ int main() {
         floor.pose.position = {0, 0, -.1};
         arena.AddCollider(floor);
       }
-      drive.Reset({{0, 0, .3}, {}});
+      const auto placement = Arena::kPracticeStart;
+      drive.Reset({{placement.x, placement.y, .3}, {}});
       if (std::string(scene) == "dense") {
         for (int i = 0; i < 300; ++i) {
           PieceSpec piece;
-          piece.pose.position = {4 + .20 * (i % 10), -1 + .20 * ((i / 10) % 10), .12 + .22 * (i / 100)};
+          piece.pose.position = {placement.x + 4 + .20 * (i % 10), placement.y - 1 + .20 * ((i / 10) % 10), .12 + .22 * (i / 100)};
           piece.airborne = mode == Backend::Full3D;
           arena.Spawn(piece);
         }
