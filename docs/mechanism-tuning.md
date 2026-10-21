@@ -10,7 +10,7 @@ A gain transaction requires the complete gain object and a strictly increasing p
 {"revision":1,"gains":{"p":1,"i":0,"d":0,"s":0,"v":0,"a":0,"gravity":0,"maxVelocity":1,"maxAcceleration":1,"tolerance":0.01,"minimum":0,"maximum":1,"defaultPosition":0}}
 ```
 
-Gains apply atomically only while disabled and with no command owning the mechanism. Native Phoenix configuration can block, so enabled gain requests are rejected even for software control. A rejected revision is consumed; resending it later cannot unexpectedly apply it.
+Gains apply atomically only while disabled and with no command owning the mechanism. Native Talon and Spark configuration can block, so enabled gain requests are rejected even for simulated control. A rejected revision is consumed; resending it later cannot unexpectedly apply it.
 
 Setpoints are separate transactions, e.g. `{"revision":2,"setpoint":0.5}`. They apply only while enabled in Test mode with the explicit `TestCommand` scheduled. That command requires the mechanism and stops it on interruption/end. Position setpoints must respect physical configured limits; flywheel setpoints must respect configured maximum velocity. Both gains and setpoints in one transaction cannot satisfy the mutually exclusive disabled/enabled requirements and are rejected. Requests outside the permitted state are discarded, never deferred until the next mode or command. A setpoint holds only for the active tuning command; no automatic button binding is installed.
 

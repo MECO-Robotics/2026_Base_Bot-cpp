@@ -4,8 +4,9 @@
 plants exactly once through the shared world clock (five 4 ms steps per period).
 No mechanism `SimulationPeriodic` or separate Notifier advances the same plant.
 
-`Mechanism::Control(dt)` uses the supplied interval for PID, acceleration
-feedforward and bounded profiles. The interval must be finite, positive and at
+`Mechanism::Control(dt)` uses the supplied interval for bounded profiles and
+passes it to motor IO. Simulated and injected IO use that interval for their
+controller emulator; real IO sends setpoints to onboard firmware. The interval must be finite, positive and at
 most 100 ms; invalid intervals stop before throwing. The ordinary `Periodic()`
 retains 20 ms control and publishes cached telemetry through the background worker.
 `Control(dt, enabled)` also checks DriverStation enable; an injected true flag

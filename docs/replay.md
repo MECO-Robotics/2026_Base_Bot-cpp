@@ -3,7 +3,7 @@
 The framework records one versioned `Replay/Frames` JSON record per robot cycle
 in the normal WPILOG. Desktop replay reads those input frames, installs recorded
 Driver Station state and FPGA timestamps, and reruns the existing robot mode
-callbacks, scheduler, commands, and software mechanism controllers. It does not
+callbacks, scheduler, commands, and IO-owned mechanism controller emulation. It does not
 feed recorded actuator outputs back to the code. New outputs go to a new WPILOG.
 AdvantageScope can open either log for normal playback; code replay is a separate
 operation. WPILib stores NT topics under `NT:` in WPILOG, so a logged module
@@ -34,6 +34,9 @@ these disk waits. A bounded EOF flush retains short runs before shutdown.
 For a directly launched desktop executable, set `FRC_REPLAY_LOG` and
 `FRC_REPLAY_OUTPUT` to absolute source and new output WPILOG paths. The launcher
 also supplies `FRC_REPLAY_SOURCE_SHA256`. Replay is rejected on roboRIO.
+The headless launcher restores the recorded drivetrain backend (older logs default
+to Phoenix). When bypassing it for a portable recording, also set
+`FRC_DRIVE_BACKEND=rev` before constructing the base container.
 
 The comparison report verifies exact frame sequence, source timestamps, DS state,
 and recorded inputs, then reports differences in recomputed outputs. Differences
@@ -47,12 +50,14 @@ A dirty-tree hash identifies content but does not preserve that content for you.
 
 ## Recorded boundary
 
-- Drive: estimated pose, measured robot-relative chassis speeds, and measured
+- Drive: source backend, estimated pose, measured robot-relative chassis speeds, and measured
   module states. Requested chassis motion, module targets, pose-reset requests,
   and vision-fusion requests are recomputed and logged.
 - Mechanisms: motor position, velocity, applied/supply voltage, current,
-  connectivity, and external encoder feedback. Software PID/feedforward,
-  limiting, commands, and disconnect stops run again; requested voltage is logged.
+  connectivity, external encoder feedback, and source control ownership. Limiting,
+  commands and disconnect stops run again. Simulated-source PID/feedforward runs
+  in injected IO; onboard sources reconstruct native setpoint requests. Recorded
+  firmware voltage is an input, not a recomputed firmware result.
 - Vision: connectivity, target yaw, and accepted timestamped pose observations
   with uncertainty. Camera acquisition, calibration, pose estimation, and
   observation rejection occur before this boundary and are not rerun.
@@ -61,8 +66,8 @@ A dirty-tree hash identifies content but does not preserve that content for you.
 - Digital inputs and Driver Station modes, alliance/location, and six joystick
   ports are substituted from the recording.
 
-Phoenix devices and Jolt worlds are not constructed during replay. Phoenix's
-native estimator, motor firmware, asynchronous control timing, and sensor fusion
+Vendor devices and Jolt worlds are not constructed during replay. Drivetrain
+estimators, motor firmware, asynchronous control timing, and sensor fusion
 are outside the replay boundary. A replayed pose reset is an output request; it
 cannot alter the next recorded pose. Replayed module targets use WPILib
 kinematics/optimization and do not establish bitwise parity with native Phoenix
@@ -100,7 +105,7 @@ Abrupt process termination can still lose buffered tail records. Shutdown drains
 and joins the recorder before stopping DataLogManager. Offline replay applies
 writer backpressure between batches; this never runs in live periodic callbacks.
 
-Scheduler/commands, sensor capture, software control, and fixed-step physics keep
+Scheduler/commands, sensor capture, mechanism control, and fixed-step physics keep
 one owner on the robot thread. Moving these stateful stages to independent
 threads would change callback order and feedback timing. Phoenix retains its
 vendor-owned asynchronous control/odometry threads.
