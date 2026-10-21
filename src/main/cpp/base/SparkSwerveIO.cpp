@@ -36,6 +36,7 @@ class SparkModule final : public SwerveModuleIO {
     steer.signals.FaultsPeriodMs(20).WarningsPeriodMs(20).FaultsAlwaysOn(true).WarningsAlwaysOn(true);
     drive.signals.PrimaryEncoderPositionPeriodMs(10).PrimaryEncoderVelocityPeriodMs(10).AppliedOutputPeriodMs(20);
     steer.signals.AbsoluteEncoderPositionPeriodMs(10).AbsoluteEncoderVelocityPeriodMs(10).PrimaryEncoderPositionPeriodMs(10).PrimaryEncoderVelocityPeriodMs(10);
+    if(frc::DriverStation::IsEnabled())throw std::runtime_error("Spark swerve configuration requires disabled state");
     rev::spark::SparkMaxConfig startupSignals;
     startupSignals.signals.FaultsPeriodMs(20).WarningsPeriodMs(20).FaultsAlwaysOn(true).WarningsAlwaysOn(true);
     if(drive_.Configure(startupSignals,rev::ResetMode::kNoResetSafeParameters,rev::PersistMode::kNoPersistParameters)!=rev::REVLibError::kOk
@@ -54,6 +55,7 @@ class SparkModule final : public SwerveModuleIO {
       std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }while(std::chrono::steady_clock::now()<deadline);
     if(!cleared)throw std::runtime_error("Spark swerve cleared reset-warning status did not arrive within 250 ms");
+    if(frc::DriverStation::IsEnabled())throw std::runtime_error("Spark swerve configuration requires disabled state");
     const auto reset=rev::ResetMode::kResetSafeParameters;const auto persist=rev::PersistMode::kNoPersistParameters;
     if(drive_.Configure(drive,reset,persist)!=rev::REVLibError::kOk||steer_.Configure(steer,reset,persist)!=rev::REVLibError::kOk)throw std::runtime_error("Spark swerve configuration failed");
     drive_.SetCANTimeout(0);steer_.SetCANTimeout(0);
