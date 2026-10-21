@@ -8,6 +8,7 @@ TEST(DriveConfig, RejectsUnsafeConfigurationBeforeDeviceConstruction) {
   // Different CAN device types may use the same numeric address.
   good.modules[0].encoder=good.modules[0].drive;
   good.pigeon=good.modules[0].drive;
+  good.bus=""; // Phoenix default-bus alias is supported.
   EXPECT_NO_THROW(good.Validate());
   for(int fault=0;fault<6;++fault) {
     base::DriveConfig bad;

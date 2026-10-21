@@ -195,7 +195,6 @@ namespace base
     auto finite=[](double value) { if(!std::isfinite(value)) throw std::invalid_argument("DriveConfig requires finite values"); };
     auto positive=[&](double value) { finite(value); if(value<=0) throw std::invalid_argument("DriveConfig requires positive physical dimensions, ratios and limits"); };
     auto nonnegative=[&](double value) { finite(value); if(value<0) throw std::invalid_argument("DriveConfig requires nonnegative gains, friction and damping"); };
-    if(bus.empty()) throw std::invalid_argument("DriveConfig requires a CAN bus name");
     for(double v:{driveRatio,steerRatio,wheelRadius,maxSpeed,maxAngularRate,driveCurrent,steerCurrent,slipCurrent,massKg,moi,
         simulation.bumperHalfLength,simulation.bumperHalfWidth,simulation.bumperHalfHeight,simulation.rideHeight,
         simulation.rollInertia,simulation.pitchInertia,simulation.wheelInertia,simulation.steerInertia,
