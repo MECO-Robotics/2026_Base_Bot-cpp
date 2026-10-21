@@ -220,6 +220,8 @@ namespace base
         simulation.longitudinalStiffness,simulation.lateralStiffness,simulation.suspensionRestLength,
         simulation.suspensionTravel,simulation.suspensionStiffness,simulation.suspensionDamping}) positive(v);
     for(double v:{spark.driveP,spark.driveD,spark.driveKS,spark.driveKV,spark.steerP,spark.steerD,odometryHz,autoTranslationKP,autoRotationKP,cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
+    if(backend==DriveBackend::SparkMaxNavX)for(double derivative:{spark.driveD,spark.steerD})
+      if(!std::isfinite(derivative*1000))throw std::invalid_argument("Spark derivative gain overflows millisecond normalization");
     for(double v:{couplingRatio,simulation.centerOfMassX,simulation.centerOfMassY,simulation.centerOfMassZ}) finite(v);
     if(backend==DriveBackend::SparkMaxNavX)for(double current:{driveCurrent,steerCurrent})
       if(current<1||current>200||std::floor(current)!=current)throw std::invalid_argument("Spark swerve current limits must be integer amperes in [1,200]");

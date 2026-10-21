@@ -68,6 +68,13 @@ TEST(PortableSwerve, ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibra
   config.modules[0].offsetTurns=.75;EXPECT_NO_THROW(config.Validate());
   config.driveCurrent=1e300;EXPECT_THROW(config.Validate(),std::invalid_argument);
   config.driveCurrent=40.5;EXPECT_THROW(config.Validate(),std::invalid_argument);
+  config.driveCurrent=40;
+  for(bool steering:{false,true}) {
+    auto invalid=config;
+    (steering?invalid.spark.steerD:invalid.spark.driveD)=std::numeric_limits<double>::max()/500;
+    EXPECT_THROW(invalid.Validate(),std::invalid_argument);
+  }
+  EXPECT_NO_THROW(config.Validate());
 }
 
 TEST(PortableSwerve, BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset) {

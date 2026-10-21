@@ -30,8 +30,9 @@ class SparkModule final : public SwerveModuleIO {
     drive.encoder.PositionConversionFactor(tau*c.wheelRadius/c.driveRatio).VelocityConversionFactor(tau*c.wheelRadius/(60*c.driveRatio));
     steer.encoder.PositionConversionFactor(tau/c.steerRatio).VelocityConversionFactor(tau/(60*c.steerRatio));
     steer.absoluteEncoder.Inverted(m.encoderInverted).ZeroOffset(m.offsetTurns).PositionConversionFactor(tau).VelocityConversionFactor(tau/60);
-    drive.closedLoop.P(c.spark.driveP).D(c.spark.driveD).SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder);
-    steer.closedLoop.P(c.spark.steerP).D(c.spark.steerD).SetFeedbackSensor(rev::spark::FeedbackSensor::kAbsoluteEncoder).PositionWrappingEnabled(true).PositionWrappingInputRange(0,tau);
+    // Public derivative gains use seconds; REV D uses milliseconds.
+    drive.closedLoop.P(c.spark.driveP).D(c.spark.driveD*1000).SetFeedbackSensor(rev::spark::FeedbackSensor::kPrimaryEncoder);
+    steer.closedLoop.P(c.spark.steerP).D(c.spark.steerD*1000).SetFeedbackSensor(rev::spark::FeedbackSensor::kAbsoluteEncoder).PositionWrappingEnabled(true).PositionWrappingInputRange(0,tau);
     drive.signals.FaultsPeriodMs(20).WarningsPeriodMs(20).FaultsAlwaysOn(true).WarningsAlwaysOn(true);
     steer.signals.FaultsPeriodMs(20).WarningsPeriodMs(20).FaultsAlwaysOn(true).WarningsAlwaysOn(true);
     drive.signals.PrimaryEncoderPositionPeriodMs(10).PrimaryEncoderVelocityPeriodMs(10).AppliedOutputPeriodMs(20);

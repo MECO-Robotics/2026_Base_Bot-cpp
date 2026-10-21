@@ -19,7 +19,8 @@ namespace base {
 class PortableSwerve;
 struct SwerveIO;
 enum class DriveBackend { Phoenix, SparkMaxNavX };
-// REV PID coefficients use duty cycle per physical unit with 12 V compensation.
+// Public PID coefficients use duty cycle per physical unit, with time in seconds.
+// The REV adapter converts derivative gains to its millisecond timebase.
 // Velocity feedforward is volts per m/s; steer position uses radians.
 struct SparkSwerveGains { double driveP=.12, driveD=0, driveKS=.1, driveKV=2.5; double steerP=.7, steerD=.01; };
 struct ModuleConfig {

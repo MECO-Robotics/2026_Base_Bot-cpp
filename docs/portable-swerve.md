@@ -17,7 +17,10 @@ steering integrated position/rate and the configured coupling ratio.
 `SparkSwerveGains` is separate from Phoenix rotor-turn gains: drive P/D use duty
 cycle per metre/second and its derivative, steering P/D use duty cycle per radian
 and radian/second, under 12 V compensation. Drive KS and KV are volts and volts
-per metre/second. Real closed-loop requests execute on each Spark using
+per metre/second. Public derivative gains use seconds; the real adapter multiplies
+D by 1000 for REV's millisecond derivative timebase, while simulation differentiates
+using seconds. Nonfinite converted gains are rejected before device construction.
+Real closed-loop requests execute on each Spark using
 `SetSetpoint`, absolute steering feedback and continuous position wrapping.
 PathPlanner wheel forces are projected onto each optimized wheel heading and
 converted to additional winding-drop voltage, without duplicating velocity FF.
