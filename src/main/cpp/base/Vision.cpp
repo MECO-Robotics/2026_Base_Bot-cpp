@@ -112,7 +112,7 @@ namespace base
           frc::Pose2d{units::meter_t{v[0]}, units::meter_t{v[1]}, frc::Rotation2d{units::degree_t{v[5]}}},
           units::second_t{sample.time * 1e-6 - v[6] * 1e-3},
           {config_.linearStdDevBaseline * scale * config_.cameraStdDevFactor * (config_.megatag2?config_.megatag2LinearFactor:1), config_.linearStdDevBaseline * scale * config_.cameraStdDevFactor * (config_.megatag2?config_.megatag2LinearFactor:1), config_.megatag2 ? std::numeric_limits<double>::infinity() : config_.angularStdDevBaseline * scale * config_.cameraStdDevFactor}};
-      if(observation.timestamp.value()<0||!std::isfinite(observation.stdDevs[0])||
+      if(observation.timestamp.value()<0||observation.timestamp.value()>frc::RobotController::GetFPGATime()*1e-6||!std::isfinite(observation.stdDevs[0])||
           (!config_.megatag2&&!std::isfinite(observation.stdDevs[2])))continue;
       accepted.push_back(Encode(observation));
     }
@@ -160,7 +160,7 @@ namespace base
           pose.Y().value() < 0 || pose.X().value() > config_.fieldLength ||
           pose.Y().value() > config_.fieldWidth)
         continue;
-      if (!std::isfinite(estimate->timestamp.value()) || estimate->timestamp.value()<0)
+      if (!std::isfinite(estimate->timestamp.value()) || estimate->timestamp.value()<0 || estimate->timestamp.value()>frc::RobotController::GetFPGATime()*1e-6)
         continue;
       if (estimate->targetsUsed.size() == 1)
       {
