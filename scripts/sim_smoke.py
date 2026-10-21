@@ -10,6 +10,7 @@ import statistics
 import struct
 import sys
 import time
+from types import SimpleNamespace
 import ntcore
 from websockets.asyncio.client import connect
 
@@ -27,6 +28,12 @@ def decoded_poses(payload):
     return len(payload) // 56
 
 
+def struct_atom(subscriber, count):
+    atom = subscriber.getAtomic()
+    values = list(struct.unpack('<' + 'd' * count, atom.value)) if len(atom.value) == count * 8 else []
+    return SimpleNamespace(time=atom.time, value=values)
+
+
 async def exercise(args):
     evidence = {'transport': 'localhost HAL websocket + NT4',
                 'scope': 'Software simulation behavior; excludes physical calibration',
@@ -34,18 +41,23 @@ async def exercise(args):
     instance = ntcore.NetworkTableInstance.create()
     instance.startClient4('base-cpp-sim-smoke')
     instance.setServer('127.0.0.1', args.nt_port)
-    dashboard = instance.getTable('SmartDashboard')
+    drive = instance.getTable('AdvantageScope/Drive')
     simulation = instance.getTable('Simulation')
-    speed = dashboard.getDoubleArrayTopic('Drive/Speeds').subscribe([])
-    pose = dashboard.getDoubleArrayTopic('Drive/Pose').subscribe([])
-    truth = simulation.getDoubleArrayTopic('Truth').subscribe([])
+    speed = drive.getRawTopic('ChassisSpeeds').subscribe('struct:ChassisSpeeds', b'')
+    requested = drive.getRawTopic('RequestedChassisSpeeds').subscribe('struct:ChassisSpeeds', b'')
+    pose = drive.getRawTopic('Pose').subscribe('struct:Pose2d', b'')
+    truth = simulation.getRawTopic('RobotTruth').subscribe('struct:Pose3d', b'')
     sim_time = simulation.getDoubleTopic('Time').subscribe(0)
     held = simulation.getDoubleTopic('Held').subscribe(-1)
     intake_active = simulation.getBooleanTopic('IntakeActive').subscribe(True)
     token = simulation.getStringTopic('RunToken').subscribe('')
+    collider_outline = instance.getRawTopic('/Simulation/Colliders/Box0').subscribe('struct:Pose3d[]', b'')
+    module_topics = {name: instance.getRawTopic('/AdvantageScope/Drive/' + name)
+                     .subscribe('struct:SwerveModuleState[]', b'')
+                     for name in ('ModuleStates', 'ModuleTargets')}
     structs = {name: simulation.getRawTopic(name).subscribe(kind, b'')
-               for name, kind in (('RobotTruth', 'struct:Pose3d'),
-                                  ('RobotEstimated', 'struct:Pose3d'), ('Pieces', 'struct:Pose3d[]'))}
+               for name, kind in (('RobotTruth', 'struct:Pose3d'), ('Pieces', 'struct:Pose3d[]'))}
+    structs['Pose'] = pose
     try:
         async with connect(f'ws://127.0.0.1:{args.hal_port}/wpilibws', max_size=None) as websocket:
             async def drain():
@@ -54,14 +66,14 @@ async def exercise(args):
             reader = asyncio.create_task(drain())
 
             async def control(enabled=False, forward=0., turn=0., reset=False,
-                              scene_reset=False, intake=False, launch=False):
+                              scene_reset=False, intake=False, launch=False, autonomous=False):
                 if args.run_token and token.get() != args.run_token:
                     raise RuntimeError('Simulator identity changed or did not match owned child')
                 buttons = [False, reset, False, scene_reset, intake, launch] + [False] * 4
                 await websocket.send(json.dumps({'type': 'Joystick', 'device': '0', 'data': {
                     '>axes': [0., -forward, 0., 0., -turn, 0.], '>buttons': buttons, '>povs': [-1]}}))
                 await websocket.send(json.dumps({'type': 'DriverStation', 'device': '', 'data': {
-                    '>enabled': enabled, '>autonomous': False, '>test': False,
+                    '>enabled': enabled, '>autonomous': autonomous, '>test': False,
                     '>estop': False, '>fms': False, '>ds': True, '>new_data': True}}))
 
             async def hold(duration=.3, **kwargs):
@@ -80,7 +92,12 @@ async def exercise(args):
                 last_stamp = 0
                 while time.monotonic() - start < duration:
                     await control(**kwargs)
-                    speeds, estimated, actual, clock = (s.getAtomic() for s in (speed, pose, truth, sim_time))
+                    speeds, estimated = struct_atom(speed, 3), struct_atom(pose, 3)
+                    actual = struct_atom(truth, 7)
+                    if len(actual.value) == 7:
+                        x, y, z, qw, qx, qy, qz = actual.value
+                        actual.value = [x, y, math.atan2(2*(qw*qz+qx*qy), 1-2*(qy*qy+qz*qz))]
+                    clock = sim_time.getAtomic()
                     # Cached samples never count twice. NT timestamps, not polling time,
                     # define integration intervals. Simulator time is retained independently.
                     heartbeat = clock.time
@@ -88,8 +105,11 @@ async def exercise(args):
                         last_stamp = heartbeat
                         readings.append({'ntTime': speeds.time / 1e6, 'poseTime': estimated.time / 1e6,
                                          'truthTime': actual.time / 1e6, 'simulationTime': clock.value,
-                                         'estimated': [*estimated.value[:2], math.radians(estimated.value[2])],
+                                         'estimated': list(estimated.value),
                                          'truth': list(actual.value), 'speeds': list(speeds.value),
+                                         'requestedSpeeds': struct_atom(requested, 3).value,
+                                         'moduleStates': struct_atom(module_topics['ModuleStates'], 8).value,
+                                         'moduleTargets': struct_atom(module_topics['ModuleTargets'], 8).value,
                                          'structTimes': {key: sub.getAtomic().time for key, sub in structs.items()}})
                     await asyncio.sleep(.02)
                 if len(readings) < 5:
@@ -101,13 +121,42 @@ async def exercise(args):
                 if len(tail) < 3:
                     raise RuntimeError(f'Insufficient fresh steady-window samples in {name}')
                 result = [statistics.median(row['speeds'][i] for row in tail) for i in range(3)]
+                if args.expect_jolt and name in ('forward', 'turn'):
+                    for key, subscriber in module_topics.items():
+                        atom = subscriber.getAtomic()
+                        if len(atom.value) != 64 or atom.time < readings[0]['poseTime'] * 1e6:
+                            raise RuntimeError(f'Missing/stale four-module struct array: {key}')
+                        values = struct.unpack('<8d', atom.value)
+                        if not finite(values):
+                            raise RuntimeError(f'Nonfinite module states: {key}')
+                        vectors = [(values[i] * math.cos(values[i+1]),
+                                    values[i] * math.sin(values[i+1]))
+                                   for i in range(0, 8, 2)]
+                        if name == 'forward':
+                            valid = all(abs(x - result[0]) < .3 and abs(y) < .2
+                                        for x, y in vectors)
+                        else:
+                            # Positive yaw: left modules roll backward; front roll left.
+                            valid = all(x * sx > .1 and y * sy > .1
+                                        for (x, y), (sx, sy) in zip(vectors,
+                                            ((-1, 1), (1, 1), (-1, -1), (1, -1))))
+                        evidence['checks'][key + '_' + name + '_vectors'] = valid
                 if args.expect_jolt and name in ('forward', 'reverse', 'turn', 'negative_turn', 'spin_reversal'):
-                    for key in ('RobotTruth', 'RobotEstimated'):
+                    for key in ('RobotTruth', 'Pose'):
                         if readings[-1]['structTimes'][key] <= readings[0]['structTimes'][key]:
                             raise RuntimeError(f'Missing/stale {key} struct during {name}')
                     if not all(finite(row['truth'], 3) for row in readings):
                         raise RuntimeError(f'Missing/nonfinite truth during {name}')
-                evidence['samples'][name] = {'speeds': result, 'trajectory': readings}
+                tracking = {}
+                for key in ('requestedSpeeds', 'moduleStates', 'moduleTargets'):
+                    tracking[key] = readings[-1][key]
+                if finite(tracking['requestedSpeeds'], 3):
+                    tracking['chassisMeasuredMinusTarget'] = [a-b for a,b in zip(readings[-1]['speeds'], tracking['requestedSpeeds'])]
+                if finite(tracking['moduleStates'], 8) and finite(tracking['moduleTargets'], 8):
+                    a,b = tracking['moduleStates'],tracking['moduleTargets']
+                    tracking['moduleVectorErrorMps'] = [math.hypot(a[i]*math.cos(a[i+1])-b[i]*math.cos(b[i+1]),
+                                                               a[i]*math.sin(a[i+1])-b[i]*math.sin(b[i+1])) for i in range(0,8,2)]
+                evidence['samples'][name] = {'speeds': result, 'trajectory': readings, 'targetMeasured': tracking}
                 return result
 
             try:
@@ -121,6 +170,14 @@ async def exercise(args):
                 await hold(reset=True)
                 initial = await phase('disabled_initial', duration=1.)
                 if args.expect_jolt:
+                    def placed_in_field(name):
+                        row = evidence['samples'][name]['trajectory'][-1]
+                        return all(finite(row[key], 3) and
+                                   abs(row[key][0] - 8) < .02 and
+                                   abs(row[key][1] - 4) < .02 and
+                                   abs(row[key][2]) < .02
+                                   for key in ('truth', 'estimated'))
+                    evidence['checks']['practice_start_field_frame'] = placed_in_field('disabled_initial')
                     await reset_scene()
                     await hold(enabled=True, intake=True)
                     captured = held.get() == 1
@@ -138,15 +195,22 @@ async def exercise(args):
                     evidence['checks'].update(intake_captures=captured, disable_held_intake_stops=disabled_clear and disabled_inactive,
                                               intake_recaptures=recaptured, launch_releases_one=launched)
                 await reset_scene()
-                forward = await phase('forward', enabled=True, forward=.5, duration=2.)
+                if args.expect_jolt:
+                    await phase('practice_reset', duration=1.)
+                    evidence['checks']['practice_reset_field_frame'] = placed_in_field('practice_reset')
+                # Keep the tracking window inside the neutral zone, clear of hubs.
+                translation_duration = 1. if args.expect_jolt else 2.
+                forward = await phase('forward', enabled=True, forward=.5, duration=translation_duration)
                 await reset_scene()
-                reverse = await phase('reverse', enabled=True, forward=-.5, duration=2.)
+                reverse = await phase('reverse', enabled=True, forward=-.5, duration=translation_duration)
                 await reset_scene()
                 turn = await phase('turn', enabled=True, turn=.5)
                 negative = await phase('negative_turn', enabled=True, turn=-.5)
                 reversal = await phase('spin_reversal', enabled=True, turn=.5)
                 stopping = await phase('stopping', enabled=True)
                 stopped = await phase('disabled_final')
+                autonomous = await phase('autonomous_no_choice', duration=.5, enabled=True, autonomous=True, forward=.5)
+                evidence['checks']['autonomous_without_choice_does_not_drive'] = max(abs(v) for v in autonomous) < .03
                 forward_rows = evidence['samples']['forward']['trajectory']
                 evidence['checks']['forward_pose_changes'] = forward_rows[-1]['estimated'][0] - forward_rows[0]['estimated'][0] > .3
                 if args.expect_jolt:
@@ -180,9 +244,18 @@ async def exercise(args):
                                    for a, b in zip(rows, rows[1:]))
                     evidence['checks'][name + '_heading_matches_rate'] = abs(evidence['samples'][name]['estimatedHeadingChange'] - integral) < .35
                 if args.expect_jolt:
+                    # Static floor geometry is published once, with retained data.
+                    payload = collider_outline.get()
+                    count = decoded_poses(payload)
+                    values = struct.unpack('<' + 'd' * (len(payload) // 8), payload)
+                    vertices = [tuple(values[i:i+3]) for i in range(0, len(values), 7)]
+                    evidence['checks']['collider_wireframe_struct'] = (
+                        count == 16 and len(set(vertices)) == 8 and
+                        all(sum(abs(x-y) > 1e-8 for x, y in zip(a, b)) == 1
+                            for a, b in zip(vertices, vertices[1:])))
                     for name, subscriber in structs.items():
                         atom = subscriber.getAtomic()
-                        count = decoded_poses(atom.value)
+                        count = int(len(atom.value) == 24) if name == 'Pose' else decoded_poses(atom.value)
                         evidence['checks'][name + '_struct_present'] = atom.time > 0 and (count > 0 or name == 'Pieces')
                     evidence['checks']['truth_positive_spin'] = evidence['samples']['turn']['truthHeadingChange'] > .5
                     evidence['checks']['truth_negative_spin'] = evidence['samples']['negative_turn']['truthHeadingChange'] < -.5

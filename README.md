@@ -72,9 +72,10 @@ plants in five 4 ms substeps per 20 ms robot period, including current limiting,
 brake/coast drag, optional arm gravity, elevator load, and physical travel stops. Replay instead consumes caller-injected snapshots without
 stepping physics. Its current clamp models winding current; the real Talon adapter
 configures supply current, so electrical current-limit parity is not established.
-Whole-robot log playback and vendor-independent drivetrain
-replay are not implemented. Systemcore requires a supported future toolchain and
-vendor adapters; this checkout retains the pinned 2026 APIs.
+Desktop code replay substitutes recorded framework inputs and reruns the scheduler,
+commands, and software controllers; see [code replay](docs/replay.md) for the
+boundary and traceability workflow. Systemcore requires a supported future
+toolchain and vendor adapters; this checkout retains the pinned 2026 APIs.
 
 Use the `MotorSimulationConfig` factory overload to select free, arm, or elevator
 loads. Arm inertia includes the rotating assembly; mass, COM distance, and angle
@@ -97,7 +98,8 @@ This is a native implementation, with intentional framework replacements. WPILib
 
 The desktop Jolt backend supplies rigid-body field contacts and generic game pieces.
 The illustrative tire, suspension, load, and piece parameters require physical calibration;
-season field geometry and scoring rules remain downstream. QuestNav pose tracking, Java URCL logging, custom AD* telemetry, piece detection localization, and the Java browser system-check dashboard are not implemented by these adapters. These gaps must not be treated as verified parity. External joint sensors are supplied through callbacks, with explicit calibration; they are not constructed automatically from Java encoder enum values.
+an optional approximate 2026 collision scene supports practice, while scoring rules
+remain downstream. QuestNav pose tracking, Java URCL logging, custom AD* telemetry, piece detection localization, and the Java browser system-check dashboard are not implemented by these adapters. These gaps must not be treated as verified parity. External joint sensors are supplied through callbacks, with explicit calibration; they are not constructed automatically from Java encoder enum values.
 
 Mechanism IO must supply `connected=true` with valid feedback, including injected replay snapshots. Disconnected or nonfinite feedback stops the mechanism, and control must be requested again after feedback recovers. `AtSetpoint()` only reports success for connected, active position or velocity control.
 
@@ -125,7 +127,9 @@ Vendordep versions remain unchanged and binary archives are not stored in Git.
 Set `FRC_SIM_PHYSICS` before launching: `phoenix` retains the vendor diagnostic
 plant, `jolt-planar` constrains chassis movement to X/Y/yaw, and `jolt-3d` enables
 wheel suspension, ramps, pitch, roll, and tipping. Desktop simulation defaults to
-`jolt-planar`. Physics runs on the robot thread in five fixed 4 ms substeps;
+`jolt-3d`. Use `FRC_SIM_PHYSICS=jolt-planar` for fast planar automation.
+The headless launcher also defaults to `jolt-3d`; `--backend jolt-planar` overrides it.
+Physics runs on the robot thread in five fixed 4 ms substeps;
 Phoenix control and estimator updates retain their vendor timing.
 
 For example, select 3D practice in a Linux shell with
@@ -152,23 +156,48 @@ controls localhost. Install `pyntcore>=2026,<2027` and `websockets>=14,<17`
 in the Python environment. `WPILIB_ROOT` overrides the WPILib installation;
 the launcher also searches the Gradle archive cache.
 
-In Jolt practice, Xbox **Y** resets the whole scene and places the robot at (0, 0)
+In Jolt practice, Xbox **Y** resets the whole scene and places the robot at (8, 4)
 metres with zero yaw; **LB** enables intake capture while held; **RB** launches one
 possessed piece on its rising edge. Existing A aim, B estimator heading reset,
 and X wheel lock remain available. B changes the estimator without teleporting
-the physical chassis. The arena contains reusable walls, an obstacle, pieces,
-and a ramp in 3D mode, with no season scoring rules.
+the physical chassis. Practice defaults to an [approximate 2026 field](docs/2026-field-simulation.md):
+perimeter, hubs, two poles per tower, plus 3D bumps and depot curbs. Trench
+ground supports block beside the bumps; drive-through lanes remain open.
+Set `FRC_SIM_FIELD=generic` for the original generic walls,
+obstacle and 3D ramp. Neither scene implements season scoring rules.
 
-Connect AdvantageScope to the simulator NT server. Under `/Simulation`, add
-`RobotTruth`, `RobotEstimated`, and `Pieces` to a 3D field view. These are native
-WPILib `Pose3d` struct topics. `Truth` is a planar [x, y, yaw] diagnostic array;
-`RobotTruth` uses the chassis body origin, while `RobotEstimated` lifts the 2D
-estimator to z=0; match the viewer model's origin or offsets accordingly.
-`Velocity` contains world [vx, vy, vz, yaw rate], `Slip` contains per-module
-longitudinal slip, and `Held`, `IntakeActive`, `Time`, `StepSeconds`, `MaximumStepSeconds`,
-and `DeadlineMisses` expose state and timing. Existing `/SmartDashboard/Drive`
-telemetry remains the estimated/control view. World truth is timestamped for future
-camera models; synthetic images and new camera simulation are not included.
+In AdvantageScope's Swerve tab, use these canonical typed sources:
+
+| Source | NT path |
+| --- | --- |
+| Measured module states | `/AdvantageScope/Drive/ModuleStates` |
+| Target module states | `/AdvantageScope/Drive/ModuleTargets` |
+| Measured chassis speeds | `/AdvantageScope/Drive/ChassisSpeeds` |
+| Requested chassis speeds | `/AdvantageScope/Drive/RequestedChassisSpeeds` |
+| Heading | `/AdvantageScope/Drive/Pose/rotation` (decoded child) |
+
+Module states are WPILib `SwerveModuleState[]`, speeds are `ChassisSpeeds`,
+and `Pose` is `Pose2d`. Speeds use m/s, angular speeds rad/s, and angles radians.
+Array order follows `DriveConfig.modules`: front-left, front-right, back-left,
+back-right by default. Set maximum speed to `maxSpeed` (4.572 m/s by default)
+and the module-center width/length to 0.6731 m for the default configuration.
+Compare targets against measurements; physical simulation truth is a separate signal.
+
+Connect AdvantageScope to the simulator NT server. Add `/Simulation/RobotTruth`
+and `/Simulation/Pieces` (`Pose3d` / `Pose3d[]`) to a 3D field view, plus
+`/AdvantageScope/Drive/Pose` for the 2D estimator view. `RobotTruth` uses the
+chassis body origin. Collider outlines under `/Simulation/Colliders` can be
+added as trajectories. `/Simulation/Velocity` is physical world-frame velocity,
+not the measured robot-relative chassis speeds.
+
+The former `Drive/Rotation`, `SmartDashboard/Drive/Pose`,
+`SmartDashboard/Drive/Speeds`, `Simulation/RobotEstimated`, `Simulation/Truth`,
+and `Simulation/RequestedSpeeds` aliases are removed. Update saved layouts to
+the canonical paths above. NT values and struct schemas are recorded in WPILOG
+for AdvantageScope playback. Application publishers consume snapshots on a
+lower-priority worker; a separate lower-priority FIFO worker serializes recorded
+frames. Replay inputs are still captured every control cycle on the robot thread.
+See [code replay](docs/replay.md) for rerunning robot logic and comparing new outputs.
 
 Portable model tests and benchmarks can run separately, without WPILib or Phoenix.
 On macOS, install Xcode Command Line Tools (`xcode-select --install`), CMake 3.24+,

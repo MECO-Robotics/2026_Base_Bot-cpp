@@ -141,6 +141,21 @@ jobs:
         run: |
           python scripts/sim_headless.py --backend jolt-planar --smoke-output artifacts/smoke-planar.json
           python scripts/sim_headless.py --backend jolt-3d --smoke-output artifacts/smoke-3d.json
+      - name: Replay recorded sensor inputs through robot code
+        shell: bash
+        run: |
+          python - <<'PYTHON'
+          import pathlib, shutil, subprocess, sys
+          sys.path.insert(0, 'scripts')
+          from sim_replay import load_recording
+          candidates = sorted(pathlib.Path('logs').glob('*.wpilog'), key=lambda p: p.stat().st_mtime, reverse=True)
+          source = next(p for p in candidates if load_recording(p)['frames'])
+          saved = pathlib.Path('artifacts/replay-source.wpilog')
+          shutil.copy2(source, saved)
+          subprocess.run([sys.executable, 'scripts/sim_headless.py', '--replay-log', str(saved),
+                          '--replay-output', 'artifacts/replayed.wpilog',
+                          '--replay-report', 'artifacts/replay-comparison.json'], check=True)
+          PYTHON
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -1,0 +1,29 @@
+{
+  "source": "logs/FRC_20261021_144408.wpilog",
+  "canonicalTypes": {
+    "/AdvantageScope/Drive/ModuleStates": "struct:SwerveModuleState[]",
+    "/AdvantageScope/Drive/ModuleTargets": "struct:SwerveModuleState[]",
+    "/AdvantageScope/Drive/Pose": "struct:Pose2d",
+    "/AdvantageScope/Drive/ChassisSpeeds": "struct:ChassisSpeeds",
+    "/AdvantageScope/Drive/RequestedChassisSpeeds": "struct:ChassisSpeeds"
+  },
+  "aliasesAbsent": true,
+  "typesCorrect": true,
+  "frameCount": 1019,
+  "autonomousSelections": [
+    "None"
+  ],
+  "schemas": {
+    "NT:/.schema/struct:Translation3d": "double x;double y;double z",
+    "NT:/.schema/struct:Quaternion": "double w;double x;double y;double z",
+    "NT:/.schema/struct:Rotation3d": "Quaternion q",
+    "NT:/.schema/struct:Pose3d": "Translation3d translation;Rotation3d rotation",
+    "NT:/.schema/struct:Rotation2d": "double value",
+    "NT:/.schema/struct:SwerveModuleState": "double speed;Rotation2d angle",
+    "NT:/.schema/struct:Translation2d": "double x;double y",
+    "NT:/.schema/struct:Pose2d": "Translation2d translation;Rotation2d rotation",
+    "NT:/.schema/struct:ChassisSpeeds": "double vx;double vy;double omega"
+  },
+  "advantageScopeHeadingSource": "/AdvantageScope/Drive/Pose/rotation",
+  "installedParserVerifiedRotationChild": true
+}

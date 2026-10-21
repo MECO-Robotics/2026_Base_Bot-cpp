@@ -12,6 +12,7 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <ctre/phoenix6/CANcoder.hpp>
 #include <pathplanner/lib/util/DriveFeedforwards.h>
+namespace pathplanner { class PathFollowingController; }
 namespace base {
 struct ModuleConfig {
   int drive, steer, encoder;
@@ -75,6 +76,19 @@ class Drive : public frc2::SubsystemBase {
   DriveConfig config_;
   frc::ChassisSpeeds requestedSpeeds_{};
   std::unique_ptr<NativeDrive> native_;
+  // AutoBuilder stores process-global callbacks; they must not own PID
+  // sendables beyond the robot/SendableRegistry lifetime.
+  std::shared_ptr<pathplanner::PathFollowingController> autoController_;
+  struct Telemetry;
+  std::shared_ptr<Telemetry> telemetry_;
+  struct Inputs {
+    frc::Pose2d pose{};
+    frc::ChassisSpeeds speeds{};
+    std::array<frc::SwerveModuleState,4> states{};
+  };
+  Inputs ReadInputs() const;
+  std::array<frc::SwerveModuleState,4> replayTargets_{};
+  void RecordDriveOutput();
 #ifndef __FRC_ROBORIO__
   struct Simulation;
   std::unique_ptr<Simulation> simulation_;

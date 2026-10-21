@@ -47,13 +47,34 @@ def snapshot_windows_dlls(sources, destination):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--smoke-output', type=Path)
-    parser.add_argument('--backend', choices=['phoenix', 'jolt-planar', 'jolt-3d'], default='jolt-planar')
+    action = parser.add_mutually_exclusive_group()
+    action.add_argument('--smoke-output', type=Path)
+    action.add_argument('--replay-log', type=Path, help='Rerun C++ commands against recorded sensor/DS inputs')
+    parser.add_argument('--replay-output', type=Path, default=Path('artifacts/replayed.wpilog'))
+    parser.add_argument('--replay-report', type=Path, default=Path('artifacts/replay-comparison.json'))
+    parser.add_argument('--replay-timeout', type=float, default=120)
+    parser.add_argument('--backend', choices=['phoenix', 'jolt-planar', 'jolt-3d'])
     args = parser.parse_args()
     if platform.system() not in ('Windows', 'Linux'):
         parser.error('Full robot simulation requires Windows or Linux with Phoenix; '
                      'on macOS use the standalone simulation/ CMake models and benchmarks')
     root = Path(__file__).resolve().parents[1]
+    recording = None
+    if args.replay_log:
+        from sim_replay import load_recording
+        recording = load_recording(args.replay_log)
+    args.backend = args.backend or 'jolt-3d'
+    if args.backend not in ('phoenix', 'jolt-planar', 'jolt-3d'):
+        parser.error('Unsupported recorded backend; select --backend explicitly')
+    import math
+    if not math.isfinite(args.replay_timeout) or args.replay_timeout <= 0:
+        parser.error('--replay-timeout must be positive and finite')
+    if args.replay_log:
+        paths = [args.replay_log.resolve(), args.replay_output.resolve(), args.replay_report.resolve()]
+        if len(set(paths)) != len(paths):
+            parser.error('Source, replay WPILOG, and audit report must be distinct files')
+        if args.replay_output.exists():
+            parser.error('Replay output already exists; refusing overwrite')
     windows = platform.system() == 'Windows'
     target = 'windowsx86-64' if windows else 'linuxx86-64'
     suffix = '.exe' if windows else ''
@@ -67,10 +88,11 @@ def main():
         candidates = list((Path.home() / '.gradle/caches').rglob(archive.name))
         if candidates:
             archive = candidates[0]
-    if not binary.exists() or not libraries.exists() or not archive.exists():
-        parser.error(f'Build native release and install WPILib 2026.2.1 HAL websocket archive. Missing: {[str(p) for p in (binary, libraries, archive) if not p.exists()]}')
+    required = (binary, libraries) if recording else (binary, libraries, archive)
+    if any(not p.exists() for p in required):
+        parser.error(f'Build native release and install WPILib 2026.2.1 HAL websocket archive. Missing: {[str(p) for p in required if not p.exists()]}')
     # Refuse to attach the smoke driver to another process already using these ports.
-    for port in (3300, 5810):
+    for port in (() if recording else (3300, 5810)):
         with socket.socket() as probe:
             # A bind also rejects a recently closed server's TIME_WAIT sockets.
             # Check live listeners; the run token protects the startup race.
@@ -81,14 +103,16 @@ def main():
         snapshot = Path(directory)
         shutil.copy2(binary, snapshot / binary.name)
         shutil.copytree(libraries, snapshot / 'lib')
-        with zipfile.ZipFile(archive) as source:
-            source.extractall(snapshot / 'extension')
-        extension = next((snapshot / 'extension').rglob('*halsim_ws_server.dll' if windows else '*halsim_ws_server.so'))
+        extension = None
+        if not recording:
+            with zipfile.ZipFile(archive) as source:
+                source.extractall(snapshot / 'extension')
+            extension = next((snapshot / 'extension').rglob('*halsim_ws_server.dll' if windows else '*halsim_ws_server.so'))
         runtime_manifest = {}
         if windows:
             # Gradle's installation is the authoritative resolved runtime set.
             # DLLs beside the EXE work independently of PATH spelling/search rules.
-            runtime_manifest = snapshot_windows_dlls([libraries, extension.parent], snapshot)
+            runtime_manifest = snapshot_windows_dlls([libraries] + ([extension.parent] if extension else []), snapshot)
             print('Windows runtime snapshot: ' + json.dumps(runtime_manifest, sort_keys=True), flush=True)
             dumpbin = shutil.which('dumpbin')
             if dumpbin:
@@ -96,8 +120,19 @@ def main():
                                               capture_output=True, text=True, check=False)
                 print(dependencies.stdout + dependencies.stderr, flush=True)
         environment = os.environ.copy()
-        environment['HALSIM_EXTENSIONS'] = str(extension)
-        environment['FRC_SIM_PHYSICS'] = args.backend
+        if recording:
+            # Replay owns its clock and recorded IO; load no HAL websocket or physics.
+            environment.pop('HALSIM_EXTENSIONS', None)
+            environment.pop('FRC_SIM_PHYSICS', None)
+            environment.pop('FRC_SIM_FIELD', None)
+            environment['FRC_REPLAY_LOG'] = str(args.replay_log.resolve())
+            environment['FRC_REPLAY_OUTPUT'] = str(args.replay_output.resolve())
+            environment['FRC_REPLAY_SOURCE_SHA256'] = recording['sha256']
+        else:
+            for key in ('FRC_REPLAY_LOG', 'FRC_REPLAY_OUTPUT', 'FRC_REPLAY_SOURCE_SHA256'):
+                environment.pop(key, None)
+            environment['HALSIM_EXTENSIONS'] = str(extension)
+            environment['FRC_SIM_PHYSICS'] = args.backend
         token = uuid.uuid4().hex
         environment['FRC_SIM_RUN_TOKEN'] = token
         path_key = 'PATH' if windows else 'LD_LIBRARY_PATH'
@@ -109,11 +144,20 @@ def main():
             for key in existing_paths:
                 del environment[key]
             environment[path_key] = os.pathsep.join(
-                [str(snapshot), str(snapshot / 'lib'), str(extension.parent), inherited_path])
+                [str(snapshot), str(snapshot / 'lib')] + ([str(extension.parent)] if extension else []) + [inherited_path])
         else:
             environment[path_key] = str(snapshot / 'lib') + os.pathsep + environment.get(path_key, '')
         process = subprocess.Popen([str(snapshot / binary.name)], cwd=root, env=environment)
         try:
+            if recording:
+                try:
+                    result = process.wait(timeout=args.replay_timeout)
+                except subprocess.TimeoutExpired as error:
+                    raise RuntimeError('Owned sensor replay exceeded its timeout') from error
+                if result:
+                    raise RuntimeError(f'Owned sensor replay failed with exit code {result}')
+                from sim_replay import audit
+                return audit(args.replay_log, args.replay_output, args.replay_report)
             if args.smoke_output:
                 deadline = time.monotonic() + 20
                 while True:

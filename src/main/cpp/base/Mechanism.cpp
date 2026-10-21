@@ -1,4 +1,7 @@
 #include "base/Mechanism.h"
+#include "base/Replay.h"
+#include "base/Telemetry.h"
+#include <limits>
 #include <algorithm>
 #include <numbers>
 #include <set>
@@ -11,6 +14,9 @@ namespace base
 {
   namespace
   {
+    template<class F> struct OnExit { F run; ~OnExit() { run(); } };
+    wpi::json Number(double value) { return std::isfinite(value) ? wpi::json(value) : wpi::json(nullptr); }
+    double Number(const wpi::json &value) { return value.is_null() ? std::numeric_limits<double>::quiet_NaN() : value.get<double>(); }
     void Finite(double value)
     {
       if (!std::isfinite(value))
@@ -80,6 +86,7 @@ namespace base
     maxAcceleration_ = gains_.maxAcceleration;
     target_ = joint_ ? std::clamp(velocity, -gains_.maxVelocity, gains_.maxVelocity) : velocity;
     control_ = Control::Velocity;
+    replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","velocity"},{"value",target_}});
   }
   void Mechanism::SetPosition(double position) { SetPositionDynamic(position, gains_.maxVelocity, gains_.maxAcceleration); }
   void Mechanism::SetPositionDynamic(double position, double maxVelocity, double maxAcceleration)
@@ -100,21 +107,42 @@ namespace base
     maxVelocity_ = maxVelocity;
     maxAcceleration_ = maxAcceleration;
     control_ = Control::Position;
+    replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","position"},{"value",target_}});
   }
   void Mechanism::SetVoltage(double volts)
   {
     Finite(volts);
     voltage_ = std::clamp(volts, -12., 12.);
     control_ = Control::Voltage;
+    replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","voltage"},{"value",voltage_}});
   }
   void Mechanism::Stop()
   {
     control_ = Control::Stopped;
     integral_ = 0;
     previousError_ = 0;
-    io_->SetVoltage(0);
+    ApplyVoltage(0);
   }
-  void Mechanism::SetBrake(bool enabled) { io_->SetBrake(enabled); }
+  void Mechanism::SetBrake(bool enabled) {
+    io_->SetBrake(enabled);
+    replay::RecordOutput("Mechanism/" + GetName() + "/Brake", enabled);
+  }
+  void Mechanism::ApplyVoltage(double volts) {
+    io_->SetVoltage(volts);
+    replay::RecordOutput("Mechanism/" + GetName() + "/AppliedVoltageRequest", volts);
+  }
+  void Mechanism::PublishTelemetry() const {
+    const std::string name=GetName();
+    const bool connected=inputs_.connected;
+    const double position=Position(), velocity=Velocity(), target=joint_?DesiredPosition():target_;
+    telemetry::Post("Mechanism/"+name,[name,connected,position,velocity,target] {
+      const auto prefix=name+"/";
+      frc::SmartDashboard::PutBoolean(prefix+"Connected",connected);
+      frc::SmartDashboard::PutNumber(prefix+"Position",position);
+      frc::SmartDashboard::PutNumber(prefix+"Velocity",velocity);
+      frc::SmartDashboard::PutNumber(prefix+"Target",target);
+    });
+  }
   void Mechanism::ResetPosition()
   {
     if (!inputs_.connected || !std::isfinite(physicalPosition_) || !std::isfinite(Velocity()))
@@ -142,8 +170,16 @@ namespace base
   void Mechanism::Periodic()
   {
     constexpr double dt = .02;
-    inputs_ = io_->Read();
-    frc::SmartDashboard::PutBoolean(GetName() + "/Connected", inputs_.connected);
+    const auto report=OnExit{[this]{PublishTelemetry();}};
+    const auto input=replay::ProcessInputs("Mechanism/"+GetName(),[this] {
+      const auto value=io_->Read();
+      return wpi::json{{"position",Number(value.position)},{"velocity",Number(value.velocity)},
+          {"voltage",Number(value.voltage)},{"supplyVoltage",Number(value.supplyVoltage)},
+          {"current",Number(value.current)},{"connected",value.connected},
+          {"externalEncoder",externalEncoder_?Number(externalEncoder_()):wpi::json(nullptr)}};
+    });
+    inputs_={Number(input.at("position")),Number(input.at("velocity")),Number(input.at("voltage")),
+             Number(input.at("supplyVoltage")),Number(input.at("current")),input.at("connected").get<bool>()};
     if (!inputs_.connected)
     {
       Stop();
@@ -151,7 +187,7 @@ namespace base
     }
     if (externalEncoder_)
     {
-      const double raw = externalEncoder_();
+      const double raw = Number(input.at("externalEncoder"));
       if (!std::isfinite(raw))
       {
         physicalPosition_ = raw;
@@ -173,7 +209,7 @@ namespace base
       previousError_ = 0;
       profiledPosition_ = physicalPosition_;
       profiledVelocity_ = Velocity();
-      io_->SetVoltage(0);
+      ApplyVoltage(0);
       return;
     }
     double volts = 0;
@@ -222,11 +258,14 @@ namespace base
     }
     if (joint_ && ((physicalPosition_ <= gains_.minimum && volts < 0) || (physicalPosition_ >= gains_.maximum && volts > 0)))
       volts = 0;
-    io_->SetVoltage(std::clamp(volts, -12., 12.));
-    auto prefix = GetName() + "/";
-    frc::SmartDashboard::PutNumber(prefix + "Position", Position());
-    frc::SmartDashboard::PutNumber(prefix + "Velocity", Velocity());
-    frc::SmartDashboard::PutNumber(prefix + "Target", joint_ ? DesiredPosition() : target_);
+    ApplyVoltage(std::clamp(volts, -12., 12.));
+  }
+  DigitalSensor::DigitalSensor(int channel,bool inverted):channel_(channel),inverted_(inverted) {
+    if(!replay::Active()) input_=std::make_unique<frc::DigitalInput>(channel);
+  }
+  bool DigitalSensor::Get() const {
+    const auto input=replay::ProcessInputs("Digital/"+std::to_string(channel_),[this]{return wpi::json(input_->Get());});
+    return input.get<bool>()!=inverted_;
   }
   frc2::CommandPtr Mechanism::VelocityCommand(std::function<double()> supplier)
   {

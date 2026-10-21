@@ -1,4 +1,6 @@
 #include "base/Vision.h"
+#include "base/Replay.h"
+#include "base/Telemetry.h"
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -7,33 +9,62 @@
 #include <networktables/NetworkTableInstance.h>
 namespace base
 {
+  namespace {
+    wpi::json Encode(const VisionObservation &o) {
+      auto deviations=wpi::json::array();
+      for(double value:o.stdDevs) deviations.push_back(std::isfinite(value)?wpi::json(value):wpi::json(nullptr));
+      return {{"pose",{o.pose.X().value(),o.pose.Y().value(),o.pose.Rotation().Radians().value()}},
+              {"timestamp",o.timestamp.value()},{"stdDevs",deviations}};
+    }
+    VisionObservation Decode(const wpi::json &o) {
+      const auto &p=o.at("pose");const auto &d=o.at("stdDevs");
+      if(p.size()!=3||d.size()!=3) throw std::runtime_error("Invalid replay vision observation");
+      std::array<double,3> deviations;
+      for(size_t i=0;i<3;++i) deviations[i]=d.at(i).is_null()?std::numeric_limits<double>::infinity():d.at(i).get<double>();
+      return {frc::Pose2d{units::meter_t{p.at(0).get<double>()},units::meter_t{p.at(1).get<double>()},
+               frc::Rotation2d{units::radian_t{p.at(2).get<double>()}}},units::second_t{o.at("timestamp").get<double>()},deviations};
+    }
+  }
   Vision::Vision(VisionConfig config, std::function<void(const VisionObservation &)> consumer,
                  std::function<frc::Rotation2d()> heading)
-      : config_(std::move(config)), consumer_(std::move(consumer)), heading_(std::move(heading)),
-        table_(nt::NetworkTableInstance::GetDefault().GetTable(config_.name)),
-        poses_(table_->GetDoubleArrayTopic(config_.megatag2 ? "botpose_orb_wpiblue" : "botpose_wpiblue").Subscribe({})),
-        heartbeat_(table_->GetDoubleTopic("hb").Subscribe(0)),
-        targetYaw_(table_->GetDoubleTopic("tx").Subscribe(0)),
-        orientation_(table_->GetDoubleArrayTopic("robot_orientation_set").Publish()),
-        cameraPose_(table_->GetDoubleArrayTopic("camerapose_robotspace_set").Publish())
+      : config_(std::move(config)), consumer_(std::move(consumer)), heading_(std::move(heading))
   {
     if (config_.megatag2 && !heading_)
       throw std::invalid_argument("MegaTag 2 requires heading supplier");
+    if(replay::Active()) return;
+    table_=nt::NetworkTableInstance::GetDefault().GetTable(config_.name);
+    poses_=table_->GetDoubleArrayTopic(config_.megatag2?"botpose_orb_wpiblue":"botpose_wpiblue").Subscribe({});
+    heartbeat_=table_->GetDoubleTopic("hb").Subscribe(0);
+    targetYaw_=table_->GetDoubleTopic("tx").Subscribe(0);
+    orientation_=std::make_shared<nt::DoubleArrayPublisher>(table_->GetDoubleArrayTopic("robot_orientation_set").Publish());
+    cameraPose_=std::make_shared<nt::DoubleArrayPublisher>(table_->GetDoubleArrayTopic("camerapose_robotspace_set").Publish());
     const auto &t = config_.robotToCamera;
-    cameraPose_.Set(std::array<double, 6>{t.X().value(), t.Y().value(), t.Z().value(),
+    const auto cameraPose=std::array<double, 6>{t.X().value(), t.Y().value(), t.Z().value(),
                                           units::degree_t{t.Rotation().X()}.value(), units::degree_t{t.Rotation().Y()}.value(),
-                                          units::degree_t{t.Rotation().Z()}.value()});
+                                          units::degree_t{t.Rotation().Z()}.value()};
+    telemetry::Post("VisionConfig/"+config_.name,[publisher=cameraPose_,cameraPose]{publisher->Set(cameraPose);});
   }
-  bool Vision::Connected() const
-  {
-    const auto changed = heartbeat_.GetLastChange();
-    return changed > 0 && frc::RobotController::GetFPGATime() - changed < 250000;
+  std::pair<bool,double> Vision::Status() const {
+    const auto status=replay::ProcessInputs("Vision/"+config_.name+"/Status",[this] {
+      const auto changed=heartbeat_.GetLastChange();
+      const auto yaw=targetYaw_.Get();
+      return wpi::json{{"connected",changed>0&&frc::RobotController::GetFPGATime()-changed<250000},
+                       {"yaw",std::isfinite(yaw)?wpi::json(yaw):wpi::json(nullptr)}};
+    });
+    return {status.at("connected").get<bool>(),status.at("yaw").is_null()?std::numeric_limits<double>::quiet_NaN():status.at("yaw").get<double>()};
   }
-  double Vision::TargetYawDegrees() const { return targetYaw_.Get(); }
+  bool Vision::Connected() const { return Status().first; }
+  double Vision::TargetYawDegrees() const { return Status().second; }
   void Vision::Periodic()
   {
-    if (config_.megatag2)
-      orientation_.Set(std::array<double, 6>{heading_().Degrees().value(), 0, 0, 0, 0, 0});
+    (void)Status();
+    if (config_.megatag2) {
+      const auto orientation=std::array<double,6>{heading_().Degrees().value(),0,0,0,0,0};
+      replay::RecordOutput("Vision/"+config_.name+"/Orientation",orientation);
+      if(!replay::Active()) telemetry::Post("VisionOrientation/"+config_.name,[publisher=orientation_,orientation]{publisher->Set(orientation);});
+    }
+    const auto observations=replay::ProcessInputs("Vision/"+config_.name+"/Observations",[this] {
+    auto accepted=wpi::json::array();
     for (const auto &sample : poses_.ReadQueue())
     {
       const auto &v = sample.value;
@@ -57,9 +88,11 @@ namespace base
           frc::Pose2d{units::meter_t{v[0]}, units::meter_t{v[1]}, frc::Rotation2d{units::degree_t{v[5]}}},
           units::second_t{sample.time * 1e-6 - v[6] * 1e-3},
           {0.02 * scale, 0.02 * scale, config_.megatag2 ? std::numeric_limits<double>::infinity() : 0.06 * scale}};
-      if (consumer_)
-        consumer_(observation);
+      accepted.push_back(Encode(observation));
     }
+    return accepted;
+    });
+    for(const auto &observation:observations) if(consumer_) consumer_(Decode(observation));
   }
 }
 
@@ -67,15 +100,25 @@ namespace base
 {
   PhotonVision::PhotonVision(VisionConfig config, frc::AprilTagFieldLayout layout,
                              std::function<void(const VisionObservation &)> consumer)
-      : config_(std::move(config)), camera_(config_.name),
-        estimator_(std::move(layout), config_.robotToCamera), consumer_(std::move(consumer)) {}
+      : config_(std::move(config)), consumer_(std::move(consumer)) {
+    if(!replay::Active()) {
+      camera_=std::make_unique<photon::PhotonCamera>(config_.name);
+      estimator_=std::make_unique<photon::PhotonPoseEstimator>(std::move(layout),config_.robotToCamera);
+    }
+  }
+  bool PhotonVision::Connected() {
+    return replay::ProcessInputs("PhotonVision/"+config_.name+"/Connected",[this]{return wpi::json(camera_->IsConnected());}).get<bool>();
+  }
   void PhotonVision::Periodic()
   {
-    for (const auto &result : camera_.GetAllUnreadResults())
+    (void)Connected();
+    const auto observations=replay::ProcessInputs("PhotonVision/"+config_.name+"/Observations",[this] {
+    auto accepted=wpi::json::array();
+    for (const auto &result : camera_->GetAllUnreadResults())
     {
-      auto estimate = estimator_.EstimateCoprocMultiTagPose(result);
+      auto estimate = estimator_->EstimateCoprocMultiTagPose(result);
       if (!estimate)
-        estimate = estimator_.EstimateLowestAmbiguityPose(result);
+        estimate = estimator_->EstimateLowestAmbiguityPose(result);
       if (!estimate || estimate->targetsUsed.empty())
         continue;
       const auto &pose = estimate->estimatedPose;
@@ -101,8 +144,10 @@ namespace base
       const double scale = distance * distance / estimate->targetsUsed.size();
       if (!std::isfinite(scale) || scale <= 0)
         continue;
-      if (consumer_)
-        consumer_({pose.ToPose2d(), estimate->timestamp, {0.02 * scale, 0.02 * scale, 0.06 * scale}});
+      accepted.push_back(Encode({pose.ToPose2d(), estimate->timestamp, {0.02*scale,0.02*scale,0.06*scale}}));
     }
+    return accepted;
+    });
+    for(const auto &observation:observations) if(consumer_) consumer_(Decode(observation));
   }
 }

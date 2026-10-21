@@ -1,4 +1,5 @@
 #include "base/Mechanism.h"
+#include "base/Replay.h"
 #include <algorithm>
 #include <numbers>
 #include <stdexcept>
@@ -274,7 +275,7 @@ namespace base
                                     const MotorSimulationConfig &simulation)
   {
     config.Validate();
-    if (mode == Mode::Replay)
+    if (mode == Mode::Replay || replay::Active())
       return std::make_unique<InjectedMotorIO>();
     if (mode == Mode::Sim)
       return std::make_unique<SimMotorIO>(config, vendor, simulation);

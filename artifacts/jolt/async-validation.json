@@ -1,0 +1,58 @@
+{
+  "scope": "asynchronous application publishing and ordered frame serialization",
+  "buildCommand": "./gradlew build prepareHeadlessSimulation --max-workers=2",
+  "linuxDebugTests": 34,
+  "linuxReleaseTests": 34,
+  "roboRioDebugAndReleaseLinked": true,
+  "windows": "portable guarded implementation; CI configured, not run locally",
+  "smoke": {
+    "passed": true,
+    "checks": 31
+  },
+  "replay": {
+    "passed": true,
+    "frames": 1021,
+    "recordingStatus": {
+      "failed": 0,
+      "highWater": 2,
+      "rejected": 0,
+      "written": 1021
+    },
+    "exactInputsAndClock": true,
+    "sourceHash": "d365fe97e7a3e6b967b22c1efc59af298674c0a27035541564971207dc26a77b"
+  },
+  "priority": {
+    "controlNice": 0,
+    "ntPublisherNice": 10,
+    "frameRecorderNice": 10
+  },
+  "regressions": [
+    "blocked sink does not wait on producer; accepted snapshots preserve values, timestamps and FIFO order",
+    "overflow invalidates the stream; no later frames accepted",
+    "sink failure contained and recording fault reported",
+    "both Python and actual C++ robot reject fault-marked source"
+  ],
+  "threadOwnership": {
+    "robot": [
+      "sensor/DS snapshots",
+      "command scheduler",
+      "control calculations",
+      "fixed-step physics"
+    ],
+    "NT-Publish": [
+      "coalescing dashboard publishing"
+    ],
+    "Frame-Record": [
+      "FIFO JSON serialization",
+      "buffered log appends"
+    ],
+    "WPILib": [
+      "background disk IO and vendor/framework transport"
+    ]
+  },
+  "evidence": [
+    "async-smoke.json",
+    "async-thread-priority.json",
+    "async-replay-comparison.json"
+  ]
+}

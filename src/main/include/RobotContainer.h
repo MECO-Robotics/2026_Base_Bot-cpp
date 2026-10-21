@@ -1,9 +1,9 @@
 #pragma once
+#include <memory>
 #include "base/Drive.h"
 #include "base/Vision.h"
 #ifndef __FRC_ROBORIO__
 #include "base/sim/Arena.h"
-#include <memory>
 #endif
 #include <frc2/command/button/CommandXboxController.h>
 #include <frc/smartdashboard/SendableChooser.h>
@@ -19,5 +19,6 @@ class RobotContainer {
   std::unique_ptr<base::sim::Arena> arena_;
 #endif
   frc2::CommandXboxController controller_{0};
-  frc::SendableChooser<frc2::Command*> autoChooser_;
+  class AutoChooser;
+  std::shared_ptr<AutoChooser> autoChooser_;
 };

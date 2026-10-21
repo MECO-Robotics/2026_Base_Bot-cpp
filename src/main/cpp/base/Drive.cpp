@@ -1,14 +1,17 @@
 #include "base/Drive.h"
+#include "base/Replay.h"
+#include "base/Telemetry.h"
+#include <frc/kinematics/SwerveDriveKinematics.h>
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 #include <frc/DriverStation.h>
 #include <frc/RobotBase.h>
 #ifndef __FRC_ROBORIO__
 #include <ctre/phoenix6/sim/ChassisReference.hpp>
 #include <chrono>
 #include <iostream>
-#include <stdexcept>
 #endif
 #include <ctre/phoenix6/Utils.hpp>
 #include <frc/RobotController.h>
@@ -18,11 +21,58 @@
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
 #include <pathplanner/lib/config/RobotConfig.h>
 #include <frc/system/plant/DCMotor.h>
+#include <frc/kinematics/struct/SwerveModuleStateStruct.h>
+#include <frc/geometry/struct/Pose2dStruct.h>
+#include <frc/kinematics/struct/ChassisSpeedsStruct.h>
+#include <networktables/NetworkTableInstance.h>
+#include <networktables/StructArrayTopic.h>
+#include <networktables/StructTopic.h>
 using namespace units::literals;
 namespace p = ctre::phoenix6;
 namespace s = p::swerve;
 namespace base
 {
+  namespace {
+    class BorrowedPathController final : public pathplanner::PathFollowingController {
+     public:
+      explicit BorrowedPathController(std::weak_ptr<pathplanner::PathFollowingController> owner)
+          : owner_(std::move(owner)) {}
+      frc::ChassisSpeeds calculateRobotRelativeSpeeds(const frc::Pose2d &pose,
+          const pathplanner::PathPlannerTrajectoryState &target) override {
+        return Require()->calculateRobotRelativeSpeeds(pose,target);
+      }
+      void reset(const frc::Pose2d &pose,const frc::ChassisSpeeds &speeds) override {
+        Require()->reset(pose,speeds);
+      }
+      units::meter_t getPositionalError() override { return Require()->getPositionalError(); }
+      bool isHolonomic() override { return Require()->isHolonomic(); }
+     private:
+      std::shared_ptr<pathplanner::PathFollowingController> Require() const {
+        auto owner=owner_.lock();
+        if(!owner)throw std::runtime_error("PathPlanner controller used after its Drive owner was destroyed");
+        return owner;
+      }
+      std::weak_ptr<pathplanner::PathFollowingController> owner_;
+    };
+  }
+
+  struct Drive::Telemetry {
+    nt::StructArrayPublisher<frc::SwerveModuleState> measured =
+        nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>(
+            "/AdvantageScope/Drive/ModuleStates").Publish();
+    nt::StructArrayPublisher<frc::SwerveModuleState> targets =
+        nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>(
+            "/AdvantageScope/Drive/ModuleTargets").Publish();
+    nt::StructPublisher<frc::Pose2d> pose =
+        nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose2d>(
+            "/AdvantageScope/Drive/Pose").Publish();
+    nt::StructPublisher<frc::ChassisSpeeds> speeds =
+        nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::ChassisSpeeds>(
+            "/AdvantageScope/Drive/ChassisSpeeds").Publish();
+    nt::StructPublisher<frc::ChassisSpeeds> requested =
+        nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::ChassisSpeeds>(
+            "/AdvantageScope/Drive/RequestedChassisSpeeds").Publish();
+  };
 #ifndef __FRC_ROBORIO__
   namespace {
     void AwaitPhoenixSimulationTransport(const DriveConfig& config) {
@@ -142,6 +192,9 @@ namespace base
 #endif
   Drive::Drive(DriveConfig config) : config_(std::move(config))
   {
+    SetName("Drive");
+    telemetry_ = std::make_shared<Telemetry>();
+    if(replay::Active()) return; // Before any Phoenix device or Jolt owner.
 #ifndef __FRC_ROBORIO__
     if(frc::RobotBase::IsSimulation()) AwaitPhoenixSimulationTransport(config_);
 #endif
@@ -176,21 +229,50 @@ namespace base
       simulation_=std::make_unique<Simulation>(*this);
 #endif
     SetName("Drive");
+
   }
   Drive::~Drive() = default;
+  Drive::Inputs Drive::ReadInputs() const {
+    auto j=replay::ProcessInputs("Drive",[this] {
+      auto s=native_->GetState();
+      wpi::json states=wpi::json::array();
+      for(const auto &m:s.ModuleStates){states.push_back(m.speed.value());states.push_back(m.angle.Radians().value());}
+      return wpi::json{{"pose",{s.Pose.X().value(),s.Pose.Y().value(),s.Pose.Rotation().Radians().value()}},
+        {"speeds",{s.Speeds.vx.value(),s.Speeds.vy.value(),s.Speeds.omega.value()}},{"states",states}};
+    });
+    auto number=[](const wpi::json &v){if(!v.is_number()||!std::isfinite(v.get<double>()))throw std::runtime_error("Invalid Drive replay input");return v.get<double>();};
+    if(j.at("pose").size()!=3||j.at("speeds").size()!=3||j.at("states").size()!=8)throw std::runtime_error("Invalid Drive input dimensions");
+    Inputs out;
+    out.pose={units::meter_t{number(j["pose"][0])},units::meter_t{number(j["pose"][1])},frc::Rotation2d{units::radian_t{number(j["pose"][2])}}};
+    out.speeds={units::meters_per_second_t{number(j["speeds"][0])},units::meters_per_second_t{number(j["speeds"][1])},units::radians_per_second_t{number(j["speeds"][2])}};
+    for(size_t i=0;i<4;++i)out.states[i]={units::meters_per_second_t{number(j["states"][2*i])},frc::Rotation2d{units::radian_t{number(j["states"][2*i+1])}}};
+    return out;
+  }
+  void Drive::RecordDriveOutput() {
+    wpi::json targets=wpi::json::array();
+    std::vector<frc::SwerveModuleState> states(replayTargets_.begin(),replayTargets_.end());
+    if(native_)states=native_->GetState().ModuleTargets;
+    for(const auto &m:states){targets.push_back(m.speed.value());targets.push_back(m.angle.Radians().value());}
+    replay::RecordOutput("Drive/RequestedChassisSpeeds",{requestedSpeeds_.vx.value(),requestedSpeeds_.vy.value(),requestedSpeeds_.omega.value()});
+    replay::RecordOutput("Drive/ModuleTargets",targets);
+  }
   void Drive::Periodic()
   {
-    if (frc::DriverStation::IsDisabled())
-    {
-      auto a = frc::DriverStation::GetAlliance();
-      native_->SetOperatorPerspectiveForward(frc::Rotation2d{a && *a == frc::DriverStation::Alliance::kRed ? 180_deg : 0_deg});
+    if (frc::DriverStation::IsDisabled()) {
+      if(native_){auto a=frc::DriverStation::GetAlliance();native_->SetOperatorPerspectiveForward(frc::Rotation2d{a&&*a==frc::DriverStation::Alliance::kRed?180_deg:0_deg});}
       Stop();
     }
-    auto state = native_->GetState();
-    frc::SmartDashboard::PutNumberArray("Drive/Pose", std::array<double, 3>{state.Pose.X().value(), state.Pose.Y().value(), state.Pose.Rotation().Degrees().value()});
-    frc::SmartDashboard::PutNumberArray("Drive/Speeds", std::array<double, 3>{state.Speeds.vx.value(), state.Speeds.vy.value(), state.Speeds.omega.value()});
+    auto state=ReadInputs();
+    std::array<frc::SwerveModuleState,4> targets=replayTargets_;
+    if(native_) {auto measured=native_->GetState();std::copy(measured.ModuleTargets.begin(),measured.ModuleTargets.end(),targets.begin());}
+    const auto requested=requestedSpeeds_;auto timestamp=frc::RobotController::GetFPGATime();
+    telemetry::Post("Drive",[telemetry=telemetry_,state,targets,requested,timestamp] {
+      telemetry->measured.Set(state.states,timestamp);telemetry->targets.Set(targets,timestamp);
+      telemetry->pose.Set(state.pose,timestamp);telemetry->speeds.Set(state.speeds,timestamp);telemetry->requested.Set(requested,timestamp);
+    });
   }
   void Drive::SimulationPeriodic() {
+    if(replay::Active())return;
 #ifndef __FRC_ROBORIO__
     if(simulation_) return; // The single world clock owns all Jolt stepping.
 #endif
@@ -206,19 +288,41 @@ namespace base
     if(simulation_) simulation_->Reset(pose);
   }
 #endif
-  frc::Pose2d Drive::Pose() const { return native_->GetState().Pose; }
-  frc::ChassisSpeeds Drive::Speeds() const { return native_->GetState().Speeds; }
-  void Drive::ResetPose(const frc::Pose2d &pose) { native_->ResetPose(pose); }
-  void Drive::AddVision(const frc::Pose2d &pose, units::second_t time, std::array<double, 3> noise) { native_->AddVisionMeasurement(pose, p::utils::FPGAToCurrentTime(time), noise); }
+  frc::Pose2d Drive::Pose() const { return ReadInputs().pose; }
+  frc::ChassisSpeeds Drive::Speeds() const { return ReadInputs().speeds; }
+  void Drive::ResetPose(const frc::Pose2d &pose) {
+    replay::RecordOutput("Drive/ResetPose",{pose.X().value(),pose.Y().value(),pose.Rotation().Radians().value()});
+    if(native_)native_->ResetPose(pose);
+  }
+  void Drive::AddVision(const frc::Pose2d &pose, units::second_t time, std::array<double, 3> noise) {
+    wpi::json deviations=wpi::json::array();
+    for(double value:noise)deviations.push_back(std::isfinite(value)?wpi::json(value):wpi::json(nullptr));
+    replay::RecordOutput("Drive/Vision",{{"pose",{pose.X().value(),pose.Y().value(),pose.Rotation().Radians().value()}},{"time",time.value()},{"noise",deviations}});
+    if(native_)native_->AddVisionMeasurement(pose,p::utils::FPGAToCurrentTime(time),noise);
+  }
   void Drive::RunVelocity(const frc::ChassisSpeeds &speeds)
   {
     requestedSpeeds_ = speeds;
-    native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity));
+    if(native_)native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity));
+    else {
+      auto location=[this](int i){return frc::Translation2d{units::meter_t{config_.modules[i].xMeters},units::meter_t{config_.modules[i].yMeters}};};
+      frc::SwerveDriveKinematics<4> kinematics{location(0),location(1),location(2),location(3)};
+      auto targets=kinematics.ToSwerveModuleStates(speeds);
+      kinematics.DesaturateWheelSpeeds(&targets,units::meters_per_second_t{config_.maxSpeed});
+      auto measured=ReadInputs();
+      for(size_t i=0;i<4;++i){targets[i].Optimize(measured.states[i].angle);replayTargets_[i]=targets[i];}
+    }
+    RecordDriveOutput();
   }
   void Drive::RunVelocity(const frc::ChassisSpeeds &speeds, const pathplanner::DriveFeedforwards &ff)
   {
     requestedSpeeds_ = speeds;
-    native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity).WithWheelForceFeedforwardsX(ff.robotRelativeForcesX).WithWheelForceFeedforwardsY(ff.robotRelativeForcesY));
+    if(native_)native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity).WithWheelForceFeedforwardsX(ff.robotRelativeForcesX).WithWheelForceFeedforwardsY(ff.robotRelativeForcesY));
+    else RunVelocity(speeds);
+    wpi::json x=wpi::json::array(),y=wpi::json::array();
+    for(auto v:ff.robotRelativeForcesX)x.push_back(v.value());
+    for(auto v:ff.robotRelativeForcesY)y.push_back(v.value());
+    replay::RecordOutput("Drive/FeedforwardForces",{{"x",x},{"y",y}});RecordDriveOutput();
   }
   void Drive::FieldDrive(double x, double y, double omega)
   {
@@ -236,7 +340,9 @@ namespace base
   void Drive::Stop() { RunVelocity(frc::ChassisSpeeds{}); }
   void Drive::StopWithX() {
     requestedSpeeds_ = {};
-    native_->SetControl(s::requests::SwerveDriveBrake{});
+    if(native_)native_->SetControl(s::requests::SwerveDriveBrake{});
+    else for(size_t i=0;i<4;++i)replayTargets_[i]={0_mps,frc::Rotation2d{units::radian_t{std::atan2(config_.modules[i].yMeters,config_.modules[i].xMeters)}}};
+    replay::RecordOutput("Drive/Brake",true);RecordDriveOutput();
   }
   void Drive::ConfigureAuto()
   {
@@ -245,13 +351,14 @@ namespace base
       locations.emplace_back(units::meter_t{m.xMeters}, units::meter_t{m.yMeters});
     pathplanner::RobotConfig rc{units::kilogram_t{config_.massKg}, units::kilogram_square_meter_t{config_.moi},
                                 pathplanner::ModuleConfig{units::meter_t{config_.wheelRadius}, units::meters_per_second_t{config_.maxSpeed}, config_.cof, frc::DCMotor::KrakenX60FOC(1).WithReduction(config_.driveRatio), units::ampere_t{config_.driveCurrent}, 1}, locations};
+    autoController_=std::make_shared<pathplanner::PPHolonomicDriveController>(pathplanner::PIDConstants{5,0,0},pathplanner::PIDConstants{5,0,0});
     pathplanner::AutoBuilder::configure([this]
                                         { return Pose(); }, [this](const auto &pose)
                                         { ResetPose(pose); }, [this]
                                         { return Speeds(); },
                                         [this](const frc::ChassisSpeeds &speed, const pathplanner::DriveFeedforwards &ff)
                                         { RunVelocity(speed, ff); },
-                                        std::make_shared<pathplanner::PPHolonomicDriveController>(pathplanner::PIDConstants{5, 0, 0}, pathplanner::PIDConstants{5, 0, 0}), rc,
+                                        std::make_shared<BorrowedPathController>(autoController_), rc,
                                         []
                                         {auto a=frc::DriverStation::GetAlliance(); return a && *a==frc::DriverStation::Alliance::kRed; }, this);
   }

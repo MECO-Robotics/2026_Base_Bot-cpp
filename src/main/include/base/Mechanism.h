@@ -109,6 +109,8 @@ class Mechanism : public frc2::SubsystemBase {
   frc2::CommandPtr PositionCommand(std::function<double()> position);
   frc2::CommandPtr VoltageCommand(std::function<double()> voltage);
  private:
+  void ApplyVoltage(double volts);
+  void PublishTelemetry() const;
   enum class Control { Stopped, Voltage, Velocity, Position };
   std::unique_ptr<MotorIO> io_;
   Gains gains_;
@@ -137,10 +139,11 @@ class PositionJoint final : public Mechanism {
 };
 class DigitalSensor {
  public:
-  DigitalSensor(int channel, bool inverted=false) : input_(channel), inverted_(inverted) {}
-  bool Get() const { return input_.Get() != inverted_; }
+  DigitalSensor(int channel, bool inverted=false);
+  bool Get() const;
  private:
-  frc::DigitalInput input_;
+  std::unique_ptr<frc::DigitalInput> input_;
+  int channel_;
   bool inverted_;
 };
 }

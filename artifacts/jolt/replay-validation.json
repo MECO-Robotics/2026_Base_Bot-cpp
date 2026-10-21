@@ -1,0 +1,47 @@
+{
+  "revision": "453ecba712feeb0fff66000107735b68a7725438",
+  "dirty": true,
+  "sourceContentSha256": "d672237b78e789f54f4add94c9efb241ddd794caea43ca2399b10c754684906b",
+  "scope": "native framework sensor-boundary code replay and lower-priority application NT snapshots",
+  "build": {
+    "command": "./gradlew build prepareHeadlessSimulation --max-workers=2",
+    "linuxDebugTests": 32,
+    "linuxReleaseTests": 32,
+    "roboRioDebugLink": true,
+    "roboRioReleaseLink": true,
+    "windows": "CI configured; not executed locally in this change"
+  },
+  "behavior": {
+    "smokeChecks": 31,
+    "smokePassed": true,
+    "actualExecutableReplayPassed": true,
+    "frames": 1019,
+    "autonomousSelections": [
+      "None"
+    ],
+    "exactRequestedChassisOutputs": true,
+    "moduleTargetFramesDifferent": 605,
+    "moduleTargetDifferenceReason": "WPILib replay kinematics versus native asynchronous Phoenix targets; not vendor parity",
+    "mechanismChangedGainProofVolts": [
+      6,
+      8
+    ],
+    "disconnectedOutputVolts": 0,
+    "canonicalTypedTopics": true,
+    "oldNtAliasesAbsent": true,
+    "publisherLinuxNice": 10,
+    "controlLinuxNice": 0
+  },
+  "evidence": [
+    "replay-source-smoke.json",
+    "replay-comparison.json",
+    "replay-topic-audit.json",
+    "replay-thread-priority.json"
+  ],
+  "boundaries": [
+    "Native Phoenix estimation/control firmware and camera estimation/filtering are upstream recorded inputs.",
+    "Output map retains last value per key per cycle.",
+    "Live NT updates may coalesce; replay frames do not.",
+    "Disk writer uses WPILib background IO; its OS priority is not configured."
+  ]
+}

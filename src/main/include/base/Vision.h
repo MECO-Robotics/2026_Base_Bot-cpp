@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <utility>
 #include <memory>
 #include <string>
 #include <array>
@@ -33,6 +34,7 @@ class Vision : public frc2::SubsystemBase {
   bool Connected() const;
   double TargetYawDegrees() const;
  private:
+  std::pair<bool,double> Status() const;
   VisionConfig config_;
   std::function<void(const VisionObservation&)> consumer_;
   std::function<frc::Rotation2d()> heading_;
@@ -40,8 +42,8 @@ class Vision : public frc2::SubsystemBase {
   nt::DoubleArraySubscriber poses_;
   nt::DoubleSubscriber heartbeat_;
   nt::DoubleSubscriber targetYaw_;
-  nt::DoubleArrayPublisher orientation_;
-  nt::DoubleArrayPublisher cameraPose_;
+  std::shared_ptr<nt::DoubleArrayPublisher> orientation_;
+  std::shared_ptr<nt::DoubleArrayPublisher> cameraPose_;
 };
 }
 
@@ -54,11 +56,11 @@ class PhotonVision : public frc2::SubsystemBase {
   PhotonVision(VisionConfig config, frc::AprilTagFieldLayout layout,
                std::function<void(const VisionObservation&)> consumer);
   void Periodic() override;
-  bool Connected() { return camera_.IsConnected(); }
+  bool Connected();
  private:
   VisionConfig config_;
-  photon::PhotonCamera camera_;
-  photon::PhotonPoseEstimator estimator_;
+  std::unique_ptr<photon::PhotonCamera> camera_;
+  std::unique_ptr<photon::PhotonPoseEstimator> estimator_;
   std::function<void(const VisionObservation&)> consumer_;
 };
 }

@@ -1,4 +1,5 @@
 #include "base/Mechanism.h"
+#include "base/Telemetry.h"
 #include <gtest/gtest.h>
 #include <limits>
 #include <frc/simulation/DriverStationSim.h>
@@ -194,12 +195,14 @@ TEST(MechanismSafety, DisconnectedFeedbackStopsAndCannotReportAtSetpoint) {
   joint.Periodic(); joint.SetPosition(.5);
   ASSERT_TRUE(joint.AtSetpoint());
   observed->inputs.connected=false; joint.Periodic();
+  base::telemetry::Flush();
   EXPECT_FALSE(frc::SmartDashboard::GetBoolean("DisconnectedFeedback/Connected",true));
   EXPECT_FALSE(joint.AtSetpoint());
   joint.SetVoltage(4); joint.Periodic();
   EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
   EXPECT_FALSE(joint.AtSetpoint());
   observed->inputs.connected=true; joint.Periodic();
+  base::telemetry::Flush();
   EXPECT_TRUE(frc::SmartDashboard::GetBoolean("DisconnectedFeedback/Connected",false));
   EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
   EXPECT_FALSE(joint.AtSetpoint());
