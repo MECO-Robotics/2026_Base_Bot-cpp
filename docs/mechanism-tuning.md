@@ -1,0 +1,17 @@
+# Optional mechanism model and dashboard tuning
+
+`ModelFeedforward::Motor` derives `v` and `a` from WPILib's `LinearSystemId::DCMotorSystem`. Inertia is at the output shaft; gearing is motor/output speed. The coordinate scale is one unit per rotation for rotary mechanisms, or drum circumference for metres. `Arm` adds horizontal-arm gravity amplitude (use `Gravity::Cosine` and an appropriate physical zero); `Elevator` adds constant gravity voltage and uses drum circumference. Elevator inertia must already include `mass * radius²`. `ApplyTo(existingGains)` preserves PID, friction, profiles and limits. Models assume ideal gearing and omit friction, compliance and efficiency losses; coefficients require validation against measured hardware.
+
+Instantiate `MechanismTuning tuning{joint};` only for mechanisms you intend to tune. It registers a subsystem that consumes one JSON string topic `/Tuning/<mechanism name>/Request`; `/Status` reports revision and acceptance/rejection via the low-priority snapshot worker. No per-gain aliases are created. The tuner and mechanism must outlive commands created from `tuning.TestCommand()`.
+
+A gain transaction requires the complete gain object and a strictly increasing positive unsigned revision:
+
+```json
+{"revision":1,"gains":{"p":1,"i":0,"d":0,"s":0,"v":0,"a":0,"gravity":0,"maxVelocity":1,"maxAcceleration":1,"tolerance":0.01,"minimum":0,"maximum":1,"defaultPosition":0}}
+```
+
+Gains apply atomically only while disabled and with no command owning the mechanism. Native Phoenix configuration can block, so enabled gain requests are rejected even for software control. A rejected revision is consumed; resending it later cannot unexpectedly apply it.
+
+Setpoints are separate transactions, e.g. `{"revision":2,"setpoint":0.5}`. They apply only while enabled in Test mode with the explicit `TestCommand` scheduled. That command requires the mechanism and stops it on interruption/end. Position setpoints must respect physical configured limits; flywheel setpoints must respect configured maximum velocity. Both gains and setpoints in one transaction cannot satisfy the mutually exclusive disabled/enabled requirements and are rejected. Requests outside the permitted state are discarded, never deferred until the next mode or command. A setpoint holds only for the active tuning command; no automatic button binding is installed.
+
+Raw queued request strings are recorded through replay input substitution; re-executed tuner decisions use the recorded Driver Station state. Replay does not construct an NT subscriber or publisher. Transaction status is recorded as output for comparison. This supports code traceability; it does not reproduce motor firmware internals.
