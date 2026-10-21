@@ -67,6 +67,16 @@ the pinned 26.1.2 library defaults to 250 Hz on CAN FD and 100 Hz on CAN 2.0,
 including the default `rio` bus. The framework does not establish a 250 Hz
 application control-loop latency guarantee.
 
+Scheduler callbacks must not wait for device acknowledgments or network packets.
+NetworkTables subscribers read local caches and queues; telemetry publication and
+log serialization use background workers. Real motor startup configuration runs
+before scheduling. Runtime gain and neutral-mode changes use an IO-owned worker,
+with output inhibited during configuration and a fresh command required afterward.
+Short snapshot/queue locks and ordinary control calculations remain on their owning
+threads; this is not a lock-free or hard real-time guarantee. User commands must
+follow the same rule: no sleeps, blocking device configuration, or file IO in
+`Initialize()`, `Execute()`, `End()`, or subsystem `Periodic()`.
+
 Mechanism reads are observational. A single simulation clock advances registered
 plants in five 4 ms substeps per 20 ms robot period, including current limiting,
 brake/coast drag, optional arm gravity, elevator load, and physical travel stops. Replay instead consumes caller-injected snapshots without
