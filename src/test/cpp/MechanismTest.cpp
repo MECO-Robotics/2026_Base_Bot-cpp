@@ -436,6 +436,8 @@ TEST(MechanismAdapter, NativeRequestFailureLatchesUntilDisabledReconfiguration) 
   EXPECT_EQ(observed->requests,2);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
+  // Drain this test's asynchronous snapshots before NT static teardown.
+  base::telemetry::Flush();
 }
 
 TEST(MechanismAdapter, NativeAndEmulatedSourcesRetainTheirReplayBoundary) {

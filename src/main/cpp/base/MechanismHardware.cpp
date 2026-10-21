@@ -1,4 +1,5 @@
 #include "base/Mechanism.h"
+#include "base/detail/SparkControl.h"
 #include "base/Replay.h"
 #include <algorithm>
 #include <numbers>
@@ -18,6 +19,15 @@
 
 namespace base
 {
+  namespace detail {
+    void ConfigureSparkGravity(rev::spark::FeedForwardConfig& settings, double volts,
+                               double scale, Gravity gravity, bool joint) {
+      // Each setter selects a mode and overwrites the shared gravity parameter.
+      // Clear the prior cosine ratio explicitly when returning to constant.
+      if (joint && gravity==Gravity::Cosine) settings.kCos(volts).kCosRatio(scale);
+      else settings.kG(joint && gravity==Gravity::Constant ? volts : 0).kCosRatio(0);
+    }
+  }
   namespace
   {
     class TalonMotorIO final : public MotorIO
@@ -222,9 +232,8 @@ namespace base
         // REV PID output is duty cycle. Nominal voltage compensation maps the
         // public voltage gains to duty gains; feedforward's API already uses volts.
         settings.closedLoop.Pid(gains.p*scale/12,gains.i*scale/12,gains.d*scale/12);
-        settings.closedLoop.feedForward.kS(gains.s).kV(gains.v*scale).kA(gains.a*scale)
-            .kG(joint && gravity==Gravity::Constant ? gains.gravity : 0)
-            .kCos(joint && gravity==Gravity::Cosine ? gains.gravity : 0).kCosRatio(scale);
+        settings.closedLoop.feedForward.kS(gains.s).kV(gains.v*scale).kA(gains.a*scale);
+        detail::ConfigureSparkGravity(settings.closedLoop.feedForward,gains.gravity,scale,gravity,joint);
         settings.closedLoop.maxMotion.CruiseVelocity(gains.maxVelocity/scale)
             .MaxAcceleration(gains.maxAcceleration/scale).AllowedProfileError(gains.tolerance/scale);
         settings.softLimit.ForwardSoftLimitEnabled(joint).ReverseSoftLimitEnabled(joint)

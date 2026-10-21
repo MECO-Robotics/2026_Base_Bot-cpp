@@ -1,4 +1,7 @@
 #include "base/Mechanism.h"
+#include "base/detail/SparkControl.h"
+#include <rev/SparkMax.h>
+#include <rev/config/SparkMaxConfig.h>
 #include <frc/simulation/DriverStationSim.h>
 #include <frc/simulation/SimDeviceSim.h>
 #include <hal/HAL.h>
@@ -29,4 +32,22 @@ TEST(SparkAdapter, DefaultRealAdapterUsesOnboardPhysicalSetpoints) {
   EXPECT_THROW(io->ConfigureControl({gains,.5,base::Gravity::Constant,true,false}),std::logic_error);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
+}
+
+TEST(SparkAdapter, GravityModeReconfigurationRetainsSelectedCompensation) {
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  rev::spark::SparkMax motor{52,rev::spark::SparkLowLevel::MotorType::kBrushless};
+  for(auto mode:{base::Gravity::Constant,base::Gravity::Cosine,base::Gravity::Constant}) {
+    rev::spark::SparkMaxConfig config;
+    base::detail::ConfigureSparkGravity(config.closedLoop.feedForward,1.75,.5,mode,true);
+    ASSERT_EQ(motor.Configure(config,rev::ResetMode::kNoResetSafeParameters,
+                              rev::PersistMode::kNoPersistParameters),rev::REVLibError::kOk);
+    auto& feedforward=motor.configAccessor.closedLoop.feedForward;
+    // Both accessors expose REV's shared gravity coefficient. A zero cosine
+    // ratio selects constant compensation; cosine mode selects the given scale.
+    EXPECT_NEAR(feedforward.getkG(),1.75,1e-6);
+    EXPECT_NEAR(feedforward.getkCosRatio(),mode==base::Gravity::Constant ? 0 : .5,1e-6);
+  }
 }
