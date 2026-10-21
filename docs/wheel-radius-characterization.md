@@ -11,8 +11,8 @@ Phoenix module distances divided by the configured radius to recover coupling-
 corrected wheel angles. Each module uses its own distance from the chassis origin.
 This supports asymmetric module locations and avoids accumulating absolute gyro
 noise. It does not change configuration. Traction, geometry, gearing, and gyro
-accuracy still affect physical results; use repeated clockwise/counterclockwise
-runs and inspect module agreement before choosing a measured radius.
+accuracy still affect physical results; repeat runs and inspect module agreement
+before choosing a measured radius. This command rotates counterclockwise only.
 
 A result is valid only after at least 2π net heading change, with fresh healthy
 feedback and nonzero wheel travel. Module radius spread over 20%, implausible

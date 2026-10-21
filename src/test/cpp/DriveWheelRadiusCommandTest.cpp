@@ -34,8 +34,9 @@ TEST(DriveWheelRadiusCommand, OwnsDriveStopsOnInterruptionAndReplaysFeedbackFail
     base::replay::RunReplay([]{},[&]{
       const auto frame=base::replay::FrameIndex();
       if(frame<3) {
-        if(frame==0)command.get()->Initialize();
+        if(frame==0){drive.RunVelocity(frc::ChassisSpeeds{units::meters_per_second_t{0},units::meters_per_second_t{0},units::radians_per_second_t{.2}});command.get()->Initialize();EXPECT_DOUBLE_EQ(drive.RequestedSpeeds().omega.value(),0);}
         command.get()->Execute();
+        if(frame==1)EXPECT_GT(drive.RequestedSpeeds().omega.value(),0);
         if(frame==2){command.get()->End(true);EXPECT_DOUBLE_EQ(drive.RequestedSpeeds().omega.value(),0);}
       } else {
         if(frame==3)failing.get()->Initialize();
