@@ -135,5 +135,20 @@ void DrivePhysics::Reset(Pose pose) {
   BodyState state;state.pose=pose;world_.SetBodyState(body_,state);
   modules_={};voltages_={};time_=0;
 }
+double DrivePhysics::SupplyCurrent(double busVoltage) const {
+  if (!std::isfinite(busVoltage) || busVoltage < 0) throw std::invalid_argument("Invalid bus voltage");
+  if (busVoltage == 0) return 0;
+  double power = 0;
+  for (size_t i=0; i<modules_.size(); ++i) {
+    const auto &m=modules_[i];
+    // Restore the configured friction drop removed before the electrical solve.
+    // Current limiting can still reduce terminal voltage below the request.
+    const double driveV = m.driveCurrent * config_.motorResistance + m.driveRotorVelocity / config_.motorKv + std::copysign(config_.frictionVoltage, voltages_[i][0]);
+    const double steerV = m.steerCurrent * config_.motorResistance + m.steerRotorVelocity / config_.motorKv + std::copysign(config_.frictionVoltage, voltages_[i][1]);
+    power += std::max(0., std::clamp(driveV, -std::abs(voltages_[i][0]), std::abs(voltages_[i][0])) * m.driveCurrent)
+           + std::max(0., std::clamp(steerV, -std::abs(voltages_[i][1]), std::abs(voltages_[i][1])) * m.steerCurrent);
+  }
+  return power / busVoltage;
+}
 DriveTruth DrivePhysics::Truth() const {return {world_.ReadBody(body_),modules_,time_};}
 } // namespace base::sim

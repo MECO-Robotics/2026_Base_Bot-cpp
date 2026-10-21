@@ -355,6 +355,11 @@ Registration SimulationClock::Register(PlantCallbacks c) {
       r->callbacks.erase(id);
   });
 }
+void SimulationClock::SetBusVoltage(double voltage) {
+  if (!std::isfinite(voltage) || voltage < 0 || voltage > 16)
+    throw std::invalid_argument("Simulation bus voltage must be in [0,16]");
+  busVoltage_ = voltage;
+}
 void SimulationClock::StepRobotPeriod() {
   using Clock = std::chrono::steady_clock;
   for (int i = 0; i < 5; ++i) {
@@ -386,11 +391,26 @@ void SimulationClock::StepRobotPeriod() {
     if (t > .004)
       ++timing_.deadlineMisses;
   }
+  supplyCurrent_ = 0;
+  std::vector<uint64_t> powerIds;
+  for (auto &[id, c] : registry_->callbacks) powerIds.push_back(id);
+  for (auto id : powerIds) {
+    if (auto it = registry_->callbacks.find(id); it != registry_->callbacks.end()) {
+      auto callback = it->second.supplyCurrent;
+      if (callback) {
+        const double current = callback();
+        if (!std::isfinite(current) || current < 0)
+          throw std::runtime_error("Invalid simulated supply current");
+        supplyCurrent_ += current;
+      }
+    }
+  }
 }
 void SimulationClock::Reset() {
   if (world_)
     world_->Reset();
   time_ = 0;
+  supplyCurrent_ = 0; busVoltage_ = 12;
   timing_ = {};
   std::vector<uint64_t> ids;
   for (auto &[id, c] : registry_->callbacks)

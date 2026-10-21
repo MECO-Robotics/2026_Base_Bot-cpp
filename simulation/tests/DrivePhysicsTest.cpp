@@ -95,5 +95,35 @@ int main() {
     for(size_t i=0;i<4;++i)d.SetModuleVoltages(i,3,0);
     Step(w,d,150);auto after=d.Truth();Check(after.body.pose.position.x>before.body.pose.position.x+.1);
   }
+  {
+    SimulationWorld w(Backend::Planar);
+    DrivePhysicsConfig c; c.driveCurrentLimit=1000; c.steerCurrentLimit=1000; c.frictionVoltage=1;
+    DrivePhysics d(w,c);
+    for(size_t i=0;i<4;++i)d.SetModuleVoltages(i,6,0);
+    d.BeforePhysics(.004);
+    double winding=0;
+    for(const auto &m:d.Truth().modules) winding+=m.driveCurrent;
+    Check(winding>0 && std::abs(d.SupplyCurrent(12)-6*winding/12)<1e-9);
+    for(size_t i=0;i<4;++i)d.SetModuleVoltages(i,-6,0);
+    d.BeforePhysics(.004);
+    winding=0;
+    for(const auto &m:d.Truth().modules) winding+=m.driveCurrent;
+    Check(winding<0 && std::abs(d.SupplyCurrent(12)+6*winding/12)<1e-9);
+    for(size_t i=0;i<4;++i)d.SetModuleVoltages(i,0,0);
+    d.BeforePhysics(.004);
+    Check(d.SupplyCurrent(12)==0 && d.SupplyCurrent(0)==0);
+  }
+
+  {
+    SimulationWorld w(Backend::Planar);
+    DrivePhysicsConfig c; c.driveCurrentLimit=10; c.frictionVoltage=0; c.wheelInertia=1e9;
+    DrivePhysics d(w,c);
+    for(double command : {6.,-6.}) {
+      for(size_t i=0;i<4;++i)d.SetModuleVoltages(i,command,0);
+      d.BeforePhysics(.004);
+      const double expected=4*10*10*c.motorResistance/12;
+      Check(std::abs(d.SupplyCurrent(12)-expected)<1e-8);
+    }
+  }
   std::cout<<"Drivetrain physics contracts passed\n";
 }

@@ -110,8 +110,33 @@ TEST(MotorSimulation, HeldTravelStopReportsStallCurrent) {
   io->StepSimulation(units::second_t{.02});
   EXPECT_DOUBLE_EQ(io->Read().position,0);
   EXPECT_DOUBLE_EQ(io->Read().velocity,0);
-  EXPECT_NEAR(io->Read().current,40,1e-9);
+  EXPECT_NEAR(io->Read().current,(12./105)*40*40/12,1e-9);
+  // Current is battery-side: winding limiting lowers terminal voltage at stall.
+  EXPECT_NEAR(io->Read().voltage,(12./105)*40,1e-9);
   io->SetBrake(false); io->SetVoltage(0);
   io->StepSimulation(units::second_t{.02});
   EXPECT_DOUBLE_EQ(io->Read().current,0);
+}
+
+TEST(MotorSimulation, RuntimeBusClampsPartialVoltageAndRecovers) {
+  auto &clock=base::sim::GetSimulationRuntime();
+  clock.Reset();
+  base::MotorSimulationConfig model; model.maximum=units::radian_t{0};
+  auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
+                          base::MotorConfig{{1},{false},1,1000,""},model);
+  io->SetVoltage(6);
+  clock.SetBusVoltage(4);
+  clock.StepRobotPeriod();
+  EXPECT_DOUBLE_EQ(io->Read().supplyVoltage,4);
+  EXPECT_DOUBLE_EQ(io->Read().voltage,4);
+  EXPECT_NEAR(io->Read().current,4/(12./105),1e-9);
+  EXPECT_NEAR(clock.SupplyCurrent(),io->Read().current,1e-9);
+  clock.SetBusVoltage(12);
+  clock.StepRobotPeriod();
+  EXPECT_DOUBLE_EQ(io->Read().voltage,6);
+  EXPECT_NEAR(io->Read().current,6*6/(12./105)/12,1e-9);
+  io->SetVoltage(0);
+  clock.StepRobotPeriod();
+  EXPECT_DOUBLE_EQ(clock.SupplyCurrent(),0);
+  io.reset(); clock.Reset();
 }

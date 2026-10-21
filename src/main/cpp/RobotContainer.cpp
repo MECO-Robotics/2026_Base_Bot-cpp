@@ -19,6 +19,7 @@
 #include <frc/geometry/Pose3d.h>
 #include <frc/geometry/Transform3d.h>
 #include <iostream>
+#include <frc/simulation/RoboRioSim.h>
 #include <frc/geometry/struct/Pose3dStruct.h>
 #endif
 using namespace units::literals;
@@ -98,6 +99,7 @@ RobotContainer::RobotContainer()
     arena_->SetIntake(intake);
     controller_.Y().OnTrue(frc2::cmd::RunOnce([this, practicePose] {
       base::sim::GetSimulationRuntime().Reset();
+      frc::sim::RoboRioSim::SetVInVoltage(12_V);
       drive_.ResetSimulation(practicePose);
     }, {&drive_}).IgnoringDisable(true));
     controller_.LeftBumper().WhileTrue(frc2::cmd::RunEnd(
@@ -142,6 +144,7 @@ void RobotContainer::PublishSimulation()
   auto &clock=base::sim::GetSimulationRuntime();
   const auto timestamp=frc::RobotController::GetFPGATime();
   const auto time=clock.Time();
+  const double bus=clock.BusVoltage(), supplyCurrent=clock.SupplyCurrent();
   const auto timing=clock.Timing();
   const std::string backend=!clock.World()?"phoenix":clock.World()->Mode()==base::sim::Backend::Planar?"jolt-planar":"jolt-3d";
   const auto truth=drive_.SimulationTruth();
@@ -150,10 +153,12 @@ void RobotContainer::PublishSimulation()
   const bool intakeActive=arena_&&arena_->IntakeActive();
   const char *token=std::getenv("FRC_SIM_RUN_TOKEN");
   const std::string runToken=token?token:"";
-  base::telemetry::Post("Simulation",[timestamp,time,timing,backend,truth,pieceStates,held,intakeActive,runToken] {
+  base::telemetry::Post("Simulation",[timestamp,time,timing,backend,truth,pieceStates,held,intakeActive,runToken,bus,supplyCurrent] {
   auto table = nt::NetworkTableInstance::GetDefault().GetTable("Simulation");
   if (!runToken.empty()) table->GetEntry("RunToken").SetString(runToken, timestamp);
   table->GetEntry("Time").SetDouble(time, timestamp);
+  table->GetEntry("BatteryVoltage").SetDouble(bus, timestamp);
+  table->GetEntry("SupplyCurrent").SetDouble(supplyCurrent, timestamp);
   table->GetEntry("StepSeconds").SetDouble(timing.seconds, timestamp);
   table->GetEntry("MaximumStepSeconds").SetDouble(timing.maximumSeconds, timestamp);
   table->GetEntry("DeadlineMisses").SetDouble(timing.deadlineMisses, timestamp);

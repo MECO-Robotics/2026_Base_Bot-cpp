@@ -11,6 +11,21 @@ void Check(bool ok, std::source_location where = std::source_location::current()
     throw std::runtime_error("World contract failed at line " + std::to_string(where.line()));
 }
 int main() {
+  {
+    SimulationClock clock;
+    int steps = 0, samples = 0;
+    auto plant = clock.Register({[&](double) { ++steps; }, {}, {}, [&] { ++samples; return 30.; }});
+    clock.SetBusVoltage(9);
+    clock.StepRobotPeriod();
+    Check(steps == 5 && samples == 1 && clock.SupplyCurrent() == 30);
+    Check(clock.SupplyCurrent() == 30 && samples == 1 && clock.BusVoltage() == 9);
+    plant = {};
+    clock.StepRobotPeriod();
+    Check(clock.SupplyCurrent() == 0 && samples == 1);
+    clock.Reset();
+    Check(clock.BusVoltage() == 12 && clock.SupplyCurrent() == 0);
+  }
+
   // Normal practice is 3D; explicit planar automation remains available.
   for (const char *value : {static_cast<const char *>(nullptr), "", "jolt-planar"}) {
 #ifdef _WIN32

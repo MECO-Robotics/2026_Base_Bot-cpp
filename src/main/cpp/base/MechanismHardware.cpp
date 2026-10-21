@@ -221,14 +221,15 @@ namespace base
           inertia_ += model_.mass.value() * std::pow(model_.drumRadius.value(), 2);
 #ifndef __FRC_ROBORIO__
         registration_ = sim::GetSimulationRuntime().Register({
-            [this](double dt) { StepSimulation(units::second_t{dt}); }, {},
-            [this] { position_ = model_.initialPosition.value(); velocity_ = voltage_ = current_ = 0; }});
+            [this](double dt) { busVoltage_ = sim::GetSimulationRuntime().BusVoltage(); StepSimulation(units::second_t{dt}); }, {},
+            [this] { position_ = model_.initialPosition.value(); velocity_ = voltage_ = requestedVoltage_ = current_ = 0; busVoltage_ = 12; },
+            [this] { return SupplyCurrent(); }});
 #endif
       }
       MotorInputs Read() override
       {
-        return {position_ / (2 * std::numbers::pi), velocity_ / (2 * std::numbers::pi), voltage_, 12,
-                std::abs(current_) * config_.ids.size(), true};
+        return {position_ / (2 * std::numbers::pi), velocity_ / (2 * std::numbers::pi), voltage_, busVoltage_,
+                SupplyCurrent(), true};
       }
       void StepSimulation(units::second_t duration) override
       {
@@ -243,13 +244,18 @@ namespace base
       void SetVoltage(double volts) override
       {
         if (!std::isfinite(volts)) throw std::invalid_argument("Nonfinite simulated motor voltage");
-        voltage_ = std::clamp(volts, -12., 12.);
+        requestedVoltage_ = volts;
       }
       void SetBrake(bool enabled) override { brake_ = enabled; }
 
     private:
+      double SupplyCurrent() const
+      {
+        return busVoltage_ > 0 ? std::max(0., voltage_ * current_) * config_.ids.size() / busVoltage_ : 0;
+      }
       void Advance(double dt)
       {
+        voltage_ = std::clamp(requestedVoltage_, -busVoltage_, busVoltage_);
         const double drag = .0001 / inertia_;
         const double torque = kt_ * config_.ids.size() * config_.gearRatio / inertia_;
         const double emf = config_.gearRatio / kv_;
@@ -325,10 +331,11 @@ namespace base
         // powered motor held against a stop draws stall/current-limited current.
         current_ = !brake_ && std::abs(voltage_) < 1e-9 ? 0 :
             std::clamp((voltage_ - emf * velocity_) / resistance_, -limit, limit);
+        voltage_ = std::clamp(resistance_ * current_ + emf * velocity_, -std::abs(voltage_), std::abs(voltage_));
       }
       MotorConfig config_;
       MotorSimulationConfig model_;
-      double inertia_, resistance_, kt_, kv_, position_, velocity_ = 0, voltage_ = 0, current_ = 0;
+      double inertia_, resistance_, kt_, kv_, position_, velocity_ = 0, voltage_ = 0, current_ = 0, requestedVoltage_ = 0, busVoltage_ = 12;
       bool brake_ = true;
 #ifndef __FRC_ROBORIO__
       // Destroy registration before any captured state.

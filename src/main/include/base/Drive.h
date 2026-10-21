@@ -96,6 +96,8 @@ class Drive : public frc2::SubsystemBase {
 #ifndef __FRC_ROBORIO__
   struct Simulation;
   std::unique_ptr<Simulation> simulation_;
+  double diagnosticSupplyCurrent_{};
+  sim::Registration diagnosticPowerRegistration_;
 #endif
 };
 }

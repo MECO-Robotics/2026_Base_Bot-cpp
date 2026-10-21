@@ -42,6 +42,7 @@ public:
   void AfterPhysics(double seconds);
   void Reset(Pose pose); // Clears wheel motion and body velocities.
   DriveTruth Truth() const;
+  double SupplyCurrent(double busVoltage) const;
   BodyHandle Body() const { return body_; }
   const DrivePhysicsConfig &Config() const { return config_; }
 private:

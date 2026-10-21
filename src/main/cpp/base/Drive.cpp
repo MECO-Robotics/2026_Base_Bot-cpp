@@ -135,12 +135,14 @@ namespace base
       registration=sim::GetSimulationRuntime().Register({
         [this](double dt) {ReadVoltages();physics.BeforePhysics(dt);},
         [this](double dt) {physics.AfterPhysics(dt);WriteSensors();},
-        [this] {Reset(frc::Pose2d{});}});
+        [this] {Reset(frc::Pose2d{});},
+        [this] {return physics.SupplyCurrent(sim::GetSimulationRuntime().BusVoltage());}});
     }
     void ReadVoltages() {
       for(size_t i=0;i<4;++i) {
         auto& module=owner.native_->GetModule(i);
-        physics.SetModuleVoltages(i,module.GetDriveMotor().GetSimState().GetMotorVoltage().value(),module.GetSteerMotor().GetSimState().GetMotorVoltage().value());
+        const double bus=sim::GetSimulationRuntime().BusVoltage();
+        physics.SetModuleVoltages(i,std::clamp(module.GetDriveMotor().GetSimState().GetMotorVoltage().value(),-bus,bus),std::clamp(module.GetSteerMotor().GetSimState().GetMotorVoltage().value(),-bus,bus));
       }
     }
     void WriteSensors() {
@@ -256,6 +258,8 @@ namespace base
 #ifndef __FRC_ROBORIO__
     if(frc::RobotBase::IsSimulation() && sim::GetSimulationRuntime().World())
       simulation_=std::make_unique<Simulation>(*this);
+    else if(frc::RobotBase::IsSimulation())
+      diagnosticPowerRegistration_=sim::GetSimulationRuntime().Register({{},{},[this]{diagnosticSupplyCurrent_=0;},[this]{return diagnosticSupplyCurrent_;}});
 #endif
     SetName("Drive");
 
@@ -306,6 +310,15 @@ namespace base
     if(simulation_) return; // The single world clock owns all Jolt stepping.
 #endif
     native_->UpdateSimState(.02_s, frc::RobotController::GetBatteryVoltage());
+#ifndef __FRC_ROBORIO__
+    // Phoenix status signals are asynchronously cached; diagnostic power is an estimate.
+    diagnosticSupplyCurrent_=0;
+    for(size_t i=0;i<4;++i) {
+      auto &module=native_->GetModule(i);
+      diagnosticSupplyCurrent_+=std::max(0.,module.GetDriveMotor().GetSupplyCurrent().GetValue().value())
+                               +std::max(0.,module.GetSteerMotor().GetSupplyCurrent().GetValue().value());
+    }
+#endif
   }
 #ifndef __FRC_ROBORIO__
   std::optional<sim::DriveTruth> Drive::SimulationTruth() const {

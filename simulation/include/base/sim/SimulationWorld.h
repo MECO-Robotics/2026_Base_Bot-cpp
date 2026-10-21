@@ -55,6 +55,8 @@ struct PlantCallbacks {
   std::function<void(double)> beforePhysics;
   std::function<void(double)> afterPhysics;
   std::function<void()> reset;
+  // Nonnegative battery-side amperes, sampled once after a robot period.
+  std::function<double()> supplyCurrent{};
 };
 // A registration can outlive its clock. Destroy it before callback captures
 // die.
@@ -111,6 +113,9 @@ public:
   void StepRobotPeriod(); // exactly five 4 ms steps, before -> world -> after
   void Reset();
   double Time() const { return time_; }
+  double SupplyCurrent() const { return supplyCurrent_; }
+  double BusVoltage() const { return busVoltage_; }
+  void SetBusVoltage(double);
   const StepTiming &Timing() const { return timing_; }
   SimulationWorld *World() { return world_.get(); }
 
@@ -119,6 +124,7 @@ private:
   std::shared_ptr<Registry> registry_;
   std::unique_ptr<SimulationWorld> world_;
   double time_{};
+  double supplyCurrent_{}, busVoltage_{12};
   StepTiming timing_{};
 };
 SimulationClock &GetSimulationRuntime();

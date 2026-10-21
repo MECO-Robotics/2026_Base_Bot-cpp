@@ -7,6 +7,8 @@
 #include <frc2/command/CommandScheduler.h>
 #ifndef __FRC_ROBORIO__
 #include "base/sim/SimulationWorld.h"
+#include <frc/simulation/BatterySim.h>
+#include <frc/simulation/RoboRioSim.h>
 #endif
 Robot::Robot() : replayInitialized_((base::replay::InitializeFromEnvironment(),true))
 {
@@ -55,7 +57,11 @@ void Robot::SimulationPeriodic()
   if(base::replay::Active())return;
 #ifndef __FRC_ROBORIO__
   // This is the sole owner of plant time. Subsystem reads never advance physics.
-  base::sim::GetSimulationRuntime().StepRobotPeriod();
+  auto &clock = base::sim::GetSimulationRuntime();
+  clock.StepRobotPeriod();
+  const auto voltage = frc::sim::BatterySim::Calculate({units::ampere_t{clock.SupplyCurrent()}});
+  clock.SetBusVoltage(voltage.value());
+  frc::sim::RoboRioSim::SetVInVoltage(voltage);
   container_.PublishSimulation();
 #endif
 }
