@@ -31,5 +31,6 @@ class PhotonPieceDetection : public frc2::SubsystemBase {
   Source source_;
   std::unique_ptr<photon::PhotonCamera> camera_;
   std::optional<frc::Translation3d> target_;
+  std::optional<PieceRay> lastRay_;
 };
 }
