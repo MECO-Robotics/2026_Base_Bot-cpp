@@ -1,10 +1,11 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include <cmath>
 #include <numbers>
 #include <gtest/gtest.h>
 #include "base/sim/SimulationWorld.h"
 
-TEST(MotorSimulation, HighReductionConvergesWithoutNumericalReversal) {
+static void Case_MotorSimulationTest_MotorSimulation_HighReductionConvergesWithoutNumericalReversal() {
   // No-load NEO speed at 4 V, including the model's output viscous drag.
   constexpr double ratio=200, inertia=.025, voltage=4;
   constexpr double resistance=12./105, kt=2.6/105;
@@ -33,7 +34,7 @@ TEST(MotorSimulation, HighReductionConvergesWithoutNumericalReversal) {
   EXPECT_LT(std::abs(io->Read().velocity),coastSpeed*.01);
 }
 
-TEST(MotorSimulation, CurrentLimitBoundsStartupAcceleration) {
+static void Case_MotorSimulationTest_MotorSimulation_CurrentLimitBoundsStartupAcceleration() {
   constexpr double inertia=.025, ratio=2, kt=2.6/105;
   auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
                           base::MotorConfig{{1,2},{false,true},ratio,10,""},inertia);
@@ -47,7 +48,7 @@ TEST(MotorSimulation, CurrentLimitBoundsStartupAcceleration) {
   EXPECT_LE(state.current,20+1e-9);
 }
 
-TEST(MotorSimulation, ReadsDoNotAdvanceAndRuntimeOwnsLifetime) {
+static void Case_MotorSimulationTest_MotorSimulation_ReadsDoNotAdvanceAndRuntimeOwnsLifetime() {
   auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
                           base::MotorConfig{{1},{false},2,40,""});
   io->SetVoltage(4);
@@ -61,7 +62,7 @@ TEST(MotorSimulation, ReadsDoNotAdvanceAndRuntimeOwnsLifetime) {
   EXPECT_NO_THROW(base::sim::GetSimulationRuntime().StepRobotPeriod());
 }
 
-TEST(MotorSimulation, GravityAndTravelStopsAllowMotionAway) {
+static void Case_MotorSimulationTest_MotorSimulation_GravityAndTravelStopsAllowMotionAway() {
   const base::MotorConfig motor{{1},{false},1,40,""};
   base::MotorSimulationConfig arm;
   arm.load=base::MotorSimulationConfig::Load::Arm;
@@ -90,7 +91,7 @@ TEST(MotorSimulation, GravityAndTravelStopsAllowMotionAway) {
   EXPECT_NEAR(lift->Read().velocity*2*std::numbers::pi,expected,1e-10);
 }
 
-TEST(MotorSimulation, RejectsInvalidConfigurationAndTime) {
+static void Case_MotorSimulationTest_MotorSimulation_RejectsInvalidConfigurationAndTime() {
   const base::MotorConfig motor{{1},{false},1,40,""};
   base::MotorSimulationConfig invalid;
   invalid.load=base::MotorSimulationConfig::Load::Arm;
@@ -101,7 +102,7 @@ TEST(MotorSimulation, RejectsInvalidConfigurationAndTime) {
   EXPECT_THROW(io->SetVoltage(NAN),std::invalid_argument);
 }
 
-TEST(MotorSimulation, HeldTravelStopReportsStallCurrent) {
+static void Case_MotorSimulationTest_MotorSimulation_HeldTravelStopReportsStallCurrent() {
   base::MotorSimulationConfig model;
   model.maximum=units::radian_t{0};
   auto io=base::MakeMotorIO(base::Mode::Sim,base::Vendor::SparkMax,
@@ -118,7 +119,7 @@ TEST(MotorSimulation, HeldTravelStopReportsStallCurrent) {
   EXPECT_DOUBLE_EQ(io->Read().current,0);
 }
 
-TEST(MotorSimulation, RuntimeBusClampsPartialVoltageAndRecovers) {
+static void Case_MotorSimulationTest_MotorSimulation_RuntimeBusClampsPartialVoltageAndRecovers() {
   auto &clock=base::sim::GetSimulationRuntime();
   clock.Reset();
   base::MotorSimulationConfig model; model.maximum=units::radian_t{0};
@@ -139,4 +140,14 @@ TEST(MotorSimulation, RuntimeBusClampsPartialVoltageAndRecovers) {
   clock.StepRobotPeriod();
   EXPECT_DOUBLE_EQ(clock.SupplyCurrent(),0);
   io.reset(); clock.Reset();
+}
+
+void Run_MotorSimulationTest() {
+  frc_test::RunScenario("MotorSimulation.HighReductionConvergesWithoutNumericalReversal", Case_MotorSimulationTest_MotorSimulation_HighReductionConvergesWithoutNumericalReversal);
+  frc_test::RunScenario("MotorSimulation.CurrentLimitBoundsStartupAcceleration", Case_MotorSimulationTest_MotorSimulation_CurrentLimitBoundsStartupAcceleration);
+  frc_test::RunScenario("MotorSimulation.ReadsDoNotAdvanceAndRuntimeOwnsLifetime", Case_MotorSimulationTest_MotorSimulation_ReadsDoNotAdvanceAndRuntimeOwnsLifetime);
+  frc_test::RunScenario("MotorSimulation.GravityAndTravelStopsAllowMotionAway", Case_MotorSimulationTest_MotorSimulation_GravityAndTravelStopsAllowMotionAway);
+  frc_test::RunScenario("MotorSimulation.RejectsInvalidConfigurationAndTime", Case_MotorSimulationTest_MotorSimulation_RejectsInvalidConfigurationAndTime);
+  frc_test::RunScenario("MotorSimulation.HeldTravelStopReportsStallCurrent", Case_MotorSimulationTest_MotorSimulation_HeldTravelStopReportsStallCurrent);
+  frc_test::RunScenario("MotorSimulation.RuntimeBusClampsPartialVoltageAndRecovers", Case_MotorSimulationTest_MotorSimulation_RuntimeBusClampsPartialVoltageAndRecovers);
 }

@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/MechanismTuning.h"
 #include "base/Replay.h"
 #include "base/Telemetry.h"
@@ -20,7 +21,7 @@ void TuningEnv(const char* key,const std::string& value) {
 }
 std::string TuningSaved(const char* key) { auto value=std::getenv(key); return value?value:""; }
 }
-TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState) {
+static void Case_MechanismTuningReplayTest_MechanismTuningReplay_ReexecutesRawTransactionsAgainstRecordedEnableState() {
   if(std::getenv("FRC_TUNING_REPLAY_CHILD")) {
     base::replay::InitializeFromEnvironment();
     auto io=std::make_unique<base::InjectedMotorIO>();
@@ -82,7 +83,7 @@ TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState)
   TuningEnv("FRC_REPLAY_LOG",input.string()); TuningEnv("FRC_REPLAY_OUTPUT",output.string());
   TuningEnv("FRC_TUNING_REPLAY_CHILD","1");
   int result=std::system(("\""+::testing::internal::GetArgvs().at(0)+
-    "\" --gtest_filter=MechanismTuningReplay.ReexecutesRawTransactionsAgainstRecordedEnableState").c_str());
+    "\" --gtest_filter=Consolidated.MechanismControlAndTuning").c_str());
   TuningEnv("FRC_REPLAY_LOG",oldIn); TuningEnv("FRC_REPLAY_OUTPUT",oldOut); TuningEnv("FRC_TUNING_REPLAY_CHILD","");
   ASSERT_EQ(result,0);
   auto buffer=wpi::MemoryBuffer::GetFile(output.string()); ASSERT_TRUE(buffer);
@@ -100,4 +101,8 @@ TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState)
     ++frames;
   }
   EXPECT_EQ(frames,3); std::filesystem::remove_all(dir);
+}
+
+void Run_MechanismTuningReplayTest() {
+  frc_test::RunScenario("MechanismTuningReplay.ReexecutesRawTransactionsAgainstRecordedEnableState", Case_MechanismTuningReplayTest_MechanismTuningReplay_ReexecutesRawTransactionsAgainstRecordedEnableState);
 }

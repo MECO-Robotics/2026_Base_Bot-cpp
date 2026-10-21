@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/PortableSwerve.h"
 #include "base/Drive.h"
 #include <frc/RobotController.h>
@@ -26,7 +27,7 @@ struct Rig {
   Rig(){for(size_t i=0;i<4;++i){auto module=std::make_unique<Module>();modules[i]=module.get();io.modules[i]=std::move(module);}auto device=std::make_unique<Gyro>();gyro=device.get();io.gyro=std::move(device);}
 };
 }
-TEST(PortableSwerve, EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests) {
+static void Case_PortableSwerveTest_PortableSwerve_EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests() {
   HAL_Initialize(500,0);base::DriveConfig c;c.backend=base::DriveBackend::SparkMaxNavX;Rig rig;
   base::PortableSwerve drive(c,std::move(rig.io),false);
   const double now=frc::RobotController::GetFPGATime()*1e-6;
@@ -47,7 +48,7 @@ TEST(PortableSwerve, EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests)
   EXPECT_THROW(drive.Velocity({units::meters_per_second_t{0},units::meters_per_second_t{0},units::radians_per_second_t{std::numeric_limits<double>::quiet_NaN()}}),std::invalid_argument);
   drive.Sample(now+.06,true);EXPECT_TRUE(rig.modules[0]->stopped);
 }
-TEST(PortableSwerve, WheelForceAddsOnlyProjectedTorqueVoltage) {
+static void Case_PortableSwerveTest_PortableSwerve_WheelForceAddsOnlyProjectedTorqueVoltage() {
   HAL_Initialize(500,0);base::DriveConfig c;c.backend=base::DriveBackend::SparkMaxNavX;Rig rig;base::PortableSwerve drive(c,std::move(rig.io),false);
   drive.Sample(frc::RobotController::GetFPGATime()*1e-6,true);
   drive.Velocity({units::meters_per_second_t{2},units::meters_per_second_t{0},units::radians_per_second_t{0}},{10,10,10,10},{20,20,20,20});
@@ -59,7 +60,7 @@ TEST(PortableSwerve, WheelForceAddsOnlyProjectedTorqueVoltage) {
   EXPECT_THROW(drive.Velocity({units::meters_per_second_t{1},units::meters_per_second_t{1},units::radians_per_second_t{0}},huge,huge),std::invalid_argument);
 }
 
-TEST(PortableSwerve, ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration) {
+static void Case_PortableSwerveTest_PortableSwerve_ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration() {
   base::DriveConfig config;config.backend=base::DriveBackend::SparkMaxNavX;
   for(auto& module:config.modules)module.encoder=0;
   config.pigeon=-1;EXPECT_NO_THROW(config.Validate());
@@ -77,7 +78,7 @@ TEST(PortableSwerve, ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibra
   EXPECT_NO_THROW(config.Validate());
 }
 
-TEST(PortableSwerve, BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset) {
+static void Case_PortableSwerveTest_PortableSwerve_BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset() {
   HAL_Initialize(500,0);base::DriveConfig config;config.backend=base::DriveBackend::SparkMaxNavX;
   Rig rig;base::PortableSwerve drive(config,std::move(rig.io),false);
   const double now=frc::RobotController::GetFPGATime()*1e-6;
@@ -100,7 +101,7 @@ TEST(PortableSwerve, BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset)
   drive.Sample(now+.01,true);EXPECT_FALSE(rig.modules[0]->stopped);
 }
 
-TEST(PortableSwerve, InjectedDriveAcquiresAndExecutesThroughPublicPeriodic) {
+static void Case_PortableSwerveTest_PortableSwerve_InjectedDriveAcquiresAndExecutesThroughPublicPeriodic() {
   HAL_Initialize(500,0);
   frc::sim::DriverStationSim::SetDsAttached(true);
   frc::sim::DriverStationSim::SetEStop(false);
@@ -129,4 +130,12 @@ TEST(PortableSwerve, InjectedDriveAcquiresAndExecutesThroughPublicPeriodic) {
     drive.Periodic();
     for(auto* module:rig.modules)EXPECT_TRUE(module->stopped);
   }
+}
+
+void Run_PortableSwerveTest() {
+  frc_test::RunScenario("PortableSwerve.EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests", Case_PortableSwerveTest_PortableSwerve_EstimatorResetAndFailStopRecoveryUseFreshInputsAndRequests);
+  frc_test::RunScenario("PortableSwerve.WheelForceAddsOnlyProjectedTorqueVoltage", Case_PortableSwerveTest_PortableSwerve_WheelForceAddsOnlyProjectedTorqueVoltage);
+  frc_test::RunScenario("PortableSwerve.ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration", Case_PortableSwerveTest_PortableSwerve_ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration);
+  frc_test::RunScenario("PortableSwerve.BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset", Case_PortableSwerveTest_PortableSwerve_BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset);
+  frc_test::RunScenario("PortableSwerve.InjectedDriveAcquiresAndExecutesThroughPublicPeriodic", Case_PortableSwerveTest_PortableSwerve_InjectedDriveAcquiresAndExecutesThroughPublicPeriodic);
 }

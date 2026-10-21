@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/FrameRecorder.h"
 #include <gtest/gtest.h>
 #include <chrono>
@@ -5,7 +6,7 @@
 #include <stdexcept>
 #include <thread>
 #include <vector>
-TEST(FrameRecorder, SlowSinkPreservesSnapshotsInOrderAndReportsOverflow) {
+static void Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrderAndReportsOverflow() {
   std::promise<void> entered,release;
   auto released=release.get_future().share();
   std::vector<int> values;std::vector<int64_t> timestamps;
@@ -35,7 +36,7 @@ TEST(FrameRecorder, SlowSinkPreservesSnapshotsInOrderAndReportsOverflow) {
   const auto stats=recorder.Statistics();
   EXPECT_EQ(stats.written,3u);EXPECT_EQ(stats.rejected,2u);EXPECT_EQ(stats.failed,0u);
 }
-TEST(FrameRecorder, SerializationFailureInvalidatesRecordingWithoutEscapingWorker) {
+static void Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidatesRecordingWithoutEscapingWorker() {
   int faults=0;
   base::FrameRecorder recorder([](auto,int64_t){throw std::runtime_error("disk adapter failure");},
       [&](auto stats){EXPECT_EQ(stats.failed,1u);++faults;});
@@ -43,4 +44,9 @@ TEST(FrameRecorder, SerializationFailureInvalidatesRecordingWithoutEscapingWorke
   recorder.Flush();
   EXPECT_EQ(faults,1);EXPECT_EQ(recorder.Statistics().failed,1u);
   EXPECT_FALSE(recorder.Submit({{"value",2}},200));
+}
+
+void Run_FrameRecorderTest() {
+  frc_test::RunScenario("FrameRecorder.SlowSinkPreservesSnapshotsInOrderAndReportsOverflow", Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrderAndReportsOverflow);
+  frc_test::RunScenario("FrameRecorder.SerializationFailureInvalidatesRecordingWithoutEscapingWorker", Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidatesRecordingWithoutEscapingWorker);
 }

@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Replay.h"
 #include "base/Drive.h"
 #include "base/Mechanism.h"
@@ -30,7 +31,7 @@ std::string Saved(const char *key){auto v=std::getenv(key);return v?v:"";}
 }
 // Isolate the global robot runtime in a child, so replay never changes another
 // native test's IO mode. The source's recorded outputs are deliberately wrong.
-TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
+static void Case_ReplayTest_Replay_RecomputesFromInputsWithoutConstructingNativeDrive() {
   if(std::getenv("FRC_REPLAY_TEST_CHILD")) {
     // Match the actual Robot base: its unused notifier must not deadlock the
     // explicit replay clock when StartCompetition bypasses the TimedRobot loop.
@@ -102,7 +103,7 @@ frame["inputs"]["Mechanism/ConfigProbe"]={{"position",0},{"velocity",0},{"voltag
 frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frames",wpi::json::array({{{"timestampUs",100000+20000*i},{"data",packet}}})}};if(i==2)frame["inputs"]["Mechanism/Probe"]["connected"]=false;entry.Append(frame.dump(),100000+20000*i);}log.Flush();}
   const auto oldInput=Saved("FRC_REPLAY_LOG"),oldOutput=Saved("FRC_REPLAY_OUTPUT");
   Env("FRC_REPLAY_LOG",source.string());Env("FRC_REPLAY_OUTPUT",output.string());Env("FRC_REPLAY_TEST_CHILD","1");
-  const auto command="\""+::testing::internal::GetArgvs().at(0)+"\" --gtest_filter=Replay.RecomputesFromInputsWithoutConstructingNativeDrive";
+  const auto command="\""+::testing::internal::GetArgvs().at(0)+"\" --gtest_filter=Consolidated.ReplayAndLogging";
   int result=std::system(command.c_str());
   Env("FRC_REPLAY_LOG",oldInput);Env("FRC_REPLAY_OUTPUT",oldOutput);Env("FRC_REPLAY_TEST_CHILD","");
   EXPECT_EQ(result,0);EXPECT_TRUE(std::filesystem::exists(output));
@@ -126,4 +127,8 @@ frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frame
   }
   EXPECT_EQ(count,3);
   std::filesystem::remove_all(dir);
+}
+
+void Run_ReplayTest() {
+  frc_test::RunScenario("Replay.RecomputesFromInputsWithoutConstructingNativeDrive", Case_ReplayTest_Replay_RecomputesFromInputsWithoutConstructingNativeDrive);
 }

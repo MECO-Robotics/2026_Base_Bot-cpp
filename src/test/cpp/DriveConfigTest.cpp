@@ -1,8 +1,9 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include <gtest/gtest.h>
 #include <limits>
 
-TEST(DriveConfig, RejectsUnsafeConfigurationBeforeDeviceConstruction) {
+static void Case_DriveConfigTest_DriveConfig_RejectsUnsafeConfigurationBeforeDeviceConstruction() {
   base::DriveConfig good;
   EXPECT_NO_THROW(good.Validate());
   // Different CAN device types may use the same numeric address.
@@ -26,4 +27,8 @@ TEST(DriveConfig, RejectsUnsafeConfigurationBeforeDeviceConstruction) {
     }
     EXPECT_THROW(base::Drive{bad},std::invalid_argument)<<fault;
   }
+}
+
+void Run_DriveConfigTest() {
+  frc_test::RunScenario("DriveConfig.RejectsUnsafeConfigurationBeforeDeviceConstruction", Case_DriveConfigTest_DriveConfig_RejectsUnsafeConfigurationBeforeDeviceConstruction);
 }

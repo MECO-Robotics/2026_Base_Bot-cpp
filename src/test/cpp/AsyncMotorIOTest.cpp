@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
@@ -38,7 +39,7 @@ bool Complete(base::MotorIO& io) {
   return io.ConfigurationState()!=base::MotorConfigurationState::Pending;
 }
 }
-TEST(AsyncMotorConfiguration, StalledWorkerCannotBlockControlOrResumeOldIntent) {
+static void Case_AsyncMotorIOTest_AsyncMotorConfiguration_StalledWorkerCannotBlockControlOrResumeOldIntent() {
   HAL_Initialize(500,0); Enable(false);
   auto child=std::make_unique<StalledMotor>(); auto* observed=child.get();
   auto io=base::MakeAsyncMotorIO(std::move(child)); auto* adapter=io.get();
@@ -81,4 +82,8 @@ TEST(AsyncMotorConfiguration, StalledWorkerCannotBlockControlOrResumeOldIntent) 
   wheel.Periodic(); Enable(true); wheel.SetVelocity(4); wheel.Periodic(); EXPECT_EQ(observed->requests,5);
   Enable(false);
   base::telemetry::Flush();
+}
+
+void Run_AsyncMotorIOTest() {
+  frc_test::RunScenario("AsyncMotorConfiguration.StalledWorkerCannotBlockControlOrResumeOldIntent", Case_AsyncMotorIOTest_AsyncMotorConfiguration_StalledWorkerCannotBlockControlOrResumeOldIntent);
 }

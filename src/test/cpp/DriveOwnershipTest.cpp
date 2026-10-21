@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include <gtest/gtest.h>
 #include <frc/DriverStation.h>
@@ -8,14 +9,14 @@
 #include <cmath>
 #include <stdexcept>
 
-TEST(DriveOwnership, AimPreemptsJoystickAndDisableCancelsOwner) {
+static void Case_DriveOwnershipTest_DriveOwnership_AimPreemptsJoystickAndDisableCancelsOwner() {
   if(!std::getenv("FRC_DRIVE_OWNERSHIP_CHILD")) {
 #ifdef _WIN32
     _putenv_s("FRC_DRIVE_OWNERSHIP_CHILD","1");
 #else
     setenv("FRC_DRIVE_OWNERSHIP_CHILD","1",1);
 #endif
-    const int result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=DriveOwnership.*").c_str());
+    const int result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=Consolidated.DriveContractsAndOwnership").c_str());
 #ifdef _WIN32
     _putenv_s("FRC_DRIVE_OWNERSHIP_CHILD", "");
 #else
@@ -83,4 +84,8 @@ TEST(DriveOwnership, AimPreemptsJoystickAndDisableCancelsOwner) {
   // Motion/neutral-output timing belongs to the running native simulator test;
   // this regression checks real command ownership and cancellation only.
   scheduler.CancelAll();
+}
+
+void Run_DriveOwnershipTest() {
+  frc_test::RunScenario("DriveOwnership.AimPreemptsJoystickAndDisableCancelsOwner", Case_DriveOwnershipTest_DriveOwnership_AimPreemptsJoystickAndDisableCancelsOwner);
 }

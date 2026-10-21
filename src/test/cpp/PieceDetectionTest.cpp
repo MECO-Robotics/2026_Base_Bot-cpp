@@ -1,10 +1,11 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/PieceDetection.h"
 #include <gtest/gtest.h>
 #include <hal/HAL.h>
 #include <frc/RobotController.h>
 #include <frc/simulation/SimHooks.h>
 using namespace units::literals;
-TEST(PieceDetection, MountFieldTransformFreshnessAndNoTarget) {
+static void Case_PieceDetectionTest_PieceDetection_MountFieldTransformFreshnessAndNoTarget() {
   HAL_Initialize(500,0);
   frc::sim::PauseTiming();frc::sim::StepTimingAsync(.1_s);
   base::PieceDetectionConfig config;
@@ -24,4 +25,8 @@ TEST(PieceDetection, MountFieldTransformFreshnessAndNoTarget) {
   ray->pitchDegrees=0;frc::sim::StepTimingAsync(.2_s);detection.Periodic();EXPECT_FALSE(detection.Target());
   ray.reset();detection.Periodic();EXPECT_FALSE(detection.Target());
   frc::sim::ResumeTiming();
+}
+
+void Run_PieceDetectionTest() {
+  frc_test::RunScenario("PieceDetection.MountFieldTransformFreshnessAndNoTarget", Case_PieceDetectionTest_PieceDetection_MountFieldTransformFreshnessAndNoTarget);
 }

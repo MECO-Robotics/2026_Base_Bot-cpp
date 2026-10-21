@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Characterization.h"
 #include "base/Mechanism.h"
 #include <frc/simulation/DriverStationSim.h>
@@ -34,53 +35,61 @@ class CommandLifecycle : public testing::Test {
   base::InjectedMotorIO* observed=nullptr;
   std::unique_ptr<base::PositionJoint> joint;
 };
-class HeldMotorCommand : public CommandLifecycle, public testing::WithParamInterface<bool> {
- protected:
-  frc2::CommandPtr MakeCommand() {
-    return GetParam() ? joint->VoltageCommand([]{return 4.;})
-                      : joint->VelocityCommand([]{return .5;});
+class HeldMotorCommand : public CommandLifecycle {
+ public:
+  void TestBody() override {}
+  frc2::CommandPtr MakeCommand(bool voltage) {
+    return voltage ? joint->VoltageCommand([]{return 4.;})
+                   : joint->VelocityCommand([]{return .5;});
+  }
+  void VerifyHeldCommand(bool voltage) {
+    auto command=MakeCommand(voltage);
+    scheduler.Schedule(command); Run();
+    ASSERT_GT(observed->requestedVoltage,0);
+    auto replacement=frc2::cmd::RunOnce([]{}, {joint.get()});
+    scheduler.Schedule(replacement);
+    EXPECT_FALSE(command.IsScheduled());
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+    Run(); scheduler.Schedule(command); Run();
+    ASSERT_GT(observed->requestedVoltage,0);
+    frc::sim::DriverStationSim::SetEnabled(false);
+    frc::sim::DriverStationSim::NotifyNewData(); Run();
+    EXPECT_FALSE(command.IsScheduled());
+    EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  }
+  void VerifyPositionHold() {
+    auto command=joint->PositionCommand([]{return .5;});
+    scheduler.Schedule(command); Run();
+    EXPECT_FALSE(command.IsScheduled()); ASSERT_TRUE(joint->AtSetpoint());
+    observed->inputs.position=.4; Run(1);
+    EXPECT_GT(observed->requestedVoltage,0); EXPECT_FALSE(joint->AtSetpoint());
+  }
+  void VerifySysIdCancellation() {
+    auto command=base::SysIdDynamic(*joint,frc2::sysid::Direction::kForward);
+    scheduler.Schedule(command); Run(4); ASSERT_GT(observed->requestedVoltage,0);
+    command.Cancel(); EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+    Run(1); EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
+  }
+  void RunCases() {
+    frc_test::RunScenario("velocity command owns and stops", [&]{
+      SetUp(); VerifyHeldCommand(false); TearDown();
+    });
+    frc_test::RunScenario("voltage command owns and stops", [&]{
+      SetUp(); VerifyHeldCommand(true); TearDown();
+    });
+    frc_test::RunScenario("completed position command retains hold", [&]{
+      SetUp(); VerifyPositionHold(); TearDown();
+    });
+    frc_test::RunScenario("SysId cancellation stops output", [&]{
+      SetUp(); VerifySysIdCancellation(); TearDown();
+    });
   }
 };
 
-TEST_P(HeldMotorCommand, RequirementInterruptionAndDisableStopOutput) {
-  auto command=MakeCommand();
-  scheduler.Schedule(command); Run();
-  ASSERT_GT(observed->requestedVoltage,0);
-  // A competing command proves that the motor helper owns its subsystem.
-  auto replacement=frc2::cmd::RunOnce([]{}, {joint.get()});
-  scheduler.Schedule(replacement);
-  EXPECT_FALSE(command.IsScheduled());
-  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
-  Run();
-  scheduler.Schedule(command); Run();
-  ASSERT_GT(observed->requestedVoltage,0);
-  frc::sim::DriverStationSim::SetEnabled(false);
-  frc::sim::DriverStationSim::NotifyNewData();
-  Run();
-  EXPECT_FALSE(command.IsScheduled());
-  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
-}
-INSTANTIATE_TEST_SUITE_P(VoltageAndVelocity,HeldMotorCommand,testing::Bool());
 
-TEST_F(CommandLifecycle, CompletedPositionCommandRetainsPositionHold) {
-  auto command=joint->PositionCommand([]{return .5;});
-  scheduler.Schedule(command); Run();
-  EXPECT_FALSE(command.IsScheduled());
-  ASSERT_TRUE(joint->AtSetpoint());
-  // The completed command leaves closed-loop hold active against disturbance.
-  observed->inputs.position=.4;
-  Run(1);
-  EXPECT_GT(observed->requestedVoltage,0);
-  EXPECT_FALSE(joint->AtSetpoint());
 }
 
-TEST_F(CommandLifecycle, SysIdReturnedCommandOwnsRoutineAndStopsOnCancellation) {
-  auto command=base::SysIdDynamic(*joint,frc2::sysid::Direction::kForward);
-  scheduler.Schedule(command); Run(4);
-  ASSERT_GT(observed->requestedVoltage,0);
-  command.Cancel();
-  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
-  Run(1);
-  EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
-}
+void Run_CommandLifecycle() {
+  HeldMotorCommand cases;
+  frc_test::RunScenario("held ownership and cancellation", [&]{ cases.RunCases(); });
 }

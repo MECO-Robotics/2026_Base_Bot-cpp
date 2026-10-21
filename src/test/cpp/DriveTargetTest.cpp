@@ -1,8 +1,9 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/DriveTarget.h"
 #include <gtest/gtest.h>
 #include <limits>
 using namespace units::literals;
-TEST(DriveTarget, DisabledCannotResurrectTargetAndStaleCommandsStop) {
+static void Case_DriveTargetTest_DriveTarget_DisabledCannotResurrectTargetAndStaleCommandsStop() {
   base::DriveTarget target;
   base::DriveTarget::Value value;
   value.speeds.vx = 2_mps;
@@ -16,7 +17,7 @@ TEST(DriveTarget, DisabledCannotResurrectTargetAndStaleCommandsStop) {
   target.Publish(value, []{return true;});
   EXPECT_EQ(target.Consume(1.05, true).speeds.vx, 2_mps);
 }
-TEST(DriveTarget, ForcesAreCoherentAndInvalidInputStops) {
+static void Case_DriveTargetTest_DriveTarget_ForcesAreCoherentAndInvalidInputStops() {
   base::DriveTarget target;
   base::DriveTarget::Value value;
   value.speeds.vx = 1_mps;
@@ -30,8 +31,14 @@ TEST(DriveTarget, ForcesAreCoherentAndInvalidInputStops) {
   value.forceY[1] = 0;
   target.Publish(value, []{return true;});
   EXPECT_EQ(target.Consume(1.99, true).speeds.vx, 0_mps);
+  value.timestamp = std::numeric_limits<double>::quiet_NaN();
+  target.Publish(value, []{return true;});
+  EXPECT_EQ(target.Consume(2, true).speeds.vx, 0_mps);
+  value.timestamp = 2;
+  target.Publish(value, []{return true;});
+  EXPECT_EQ(target.Consume(std::numeric_limits<double>::quiet_NaN(), true).speeds.vx, 0_mps);
 }
-TEST(DriveTarget, HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw) {
+static void Case_DriveTargetTest_DriveTarget_HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw() {
   base::DriveTarget::Value value;
   value.headingControl = value.fieldRelative = true;
   value.heading = frc::Rotation2d{170_deg};
@@ -42,8 +49,13 @@ TEST(DriveTarget, HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw) 
   EXPECT_NEAR(resolved.omega.value(), -20 * std::acos(-1) / 180 * 5, 1e-12);
   EXPECT_NEAR(resolved.vx.value(), std::cos(-170 * std::acos(-1) / 180), 1e-12);
   EXPECT_NEAR(base::DriveTarget::Resolve(value, frc::Rotation2d{0_deg}).omega.value(), 7, 1e-12);
+  const auto invalidHeading = base::DriveTarget::Resolve(
+      value, frc::Rotation2d{units::radian_t{std::numeric_limits<double>::quiet_NaN()}});
+  EXPECT_DOUBLE_EQ(invalidHeading.vx.value(), 0);
+  EXPECT_DOUBLE_EQ(invalidHeading.vy.value(), 0);
+  EXPECT_DOUBLE_EQ(invalidHeading.omega.value(), 0);
 }
-TEST(DriveTarget, StationaryBrakeLatchesUntilDisabledOrReplaced) {
+static void Case_DriveTargetTest_DriveTarget_StationaryBrakeLatchesUntilDisabledOrReplaced() {
   base::DriveTarget target;
   base::DriveTarget::Value value;
   value.brake = true;
@@ -54,7 +66,7 @@ TEST(DriveTarget, StationaryBrakeLatchesUntilDisabledOrReplaced) {
   EXPECT_FALSE(target.Consume(3, true).brake);
 }
 
-TEST(DriveTarget, DisableRacingAuthorizationInvalidatesOldEpoch) {
+static void Case_DriveTargetTest_DriveTarget_DisableRacingAuthorizationInvalidatesOldEpoch() {
   base::DriveTarget target;
   base::DriveTarget::Value value;
   value.timestamp = 1;
@@ -65,7 +77,7 @@ TEST(DriveTarget, DisableRacingAuthorizationInvalidatesOldEpoch) {
   EXPECT_EQ(target.Consume(1.02, true).speeds.vx, 0_mps);
 }
 
-TEST(DriveTarget, RobotThreadDisableInvalidatesWithoutNativeDisabledTick) {
+static void Case_DriveTargetTest_DriveTarget_RobotThreadDisableInvalidatesWithoutNativeDisabledTick() {
   base::DriveTarget target;
   base::DriveTarget::Value value; value.timestamp=1; value.speeds.vx=2_mps;
   target.Publish(value,[]{return true;});
@@ -76,4 +88,13 @@ TEST(DriveTarget, RobotThreadDisableInvalidatesWithoutNativeDisabledTick) {
   EXPECT_EQ(target.Consume(1.01,true).speeds.vx,0_mps);
   value.timestamp=1.02; target.Publish(value,[]{return true;});
   EXPECT_EQ(target.Consume(1.02,true).speeds.vx,2_mps);
+}
+
+void Run_DriveTargetTest() {
+  frc_test::RunScenario("DriveTarget.DisabledCannotResurrectTargetAndStaleCommandsStop", Case_DriveTargetTest_DriveTarget_DisabledCannotResurrectTargetAndStaleCommandsStop);
+  frc_test::RunScenario("DriveTarget.ForcesAreCoherentAndInvalidInputStops", Case_DriveTargetTest_DriveTarget_ForcesAreCoherentAndInvalidInputStops);
+  frc_test::RunScenario("DriveTarget.HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw", Case_DriveTargetTest_DriveTarget_HeadingFeedbackUsesLatestPoseAndPreservesJavaProportionalLaw);
+  frc_test::RunScenario("DriveTarget.StationaryBrakeLatchesUntilDisabledOrReplaced", Case_DriveTargetTest_DriveTarget_StationaryBrakeLatchesUntilDisabledOrReplaced);
+  frc_test::RunScenario("DriveTarget.DisableRacingAuthorizationInvalidatesOldEpoch", Case_DriveTargetTest_DriveTarget_DisableRacingAuthorizationInvalidatesOldEpoch);
+  frc_test::RunScenario("DriveTarget.RobotThreadDisableInvalidatesWithoutNativeDisabledTick", Case_DriveTargetTest_DriveTarget_RobotThreadDisableInvalidatesWithoutNativeDisabledTick);
 }

@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Mechanism.h"
 #include "base/detail/SparkControl.h"
 #include <rev/SparkMax.h>
@@ -9,7 +10,7 @@
 #include <gtest/gtest.h>
 #include <limits>
 
-TEST(SparkAdapter, DefaultRealAdapterUsesOnboardPhysicalSetpoints) {
+static void Case_SparkAdapterTest_SparkAdapter_DefaultRealAdapterUsesOnboardPhysicalSetpoints() {
   HAL_Initialize(500,0);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
@@ -38,7 +39,7 @@ TEST(SparkAdapter, DefaultRealAdapterUsesOnboardPhysicalSetpoints) {
   frc::sim::DriverStationSim::NotifyNewData();
 }
 
-TEST(SparkAdapter, GravityModeReconfigurationRetainsSelectedCompensation) {
+static void Case_SparkAdapterTest_SparkAdapter_GravityModeReconfigurationRetainsSelectedCompensation() {
   HAL_Initialize(500,0);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
@@ -56,7 +57,7 @@ TEST(SparkAdapter, GravityModeReconfigurationRetainsSelectedCompensation) {
   }
 }
 
-TEST(SparkAdapter, ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears) {
+static void Case_SparkAdapterTest_SparkAdapter_ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears() {
   HAL_Initialize(500,0);
   rev::spark::SparkMax leader{53,rev::spark::SparkLowLevel::MotorType::kBrushless};
   rev::spark::SparkMax follower{54,rev::spark::SparkLowLevel::MotorType::kBrushless};
@@ -78,7 +79,7 @@ TEST(SparkAdapter, ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears) {
   EXPECT_FALSE(base::detail::SparkDeviceConfigured(leader,resetLatched));
 }
 
-TEST(SparkAdapter, PidMillisecondsPreservePhysicalVoltage) {
+static void Case_SparkAdapterTest_SparkAdapter_PidMillisecondsPreservePhysicalVoltage() {
   HAL_Initialize(500,0);
   rev::spark::SparkMax motor{55,rev::spark::SparkLowLevel::MotorType::kBrushless};
   rev::spark::SparkMaxConfig config;
@@ -99,4 +100,11 @@ TEST(SparkAdapter, PidMillisecondsPreservePhysicalVoltage) {
   EXPECT_NEAR(firmwareVolts,physicalVolts,1e-5); // Vendor configuration stores floats.
   gains.d=std::numeric_limits<double>::max();
   EXPECT_THROW(base::detail::ConfigureSparkPid(config.closedLoop,gains,scale),std::invalid_argument);
+}
+
+void Run_SparkAdapterTest() {
+  frc_test::RunScenario("SparkAdapter.DefaultRealAdapterUsesOnboardPhysicalSetpoints", Case_SparkAdapterTest_SparkAdapter_DefaultRealAdapterUsesOnboardPhysicalSetpoints);
+  frc_test::RunScenario("SparkAdapter.GravityModeReconfigurationRetainsSelectedCompensation", Case_SparkAdapterTest_SparkAdapter_GravityModeReconfigurationRetainsSelectedCompensation);
+  frc_test::RunScenario("SparkAdapter.ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears", Case_SparkAdapterTest_SparkAdapter_ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears);
+  frc_test::RunScenario("SparkAdapter.PidMillisecondsPreservePhysicalVoltage", Case_SparkAdapterTest_SparkAdapter_PidMillisecondsPreservePhysicalVoltage);
 }

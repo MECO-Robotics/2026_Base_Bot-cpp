@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/MechanismTuning.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
@@ -19,7 +20,7 @@ void State(bool enabled,bool test) {
   frc::sim::DriverStationSim::NotifyNewData();
 }
 }
-TEST(MechanismTuning, AtomicGainsAndRejectedRequestsNeverApplyLater) {
+static void Case_MechanismTuningTest_MechanismTuning_AtomicGainsAndRejectedRequestsNeverApplyLater() {
   HAL_Initialize(500,0); State(false,false);
   auto io=std::make_unique<base::InjectedMotorIO>(); io->inputs.connected=true;
   base::PositionJoint joint("TuneAtomic",std::move(io),{});
@@ -39,7 +40,7 @@ TEST(MechanismTuning, AtomicGainsAndRejectedRequestsNeverApplyLater) {
   EXPECT_EQ(tuning.LastRevision(),3u);
   base::telemetry::Flush();
 }
-TEST(MechanismTuning, TestCommandOwnsAndStopsMechanismWithoutLatchedRequests) {
+static void Case_MechanismTuningTest_MechanismTuning_TestCommandOwnsAndStopsMechanismWithoutLatchedRequests() {
   HAL_Initialize(500,0); State(true,true);
   auto io=std::make_unique<base::InjectedMotorIO>(); auto* observed=io.get();
   observed->inputs.connected=true; observed->inputs.position=.1;
@@ -62,4 +63,9 @@ TEST(MechanismTuning, TestCommandOwnsAndStopsMechanismWithoutLatchedRequests) {
   State(true,false); scheduler.Run(); joint.Periodic();
   EXPECT_FALSE(command.IsScheduled()); EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
   State(false,false); base::telemetry::Flush();
+}
+
+void Run_MechanismTuningTest() {
+  frc_test::RunScenario("MechanismTuning.AtomicGainsAndRejectedRequestsNeverApplyLater", Case_MechanismTuningTest_MechanismTuning_AtomicGainsAndRejectedRequestsNeverApplyLater);
+  frc_test::RunScenario("MechanismTuning.TestCommandOwnsAndStopsMechanismWithoutLatchedRequests", Case_MechanismTuningTest_MechanismTuning_TestCommandOwnsAndStopsMechanismWithoutLatchedRequests);
 }

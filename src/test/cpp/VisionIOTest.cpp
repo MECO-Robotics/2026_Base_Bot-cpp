@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Vision.h"
 #include <gtest/gtest.h>
 #include <chrono>
@@ -5,7 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 
-TEST(VisionIO, AggregatesOnceInSourceOrderAndStatusReadsArePassive) {
+static void Case_VisionIOTest_VisionIO_AggregatesOnceInSourceOrderAndStatusReadsArePassive() {
   std::array<int,2> calls{};
   std::vector<double> received;
   std::vector<std::unique_ptr<base::VisionIO>> sources;
@@ -35,4 +36,8 @@ TEST(VisionIO, AggregatesOnceInSourceOrderAndStatusReadsArePassive) {
     std::cout<<"VisionIO benchmark: 2 injected sources, 1 observation/source, 20000 cycles; median_us="
              <<timings[10000]<<" p99_us="<<timings[19800]<<std::endl;
   }
+}
+
+void Run_VisionIOTest() {
+  frc_test::RunScenario("VisionIO.AggregatesOnceInSourceOrderAndStatusReadsArePassive", Case_VisionIOTest_VisionIO_AggregatesOnceInSourceOrderAndStatusReadsArePassive);
 }

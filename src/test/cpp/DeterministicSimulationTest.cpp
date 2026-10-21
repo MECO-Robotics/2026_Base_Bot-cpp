@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/DeterministicSimulation.h"
 #include <gtest/gtest.h>
 #include <vector>
@@ -8,7 +9,7 @@
 #include <frc2/command/Commands.h>
 #include <frc/Timer.h>
 
-TEST(DeterministicSimulation, MultirateReplayRetainsSensorLatencyAndOrdering) {
+static void Case_DeterministicSimulationTest_DeterministicSimulation_MultirateReplayRetainsSensorLatencyAndOrdering() {
   const std::array<base::MotorReplaySample,3> log{{{0,{1}},{4000,{2}},{8000,{3}}}};
   auto run=[&] {
     base::ReplayMotorIO replay(log);
@@ -44,7 +45,7 @@ TEST(DeterministicSimulation, MultirateReplayRetainsSensorLatencyAndOrdering) {
   EXPECT_EQ(bounded.Receive(4),1);
 }
 
-TEST(DeterministicSimulation, ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime) {
+static void Case_DeterministicSimulationTest_DeterministicSimulation_ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime() {
   auto run=[] {
     auto& scheduler=frc2::CommandScheduler::GetInstance();
     scheduler.CancelAll(); scheduler.Enable();
@@ -88,11 +89,16 @@ TEST(DeterministicSimulation, ActualControllerAndSchedulerRepeatWithDelayedFeedb
     // Current limiting/inertia constrain acceleration; require observable motion,
     // not ideal instantaneous setpoint tracking.
     EXPECT_GT(wheel.Position(),1);
-    RecordProperty("delayed_final_position_rotations",wheel.Position());
+    testing::Test::RecordProperty("delayed_final_position_rotations",wheel.Position());
     scheduler.CancelAll();
     frc::sim::ResumeTiming();
     return result;
   };
   const auto first=run();
   EXPECT_EQ(first,run());
+}
+
+void Run_DeterministicSimulationTest() {
+  frc_test::RunScenario("DeterministicSimulation.MultirateReplayRetainsSensorLatencyAndOrdering", Case_DeterministicSimulationTest_DeterministicSimulation_MultirateReplayRetainsSensorLatencyAndOrdering);
+  frc_test::RunScenario("DeterministicSimulation.ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime", Case_DeterministicSimulationTest_DeterministicSimulation_ActualControllerAndSchedulerRepeatWithDelayedFeedbackAndVirtualTime);
 }

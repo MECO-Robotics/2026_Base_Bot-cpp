@@ -1,9 +1,10 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/DriveWheelRadius.h"
 #include <gtest/gtest.h>
 #include <numbers>
 #include <cmath>
 #include <limits>
-TEST(DriveWheelRadius, KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw) {
+static void Case_DriveWheelRadiusTest_DriveWheelRadius_KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw() {
   std::array<double,4> distances{.3,.4,.5,.6};
   base::WheelRadiusMeasurement measurement(distances);
   for(int i=0;i<=800;++i) {
@@ -15,7 +16,7 @@ TEST(DriveWheelRadius, KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw) {
   ASSERT_TRUE(measurement.Valid());
   for(double radius:measurement.Radii())EXPECT_NEAR(radius,.052,1e-12);
 }
-TEST(DriveWheelRadius, RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates) {
+static void Case_DriveWheelRadiusTest_DriveWheelRadius_RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates() {
   std::array<double,4> distances{.4,.4,.4,.4};
   base::WheelRadiusMeasurement shortRun(distances),stale(distances),unequal(distances),zero(distances);
   EXPECT_TRUE(shortRun.Add(0,0,{0,0,0,0},true));
@@ -31,4 +32,9 @@ TEST(DriveWheelRadius, RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEsti
   }
   EXPECT_FALSE(unequal.Valid());EXPECT_FALSE(zero.Valid());
   EXPECT_FALSE(shortRun.Add(14.02,std::numeric_limits<double>::quiet_NaN(),{0,0,0,0},true));
+}
+
+void Run_DriveWheelRadiusTest() {
+  frc_test::RunScenario("DriveWheelRadius.KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw", Case_DriveWheelRadiusTest_DriveWheelRadius_KnownRadiusUsesEachModuleLocationAndUnwrapsSignedYaw);
+  frc_test::RunScenario("DriveWheelRadius.RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates", Case_DriveWheelRadiusTest_DriveWheelRadius_RejectsInsufficientTravelStaleFeedbackAndUnequalWheelEstimates);
 }

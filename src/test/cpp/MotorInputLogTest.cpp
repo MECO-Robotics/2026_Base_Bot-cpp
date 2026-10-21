@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/MotorInputLog.h"
 #include <gtest/gtest.h>
 #include <limits>
@@ -7,7 +8,7 @@
 #include <wpi/MemoryBuffer.h>
 #include <wpi/raw_ostream.h>
 
-TEST(MotorInputLog, NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware) {
+static void Case_MotorInputLogTest_MotorInputLog_NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware() {
   std::string bytes;
   {
     wpi::log::DataLogWriter writer(std::make_unique<wpi::raw_string_ostream>(bytes));
@@ -42,4 +43,8 @@ TEST(MotorInputLog, NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardw
   EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
+}
+
+void Run_MotorInputLogTest() {
+  frc_test::RunScenario("MotorInputLog.NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware", Case_MotorInputLogTest_MotorInputLog_NativeLogRoundTripPreservesTimestampAndAllInputsWithoutHardware);
 }

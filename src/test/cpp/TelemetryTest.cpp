@@ -1,10 +1,11 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
 #include <chrono>
 #include <future>
 #include <thread>
 #include <vector>
-TEST(Telemetry, SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots) {
+static void Case_TelemetryTest_Telemetry_SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots() {
   std::promise<void> entered, release;
   auto released=release.get_future().share();
   base::telemetry::Post("test/block",[&]{entered.set_value();released.wait();});
@@ -24,4 +25,8 @@ TEST(Telemetry, SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots) {
   EXPECT_EQ(published[0],2);
   EXPECT_NE(publisher,std::this_thread::get_id());
   EXPECT_GE(base::telemetry::Statistics().coalesced,1u);
+}
+
+void Run_TelemetryTest() {
+  frc_test::RunScenario("Telemetry.SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots", Case_TelemetryTest_Telemetry_SlowPublisherDoesNotBlockControlAndCoalescesPendingSnapshots);
 }

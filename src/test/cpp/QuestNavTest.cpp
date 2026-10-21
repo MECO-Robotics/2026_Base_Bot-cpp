@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include <networktables/RawTopic.h>
 #include "base/QuestNav.h"
 #include "QuestNavFixtures.h"
@@ -17,7 +18,7 @@ struct Clock {
   int64_t Next(){frc::sim::StepTimingAsync(.005_s);return frc::RobotController::GetFPGATime();}
 };
 }
-TEST(QuestNav, OfficialProtocolQueueMountAlignmentAndRestart) {
+static void Case_QuestNavTest_QuestNav_OfficialProtocolQueueMountAlignmentAndRestart() {
   Clock clock;
   base::QuestNavConfig config;config.name="test-questnav-mount";
   config.robotToQuest={frc::Translation3d{1_m,0_m,.5_m},frc::Rotation3d{0_rad,0_rad,90_deg}};
@@ -46,7 +47,7 @@ TEST(QuestNav, OfficialProtocolQueueMountAlignmentAndRestart) {
   pub.Set(Bytes(first),clock.Next());quest.Periodic();
   EXPECT_FALSE(quest.Aligned());EXPECT_EQ(observations.size(),4u);
 }
-TEST(QuestNav, MalformedTrackingLossAndStaleDataDoNotFuse) {
+static void Case_QuestNavTest_QuestNav_MalformedTrackingLossAndStaleDataDoNotFuse() {
   Clock clock;
   base::QuestNavConfig config;config.name="test-questnav-rejection";
   int observations=0;
@@ -69,4 +70,9 @@ TEST(QuestNav, MalformedTrackingLossAndStaleDataDoNotFuse) {
   EXPECT_TRUE(quest.Connected());EXPECT_FALSE(quest.Aligned());EXPECT_EQ(observations,0);
   frc::sim::StepTimingAsync(.121_s);quest.Periodic();
   EXPECT_FALSE(quest.Connected());EXPECT_FALSE(quest.Aligned());EXPECT_FALSE(quest.AlignToField(frc::Pose2d{}));EXPECT_EQ(observations,0);
+}
+
+void Run_QuestNavTest() {
+  frc_test::RunScenario("QuestNav.OfficialProtocolQueueMountAlignmentAndRestart", Case_QuestNavTest_QuestNav_OfficialProtocolQueueMountAlignmentAndRestart);
+  frc_test::RunScenario("QuestNav.MalformedTrackingLossAndStaleDataDoNotFuse", Case_QuestNavTest_QuestNav_MalformedTrackingLossAndStaleDataDoNotFuse);
 }

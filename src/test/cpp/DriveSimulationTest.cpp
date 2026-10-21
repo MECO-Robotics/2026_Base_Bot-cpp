@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include <gtest/gtest.h>
 #include <frc/simulation/DriverStationSim.h>
@@ -6,7 +7,7 @@
 #include <cmath>
 #include <thread>
 
-TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
+static void Case_DriveSimulationTest_DriveSimulation_PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries() {
   auto& clock=base::sim::GetSimulationRuntime();
   if(!clock.World()) GTEST_SKIP()<<"Phoenix diagnostic backend has no Jolt world";
   // Full3D needs physical ground for tire contact; planar mode did not.
@@ -69,4 +70,8 @@ TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries) {
   EXPECT_DOUBLE_EQ(placed->body.linearVelocity.x,0);
   EXPECT_NEAR(drive.Pose().X().value(),2,1e-6);
   EXPECT_NEAR(drive.Pose().Rotation().Degrees().value(),30,1e-6);
+}
+
+void Run_DriveSimulationTest() {
+  frc_test::RunScenario("DriveSimulation.PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries", Case_DriveSimulationTest_DriveSimulation_PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries);
 }

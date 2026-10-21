@@ -1,3 +1,4 @@
+#include "ConsolidatedTestSupport.h"
 #include "base/Drive.h"
 #include "base/Replay.h"
 #include <gtest/gtest.h>
@@ -23,7 +24,7 @@ void Environment(const char* key,const std::string& value) {
 }
 std::string SavedValue(const char* key){const auto* value=std::getenv(key);return value?value:"";}
 }
-TEST(DriveCharacterization, OwnsDriveRecordsMeasuredSIAndZerosOnInterruption) {
+static void Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecordsMeasuredSIAndZerosOnInterruption() {
   if(std::getenv("FRC_DRIVE_SYSID_CHILD")) {
     frc::TimedRobot notifier;
     base::replay::InitializeFromEnvironment();
@@ -56,7 +57,7 @@ TEST(DriveCharacterization, OwnsDriveRecordsMeasuredSIAndZerosOnInterruption) {
   {std::error_code error;wpi::log::DataLogWriter log(source.string(),error);ASSERT_FALSE(error);wpi::log::StringLogEntry entry(log,"Replay/Frames");for(int i=0;i<5;++i){if(i==4)frame["inputs"]["Drive/Characterization"]["healthy"]=false;frame["sequence"]=i;frame["timestampUs"]=100000+i*20000;entry.Append(frame.dump(),100000+i*20000);}log.Flush();}
   auto oldSource=SavedValue("FRC_REPLAY_LOG"),oldOutput=SavedValue("FRC_REPLAY_OUTPUT");
   Environment("FRC_REPLAY_LOG",source.string());Environment("FRC_REPLAY_OUTPUT",output.string());Environment("FRC_DRIVE_SYSID_CHILD","1");
-  auto result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=DriveCharacterization.*").c_str());
+  auto result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=Consolidated.DriveCharacterizationAndRadius").c_str());
   Environment("FRC_REPLAY_LOG",oldSource);Environment("FRC_REPLAY_OUTPUT",oldOutput);Environment("FRC_DRIVE_SYSID_CHILD","");
   ASSERT_EQ(result,0);
   auto buffer=wpi::MemoryBuffer::GetFile(output.string());ASSERT_TRUE(buffer);
@@ -76,7 +77,7 @@ TEST(DriveCharacterization, OwnsDriveRecordsMeasuredSIAndZerosOnInterruption) {
   std::filesystem::remove_all(directory);
 }
 
-TEST(DriveCharacterizationNative, InvertedModuleUsesConsistentVoltageAndWheelCoordinates) {
+static void Case_DriveCharacterizationTest_DriveCharacterizationNative_InvertedModuleUsesConsistentVoltageAndWheelCoordinates() {
   if(auto* file=std::getenv("FRC_DRIVE_SYSID_NATIVE_CHILD")) {
     auto path=std::filesystem::path(file);
     frc::DataLogManager::Start(path.parent_path().string(),path.filename().string(),.01);
@@ -111,7 +112,7 @@ TEST(DriveCharacterizationNative, InvertedModuleUsesConsistentVoltageAndWheelCoo
   auto directory=std::filesystem::temp_directory_path()/std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
   std::filesystem::create_directories(directory);auto output=directory/"native.wpilog";
   Environment("FRC_DRIVE_SYSID_NATIVE_CHILD",output.string());
-  auto result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=DriveCharacterizationNative.*").c_str());
+  auto result=std::system(("\""+::testing::internal::GetArgvs()[0]+"\" --gtest_filter=Consolidated.DriveCharacterizationAndRadius").c_str());
   Environment("FRC_DRIVE_SYSID_NATIVE_CHILD","");ASSERT_EQ(result,0);
   auto buffer=wpi::MemoryBuffer::GetFile(output.string());ASSERT_TRUE(buffer);
   wpi::log::DataLogReader reader(std::move(*buffer));std::map<int,std::string> names;
@@ -127,4 +128,17 @@ TEST(DriveCharacterizationNative, InvertedModuleUsesConsistentVoltageAndWheelCoo
   }
   for(int i=0;i<2;++i){EXPECT_GT(volts[i],.5)<<i;EXPECT_GT(speeds[i],.05)<<i;}
   std::filesystem::remove_all(directory);
+}
+
+void Run_DriveCharacterizationTest() {
+  if (std::getenv("FRC_DRIVE_SYSID_NATIVE_CHILD")) {
+    frc_test::RunScenario("inverted module native characterization", Case_DriveCharacterizationTest_DriveCharacterizationNative_InvertedModuleUsesConsistentVoltageAndWheelCoordinates);
+    return;
+  }
+  if (std::getenv("FRC_DRIVE_SYSID_CHILD")) {
+    frc_test::RunScenario("replay characterization ownership", Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecordsMeasuredSIAndZerosOnInterruption);
+    return;
+  }
+  frc_test::RunScenario("DriveCharacterization.OwnsDriveRecordsMeasuredSIAndZerosOnInterruption", Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecordsMeasuredSIAndZerosOnInterruption);
+  frc_test::RunScenario("DriveCharacterizationNative.InvertedModuleUsesConsistentVoltageAndWheelCoordinates", Case_DriveCharacterizationTest_DriveCharacterizationNative_InvertedModuleUsesConsistentVoltageAndWheelCoordinates);
 }
