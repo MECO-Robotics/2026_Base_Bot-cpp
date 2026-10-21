@@ -40,6 +40,24 @@ namespace base
   }
   namespace
   {
+    class SparkConfigurationTimeout {
+     public:
+      explicit SparkConfigurationTimeout(rev::spark::SparkMax& motor):motor_(motor) {
+        if(motor_.SetCANTimeout(250)!=rev::REVLibError::kOk) {
+          motor_.SetCANTimeout(0);
+          throw std::runtime_error("Spark configuration timeout setup failed");
+        }
+      }
+      ~SparkConfigurationTimeout() { if(!restored_) motor_.SetCANTimeout(0); }
+      void Restore() {
+        if(motor_.SetCANTimeout(0)!=rev::REVLibError::kOk)
+          throw std::runtime_error("Spark runtime timeout restoration failed");
+        restored_=true;
+      }
+     private:
+      rev::spark::SparkMax& motor_;
+      bool restored_=false;
+    };
     class TalonMotorIO final : public MotorIO
     {
     public:
@@ -156,6 +174,8 @@ namespace base
       void SetBrake(bool enabled) override
       {
         if(brake_==enabled) return;
+        if(frc::DriverStation::IsEnabled())
+          throw std::logic_error("Neutral mode configuration requires disabled state");
         for (auto &motor : motors_)
           if(!motor->SetNeutralMode(enabled ? ctre::phoenix6::signals::NeutralModeValue::Brake :
               ctre::phoenix6::signals::NeutralModeValue::Coast).IsOK()) {
@@ -233,6 +253,8 @@ namespace base
               rev::spark::FeedbackSensor::kAbsoluteEncoder : rev::spark::FeedbackSensor::kPrimaryEncoder);
           if (motor->Configure(settings, rev::ResetMode::kResetSafeParameters, rev::PersistMode::kNoPersistParameters) != rev::REVLibError::kOk)
             throw std::runtime_error("SparkMax configuration failed");
+          if(motor->SetCANTimeout(0)!=rev::REVLibError::kOk)
+            throw std::runtime_error("Spark runtime timeout configuration failed");
           motors_.push_back(std::move(motor));
         }
       }
@@ -281,9 +303,11 @@ namespace base
             .MaxAcceleration(gains.maxAcceleration/scale).AllowedProfileError(gains.tolerance/scale);
         settings.softLimit.ForwardSoftLimitEnabled(joint).ReverseSoftLimitEnabled(joint)
             .ForwardSoftLimit(gains.maximum/scale).ReverseSoftLimit(gains.minimum/scale);
+        SparkConfigurationTimeout timeout{*motors_.front()};
         if (motors_.front()->Configure(settings,rev::ResetMode::kNoResetSafeParameters,
             rev::PersistMode::kNoPersistParameters)!=rev::REVLibError::kOk)
           throw std::runtime_error("Spark onboard control configuration failed");
+        timeout.Restore();
         return true;
       }
       bool SetNative(const NativeControlRequest& request) override
@@ -316,12 +340,17 @@ namespace base
       void SetBrake(bool enabled) override
       {
         if(brake_==enabled) return;
+        if(frc::DriverStation::IsEnabled())
+          throw std::logic_error("Neutral mode configuration requires disabled state");
         rev::spark::SparkMaxConfig settings;
         settings.SetIdleMode(enabled ? rev::spark::SparkBaseConfig::IdleMode::kBrake : rev::spark::SparkBaseConfig::IdleMode::kCoast);
-        for (auto &motor : motors_)
+        for (auto &motor : motors_) {
+          SparkConfigurationTimeout timeout{*motor};
           if(motor->Configure(settings, rev::ResetMode::kNoResetSafeParameters, rev::PersistMode::kNoPersistParameters)!=rev::REVLibError::kOk) {
-            SetVoltage(0); throw std::runtime_error("Spark brake configuration failed");
+            StopAll(); throw std::runtime_error("Spark brake configuration failed");
           }
+          timeout.Restore();
+        }
         brake_=enabled;
       }
     private:

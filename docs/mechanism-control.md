@@ -18,6 +18,12 @@ coherent position and velocity feedback instead.
 Public gains retain volts and physical mechanism units. Flywheel positions use
 output rotations; joint coordinates use `unitsPerOutputRotation` (metres for a
 drum circumference). Adapters convert public coordinates to output rotations.
+Actual real-adapter neutral-mode changes now require disabled state; repeated
+requests for the already-cached mode remain no-ops, including `ResetPosition`
+while braking. This avoids synchronous CAN configuration in active control.
+Spark runtime CAN timeout is zero; disabled gain/neutral configuration temporarily
+uses a checked 250 ms timeout and restores zero even on exceptions.
+
 PID gains must be commissioned on the selected vendor hardware; firmware sample
 rates, filtering, integrator limiting, and saturation differ from the emulator.
 The conversion is not a promise of identical firmware transients.

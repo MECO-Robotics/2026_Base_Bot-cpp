@@ -31,6 +31,8 @@ TEST(SparkAdapter, DefaultRealAdapterUsesOnboardPhysicalSetpoints) {
   frc::sim::DriverStationSim::SetEnabled(true);
   frc::sim::DriverStationSim::NotifyNewData();
   EXPECT_THROW(io->ConfigureControl({gains,.5,base::Gravity::Constant,true,false}),std::logic_error);
+  EXPECT_NO_THROW(io->SetBrake(true)); // Default cached brake sends no configuration.
+  EXPECT_THROW(io->SetBrake(false),std::logic_error);
   frc::sim::DriverStationSim::SetEnabled(false);
   frc::sim::DriverStationSim::NotifyNewData();
 }
