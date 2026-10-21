@@ -1,3 +1,5 @@
+#include <networktables/RawTopic.h>
+#include <networktables/DoubleArrayTopic.h>
 #include "base/Vision.h"
 #include <gtest/gtest.h>
 #include <networktables/NetworkTableInstance.h>

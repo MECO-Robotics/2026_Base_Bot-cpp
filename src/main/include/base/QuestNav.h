@@ -1,6 +1,7 @@
 #pragma once
 #include "base/Vision.h"
 #include <optional>
+#include <string_view>
 #include <frc/geometry/Pose3d.h>
 namespace base {
 struct QuestNavConfig {
