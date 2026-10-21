@@ -2,6 +2,8 @@
 #include "base/Drive.h"
 #include "base/Mechanism.h"
 #include "base/Vision.h"
+#include "base/QuestNav.h"
+#include "QuestNavFixtures.h"
 #include "base/Telemetry.h"
 #include <gtest/gtest.h>
 #include <frc/DataLogManager.h>
@@ -46,12 +48,19 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
       EXPECT_DOUBLE_EQ(o.pose.X().value(),1);EXPECT_DOUBLE_EQ(o.pose.Y().value(),2);
       EXPECT_TRUE(std::isinf(o.stdDevs[2]));drive.AddVision(o.pose,o.timestamp,o.stdDevs);++observationCount;
     });
+    int questObservations=0;
+    base::QuestNavConfig questConfig;questConfig.name="ReplayQuest";
+    base::QuestNav quest(questConfig,[&](const base::VisionObservation &o) {
+      EXPECT_TRUE(std::isfinite(o.pose.X().value()));++questObservations;
+    });
     EXPECT_FALSE(drive.SimulationTruth().has_value());
     base::replay::RunReplay([]{},[&]{
       EXPECT_NEAR(frc::RobotController::GetFPGATime(),100000+base::replay::FrameIndex()*20000,1);
       if(base::replay::FrameIndex()==1){gains.p=4;wheel.SetGains(gains);}
       wheel.SetVelocity(3);wheel.Periodic();
       EXPECT_DOUBLE_EQ(injected->requestedVoltage,base::replay::FrameIndex()==0?6:base::replay::FrameIndex()==1?8:0);
+      quest.Periodic();EXPECT_TRUE(quest.Connected());
+      if(base::replay::FrameIndex()==0)EXPECT_TRUE(quest.AlignToField(frc::Pose2d{units::meter_t{5},units::meter_t{4},frc::Rotation2d{}}));
       vision.Periodic();EXPECT_TRUE(vision.Connected());EXPECT_DOUBLE_EQ(vision.TargetYawDegrees(),2);
       EXPECT_NEAR(drive.Pose().Rotation().Radians().value(),1.5707963267948966,1e-12);
       drive.FieldDrive(1,0,0);
@@ -62,6 +71,7 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
       EXPECT_THROW(base::replay::ProcessInputs("Missing",[]{return wpi::json{};}),std::runtime_error);
     });
     EXPECT_EQ(observationCount,3);
+    EXPECT_EQ(questObservations,2);
     base::telemetry::Flush();base::telemetry::Shutdown();base::replay::ShutdownRecording();base::replay::FlushOutput();frc::DataLogManager::Stop();return;
   }
   auto dir=std::filesystem::temp_directory_path()/std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -74,7 +84,8 @@ TEST(Replay, RecomputesFromInputsWithoutConstructingNativeDrive) {
   frame["inputs"]["Vision/ReplayVision/Status"]={{"connected",true},{"yaw",2}};
   frame["inputs"]["Vision/ReplayVision/Observations"]=wpi::json::array({{{"pose",{1,2,.3}},{"timestamp",.1},{"stdDevs",{.1,.1,nullptr}}}});
   frame["outputs"]={{"Mechanism/Probe/AppliedVoltageRequest",999},{"Drive/RequestedChassisSpeeds",{999,999,999}}};
-  {std::error_code ec;wpi::log::DataLogWriter log(source.string(),ec);ASSERT_FALSE(ec);wpi::log::StringLogEntry entry(log,"Replay/Frames");for(int i=0;i<3;++i){frame["sequence"]=i;frame["timestampUs"]=100000+20000*i;if(i==2)frame["inputs"]["Mechanism/Probe"]["connected"]=false;entry.Append(frame.dump(),100000+20000*i);}log.Flush();}
+  {std::error_code ec;wpi::log::DataLogWriter log(source.string(),ec);ASSERT_FALSE(ec);wpi::log::StringLogEntry entry(log,"Replay/Frames");for(int i=0;i<3;++i){frame["sequence"]=i;frame["timestampUs"]=100000+20000*i;auto packet=questfixture::Bytes(i==0?questfixture::first:questfixture::second);packet[10]=7+i;
+frame["inputs"]["QuestNav/ReplayQuest/Frames"]={{"nowUs",100000+20000*i},{"frames",wpi::json::array({{{"timestampUs",100000+20000*i},{"data",packet}}})}};if(i==2)frame["inputs"]["Mechanism/Probe"]["connected"]=false;entry.Append(frame.dump(),100000+20000*i);}log.Flush();}
   const auto oldInput=Saved("FRC_REPLAY_LOG"),oldOutput=Saved("FRC_REPLAY_OUTPUT");
   Env("FRC_REPLAY_LOG",source.string());Env("FRC_REPLAY_OUTPUT",output.string());Env("FRC_REPLAY_TEST_CHILD","1");
   const auto command="\""+::testing::internal::GetArgvs().at(0)+"\" --gtest_filter=Replay.RecomputesFromInputsWithoutConstructingNativeDrive";
