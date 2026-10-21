@@ -25,3 +25,9 @@ and WPILib 2026.2.1. They encode headset poses (2,3,1.2,yaw90) and
 (3,3,1.2,yaw180). The native decoder delegates nested WPILib Pose3d decoding to
 WPILib nanopb and tolerates unknown outer protobuf fields. This adapter was tested
 with protocol fixtures, not commissioned against a physical headset.
+
+QuestNav acquisition also implements `VisionIO` via `MakeQuestNavVisionIO` and can
+share one `VisionSystem` with camera localization. The existing `QuestNav` facade
+keeps local alignment/status APIs and one subsystem registration. Status reads
+are passive snapshots from the latest tick; `AlignToField` updates aligned status
+immediately on acceptance.

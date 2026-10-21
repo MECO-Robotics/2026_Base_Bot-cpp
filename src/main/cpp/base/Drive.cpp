@@ -1,4 +1,5 @@
 #include "base/Drive.h"
+#include "base/PortableSwerve.h"
 #include "base/Replay.h"
 #include "base/Telemetry.h"
 #include <frc/kinematics/SwerveDriveKinematics.h>
@@ -57,6 +58,15 @@ namespace base
     };
   }
 
+  struct Drive::ReplayKinematics {
+    static frc::Translation2d Location(const DriveConfig& config, size_t i) {
+      return {units::meter_t{config.modules[i].xMeters},units::meter_t{config.modules[i].yMeters}};
+    }
+    explicit ReplayKinematics(const DriveConfig& config)
+        : value(Location(config,0),Location(config,1),Location(config,2),Location(config,3)) {}
+    frc::SwerveDriveKinematics<4> value;
+  };
+
   struct Drive::Telemetry {
     nt::StructArrayPublisher<frc::SwerveModuleState> measured =
         nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>(
@@ -113,6 +123,7 @@ namespace base
     Drive& owner;
     sim::DrivePhysics physics;
     double lastYaw{}, unwrappedYaw{};
+    double timeOrigin=frc::RobotController::GetFPGATime()*1e-6-.02;
     sim::Registration registration; // release callbacks before physics and owner
     static sim::DrivePhysicsConfig Configuration(const DriveConfig& c) {
       sim::DrivePhysicsConfig out;
@@ -127,27 +138,30 @@ namespace base
       out.suspensionRestLength=s.suspensionRestLength;out.suspensionTravel=s.suspensionTravel;
       out.suspensionStiffness=s.suspensionStiffness;out.suspensionDamping=s.suspensionDamping;
       out.driveCurrentLimit=c.driveCurrent;out.steerCurrentLimit=c.steerCurrent;
+      if(c.backend==DriveBackend::SparkMaxNavX){const auto motor=frc::DCMotor::NEO(1);out.motorResistance=motor.R.value();out.motorKt=motor.Kt.value();out.motorKv=motor.Kv.value();}
       for(size_t i=0;i<4;++i) out.moduleLocations[i]={c.modules[i].xMeters,c.modules[i].yMeters,0};
       return out;
     }
     explicit Simulation(Drive& drive):owner(drive),physics(*sim::GetSimulationRuntime().World(),Configuration(drive.config_)) {
       WriteSensors();
       registration=sim::GetSimulationRuntime().Register({
-        [this](double dt) {ReadVoltages();physics.BeforePhysics(dt);},
+        [this](double dt) {if(owner.portable_)owner.portable_->Sample(timeOrigin+physics.Truth().timestamp,frc::DriverStation::IsEnabled());ReadVoltages(dt);physics.BeforePhysics(dt);},
         [this](double dt) {physics.AfterPhysics(dt);WriteSensors();},
         [this] {owner.ResetSimulation(frc::Pose2d{});},
         [this] {return physics.SupplyCurrent(sim::GetSimulationRuntime().BusVoltage());}});
     }
-    void ReadVoltages() {
+    void ReadVoltages(double dt) {
       for(size_t i=0;i<4;++i) {
-        auto& module=owner.native_->GetModule(i);
         const double bus=sim::GetSimulationRuntime().BusVoltage();
+        if(owner.portable_){const auto v=owner.portable_->SimVoltages(i,dt,bus);physics.SetModuleVoltages(i,v[0],v[1]);continue;}
+        auto& module=owner.native_->GetModule(i);
         physics.SetModuleVoltages(i,std::clamp(module.GetDriveMotor().GetSimState().GetMotorVoltage().value(),-bus,bus),std::clamp(module.GetSteerMotor().GetSimState().GetMotorVoltage().value(),-bus,bus));
       }
     }
     void WriteSensors() {
       const auto truth=physics.Truth();
       for(size_t i=0;i<4;++i) {
+        if(owner.portable_){const auto& m=truth.modules[i];owner.portable_->SetSimInputs(i,{m.wheelAngle*owner.config_.wheelRadius,m.wheelVelocity*owner.config_.wheelRadius,m.steerAngle,m.steerVelocity,0,true});continue;}
         auto& module=owner.native_->GetModule(i);const auto& config=owner.config_.modules[i];
         auto& drive=module.GetDriveMotor().GetSimState();
         auto& steer=module.GetSteerMotor().GetSimState();
@@ -172,8 +186,9 @@ namespace base
       const double yaw=std::atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z));
       const double pitch=std::asin(std::clamp(2*(q.w*q.y-q.z*q.x),-1.0,1.0));
       const double roll=std::atan2(2*(q.w*q.x+q.y*q.z),1-2*(q.x*q.x+q.y*q.y));
-      auto& pigeon=owner.native_->GetPigeon2().GetSimState();
       unwrappedYaw+=std::remainder(yaw-lastYaw,2*std::acos(-1.0));lastYaw=yaw;
+      if(owner.portable_){owner.portable_->SetSimYaw(unwrappedYaw);return;}
+      auto& pigeon=owner.native_->GetPigeon2().GetSimState();
       pigeon.SetRawYaw(units::radian_t{unwrappedYaw});pigeon.SetPitch(units::radian_t{pitch});pigeon.SetRoll(units::radian_t{roll});
       // Pigeon angular rates are in sensor/body coordinates.
       auto w=truth.body.angularVelocity;
@@ -187,13 +202,15 @@ namespace base
     }
     void Reset(const frc::Pose2d& pose) {
       double angle=pose.Rotation().Radians().value();
-      lastYaw=angle;unwrappedYaw=angle;
+      lastYaw=angle;unwrappedYaw=angle;timeOrigin=frc::RobotController::GetFPGATime()*1e-6-.02;
       physics.Reset({{pose.X().value(),pose.Y().value(),owner.config_.simulation.rideHeight},{0,0,std::sin(angle/2),std::cos(angle/2)}});
-      WriteSensors();owner.native_->ResetPose(pose);
+      WriteSensors();if(owner.portable_){owner.portable_->Sample(frc::RobotController::GetFPGATime()*1e-6,false);owner.portable_->Update();owner.portable_->ResetPose(pose);}else owner.native_->ResetPose(pose);
     }
   };
 #endif
   void DriveConfig::Validate() const {
+    if(backend!=DriveBackend::Phoenix&&backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Unsupported drivetrain backend");
+    if(backend==DriveBackend::SparkMaxNavX&&odometryHz!=0&&(odometryHz<20||odometryHz>200))throw std::invalid_argument("Portable acquisition requires 20 to 200 Hz");
     auto finite=[](double value) { if(!std::isfinite(value)) throw std::invalid_argument("DriveConfig requires finite values"); };
     auto positive=[&](double value) { finite(value); if(value<=0) throw std::invalid_argument("DriveConfig requires positive physical dimensions, ratios and limits"); };
     auto nonnegative=[&](double value) { finite(value); if(value<0) throw std::invalid_argument("DriveConfig requires nonnegative gains, friction and damping"); };
@@ -202,18 +219,24 @@ namespace base
         simulation.rollInertia,simulation.pitchInertia,simulation.wheelInertia,simulation.steerInertia,
         simulation.longitudinalStiffness,simulation.lateralStiffness,simulation.suspensionRestLength,
         simulation.suspensionTravel,simulation.suspensionStiffness,simulation.suspensionDamping}) positive(v);
-    for(double v:{odometryHz,autoTranslationKP,autoRotationKP,cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
+    for(double v:{spark.driveP,spark.driveD,spark.driveKS,spark.driveKV,spark.steerP,spark.steerD,odometryHz,autoTranslationKP,autoRotationKP,cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
+    if(backend==DriveBackend::SparkMaxNavX)for(double derivative:{spark.driveD,spark.steerD})
+      if(!std::isfinite(derivative*1000))throw std::invalid_argument("Spark derivative gain overflows millisecond normalization");
     for(double v:{couplingRatio,simulation.centerOfMassX,simulation.centerOfMassY,simulation.centerOfMassZ}) finite(v);
+    if(backend==DriveBackend::SparkMaxNavX)for(double current:{driveCurrent,steerCurrent})
+      if(current<1||current>200||std::floor(current)!=current)throw std::invalid_argument("Spark swerve current limits must be integer amperes in [1,200]");
     // Talons share a device type; CANcoders and Pigeon have separate type IDs.
     std::set<int> motors,encoders;
     auto id=[](int v){if(v<0||v>62)throw std::invalid_argument("DriveConfig CAN IDs must be in [0,62]");};
-    id(pigeon);
+    if(backend==DriveBackend::Phoenix)id(pigeon);
+    else if(!bus.empty()&&bus!="rio")throw std::invalid_argument("Spark swerve supports the roboRIO CAN bus only");
     double twiceArea=0;
     for(size_t i=0;i<modules.size();++i) {
-      const auto& m=modules[i]; id(m.drive);id(m.steer);id(m.encoder);
-      if(!motors.insert(m.drive).second||!motors.insert(m.steer).second||!encoders.insert(m.encoder).second)
+      const auto& m=modules[i]; id(m.drive);id(m.steer);if(backend==DriveBackend::Phoenix)id(m.encoder);
+      if(!motors.insert(m.drive).second||!motors.insert(m.steer).second||(backend==DriveBackend::Phoenix&&!encoders.insert(m.encoder).second))
         throw std::invalid_argument("DriveConfig repeats a CAN device identity on its bus");
       finite(m.offsetTurns);finite(m.xMeters);finite(m.yMeters);
+      if(backend==DriveBackend::SparkMaxNavX&&(m.offsetTurns<0||m.offsetTurns>=1))throw std::invalid_argument("REV absolute zero offsets must be in [0,1) rotations");
       for(size_t j=0;j<i;++j) if(std::hypot(m.xMeters-modules[j].xMeters,m.yMeters-modules[j].yMeters)<1e-6)
         throw std::invalid_argument("DriveConfig module locations must be distinct");
     }
@@ -225,10 +248,20 @@ namespace base
     config_.Validate();
     SetName("Drive");
     telemetry_ = std::make_shared<Telemetry>();
-    if(replay::Active()) return; // Before any Phoenix device or Jolt owner.
+    if(replay::Active()) {
+      replayKinematics_=std::make_unique<ReplayKinematics>(config_);
+      return; // Before any Phoenix device or Jolt owner.
+    }
 #ifndef __FRC_ROBORIO__
-    if(frc::RobotBase::IsSimulation()) AwaitPhoenixSimulationTransport(config_);
+    if(frc::RobotBase::IsSimulation()&&config_.backend==DriveBackend::Phoenix) AwaitPhoenixSimulationTransport(config_);
 #endif
+    if(config_.backend==DriveBackend::SparkMaxNavX) {
+      portable_=std::make_unique<PortableSwerve>(config_,MakeSparkNavXSwerveIO(config_,frc::RobotBase::IsSimulation()),!frc::RobotBase::IsSimulation());
+#ifndef __FRC_ROBORIO__
+      if(frc::RobotBase::IsSimulation()){if(!sim::GetSimulationRuntime().World())throw std::invalid_argument("REV simulation requires Jolt planar or 3D physics");simulation_=std::make_unique<Simulation>(*this);}
+#endif
+      return;
+    }
     p::configs::TalonFXConfiguration drive, steer;
     drive.CurrentLimits.WithSupplyCurrentLimit(units::ampere_t{config_.driveCurrent}).WithSupplyCurrentLimitEnable(true);
     steer.CurrentLimits.WithStatorCurrentLimit(units::ampere_t{config_.steerCurrent}).WithStatorCurrentLimitEnable(true);
@@ -264,9 +297,11 @@ namespace base
     SetName("Drive");
 
   }
+  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {if(config_.backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Injected portable Drive requires SparkMaxNavX backend");config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(replay::Active())replayKinematics_=std::make_unique<ReplayKinematics>(config_);else portable_=std::make_unique<PortableSwerve>(config_,std::move(io),!frc::RobotBase::IsSimulation());}
   Drive::~Drive() = default;
   Drive::Inputs Drive::ReadInputs() const {
     auto j=replay::ProcessInputs("Drive",[this] {
+      if(portable_){auto s=portable_->State();wpi::json states=wpi::json::array();for(const auto& m:s.states){states.push_back(m.speed.value());states.push_back(m.angle.Radians().value());}return wpi::json{{"backend","rev"},{"pose",{s.pose.X().value(),s.pose.Y().value(),s.pose.Rotation().Radians().value()}},{"speeds",{s.speeds.vx.value(),s.speeds.vy.value(),s.speeds.omega.value()}},{"states",states}};}
       auto s=native_->GetState();
       wpi::json states=wpi::json::array();
       for(const auto &m:s.ModuleStates){states.push_back(m.speed.value());states.push_back(m.angle.Radians().value());}
@@ -285,6 +320,7 @@ namespace base
     wpi::json targets=wpi::json::array();
     std::vector<frc::SwerveModuleState> states(replayTargets_.begin(),replayTargets_.end());
     if(native_)states=native_->GetState().ModuleTargets;
+    if(portable_){const auto s=portable_->State();states.assign(s.targets.begin(),s.targets.end());}
     for(const auto &m:states){targets.push_back(m.speed.value());targets.push_back(m.angle.Radians().value());}
     replay::RecordOutput("Drive/RequestedChassisSpeeds",{requestedSpeeds_.vx.value(),requestedSpeeds_.vy.value(),requestedSpeeds_.omega.value()});
     replay::RecordOutput("Drive/ModuleTargets",targets);
@@ -295,9 +331,17 @@ namespace base
       if(native_){auto a=frc::DriverStation::GetAlliance();native_->SetOperatorPerspectiveForward(frc::Rotation2d{a&&*a==frc::DriverStation::Alliance::kRed?180_deg:0_deg});}
       Stop();
     }
+    if(portable_) {
+#ifndef __FRC_ROBORIO__
+      // Injected desktop IO has no Jolt owner; acquire once at robot cadence.
+      if(frc::RobotBase::IsSimulation()&&!simulation_)portable_->Sample(frc::RobotController::GetFPGATime()*1e-6,frc::DriverStation::IsEnabled());
+#endif
+      portable_->Update();
+    }
     auto state=ReadInputs();
     std::array<frc::SwerveModuleState,4> targets=replayTargets_;
     if(native_) {auto measured=native_->GetState();std::copy(measured.ModuleTargets.begin(),measured.ModuleTargets.end(),targets.begin());}
+    if(portable_)targets=portable_->State().targets;
     const auto requested=requestedSpeeds_;auto timestamp=frc::RobotController::GetFPGATime();
     telemetry::Post("Drive",[telemetry=telemetry_,state,targets,requested,timestamp] {
       telemetry->measured.Set(state.states,timestamp);telemetry->targets.Set(targets,timestamp);
@@ -309,6 +353,7 @@ namespace base
 #ifndef __FRC_ROBORIO__
     if(simulation_) return; // The single world clock owns all Jolt stepping.
 #endif
+    if(!native_)return;
     native_->UpdateSimState(.02_s, frc::RobotController::GetBatteryVoltage());
 #ifndef __FRC_ROBORIO__
     // Phoenix status signals are asynchronously cached; diagnostic power is an estimate.
@@ -338,6 +383,7 @@ namespace base
   void Drive::ResetPose(const frc::Pose2d &pose) {
     replay::RecordOutput("Drive/ResetPose",{pose.X().value(),pose.Y().value(),pose.Rotation().Radians().value()});
     if(native_)native_->ResetPose(pose);
+    if(portable_)portable_->ResetPose(pose);
     if(poseResetCallback_)poseResetCallback_(pose);
   }
   void Drive::SetPoseResetCallback(std::function<void(const frc::Pose2d&)> callback) {
@@ -348,14 +394,15 @@ namespace base
     for(double value:noise)deviations.push_back(std::isfinite(value)?wpi::json(value):wpi::json(nullptr));
     replay::RecordOutput("Drive/Vision",{{"pose",{pose.X().value(),pose.Y().value(),pose.Rotation().Radians().value()}},{"time",time.value()},{"noise",deviations}});
     if(native_)native_->AddVisionMeasurement(pose,p::utils::FPGAToCurrentTime(time),noise);
+    if(portable_)portable_->AddVision(pose,time,noise);
   }
   void Drive::RunVelocity(const frc::ChassisSpeeds &speeds)
   {
     requestedSpeeds_ = speeds;
     if(native_)native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity));
+    else if(portable_)portable_->Velocity(speeds);
     else {
-      auto location=[this](int i){return frc::Translation2d{units::meter_t{config_.modules[i].xMeters},units::meter_t{config_.modules[i].yMeters}};};
-      frc::SwerveDriveKinematics<4> kinematics{location(0),location(1),location(2),location(3)};
+      auto& kinematics=replayKinematics_->value;
       auto targets=kinematics.ToSwerveModuleStates(speeds);
       kinematics.DesaturateWheelSpeeds(&targets,units::meters_per_second_t{config_.maxSpeed});
       auto measured=ReadInputs();
@@ -367,6 +414,14 @@ namespace base
   {
     requestedSpeeds_ = speeds;
     if(native_)native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity).WithWheelForceFeedforwardsX(ff.robotRelativeForcesX).WithWheelForceFeedforwardsY(ff.robotRelativeForcesY));
+    else if(portable_){
+      std::array<double,4> x{},y{};
+      if(!ff.robotRelativeForcesX.empty()||!ff.robotRelativeForcesY.empty()){
+        if(ff.robotRelativeForcesX.size()!=4||ff.robotRelativeForcesY.size()!=4){Stop();throw std::invalid_argument("Swerve force feedforwards require four module values");}
+        for(size_t i=0;i<4;++i){x[i]=ff.robotRelativeForcesX[i].value();y[i]=ff.robotRelativeForcesY[i].value();}
+      }
+      portable_->Velocity(speeds,x,y);
+    }
     else RunVelocity(speeds);
     wpi::json x=wpi::json::array(),y=wpi::json::array();
     for(auto v:ff.robotRelativeForcesX)x.push_back(v.value());
@@ -400,6 +455,7 @@ namespace base
   void Drive::StopWithX() {
     requestedSpeeds_ = {};
     if(native_)native_->SetControl(s::requests::SwerveDriveBrake{});
+    else if(portable_)portable_->Brake();
     else for(size_t i=0;i<4;++i)replayTargets_[i]={0_mps,frc::Rotation2d{units::radian_t{std::atan2(config_.modules[i].yMeters,config_.modules[i].xMeters)}}};
     replay::RecordOutput("Drive/Brake",true);RecordDriveOutput();
   }
@@ -409,7 +465,7 @@ namespace base
     for (const auto &m : config_.modules)
       locations.emplace_back(units::meter_t{m.xMeters}, units::meter_t{m.yMeters});
     pathplanner::RobotConfig rc{units::kilogram_t{config_.massKg}, units::kilogram_square_meter_t{config_.moi},
-                                pathplanner::ModuleConfig{units::meter_t{config_.wheelRadius}, units::meters_per_second_t{config_.maxSpeed}, config_.cof, frc::DCMotor::KrakenX60FOC(1).WithReduction(config_.driveRatio), units::ampere_t{config_.driveCurrent}, 1}, locations};
+                                pathplanner::ModuleConfig{units::meter_t{config_.wheelRadius}, units::meters_per_second_t{config_.maxSpeed}, config_.cof, (config_.backend==DriveBackend::SparkMaxNavX?frc::DCMotor::NEO(1):frc::DCMotor::KrakenX60FOC(1)).WithReduction(config_.driveRatio), units::ampere_t{config_.driveCurrent}, 1}, locations};
     if(config_.autoConfigFromGUI)rc=pathplanner::RobotConfig::fromGUISettings();
     autoController_=std::make_shared<pathplanner::PPHolonomicDriveController>(pathplanner::PIDConstants{config_.autoTranslationKP,0,0},pathplanner::PIDConstants{config_.autoRotationKP,0,0});
     pathplanner::AutoBuilder::configure([this]

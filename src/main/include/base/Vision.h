@@ -7,9 +7,7 @@
 #include <vector>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Transform3d.h>
-#include <networktables/DoubleArrayTopic.h>
-#include <networktables/DoubleTopic.h>
-#include <networktables/NetworkTable.h>
+#include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc2/command/SubsystemBase.h>
 namespace base {
 struct VisionObservation {
@@ -33,42 +31,52 @@ struct VisionConfig {
   double cameraStdDevFactor = 1;
   double megatag2LinearFactor = 1; // Preserve existing C++ covariance by default.
 };
-// Consumes Limelight blue-origin poses. Camera calibration and field layout remain deployment inputs.
-class Vision : public frc2::SubsystemBase {
- public:
-  Vision(VisionConfig config, std::function<void(const VisionObservation&)> consumer,
-         std::function<frc::Rotation2d()> heading = {});
-  void Periodic() override;
-  bool Connected() const;
-  double TargetYawDegrees() const;
- private:
-  std::pair<bool,double> Status() const;
-  VisionConfig config_;
-  std::function<void(const VisionObservation&)> consumer_;
-  std::function<frc::Rotation2d()> heading_;
-  std::shared_ptr<nt::NetworkTable> table_;
-  nt::DoubleArraySubscriber poses_;
-  nt::DoubleSubscriber heartbeat_;
-  nt::DoubleSubscriber targetYaw_;
-  std::shared_ptr<nt::DoubleArrayPublisher> orientation_;
-  std::shared_ptr<nt::DoubleArrayPublisher> cameraPose_;
+struct VisionInputs {
+  std::vector<VisionObservation> observations;
+  bool connected{}, tracking{}, aligned{};
+  double targetYawDegrees{};
 };
-}
-
-#include <frc/apriltag/AprilTagFieldLayout.h>
-#include <photon/PhotonCamera.h>
-#include <photon/PhotonPoseEstimator.h>
-namespace base {
-class PhotonVision : public frc2::SubsystemBase {
+// One source update per scheduler tick. Status reads are passive; adapters own
+// acquisition/filtering and retain their existing replay boundary.
+class VisionIO {
  public:
-  PhotonVision(VisionConfig config, frc::AprilTagFieldLayout layout,
-               std::function<void(const VisionObservation&)> consumer);
-  void Periodic() override;
-  bool Connected();
+  virtual ~VisionIO() = default;
+  virtual void UpdateInputs(VisionInputs &inputs) = 0;
+  virtual bool AlignToField(const frc::Pose2d &) { return false; }
+};
+class InjectedVisionIO final : public VisionIO {
+ public:
+  using Source = std::function<void(VisionInputs &)>;
+  explicit InjectedVisionIO(Source source) : source_(std::move(source)) {}
+  void UpdateInputs(VisionInputs &inputs) override { if(source_) source_(inputs); }
  private:
-  VisionConfig config_;
-  std::unique_ptr<photon::PhotonCamera> camera_;
-  std::unique_ptr<photon::PhotonPoseEstimator> estimator_;
-  std::function<void(const VisionObservation&)> consumer_;
+  Source source_;
+};
+class VisionSystem : public frc2::SubsystemBase {
+ public:
+  using Consumer=std::function<void(const VisionObservation &)>;
+  explicit VisionSystem(std::vector<std::unique_ptr<VisionIO>> sources, Consumer consumer);
+  explicit VisionSystem(std::unique_ptr<VisionIO> source, Consumer consumer);
+  void Periodic() override;
+  const VisionInputs &Inputs(size_t source=0) const { return inputs_.at(source); }
+  bool AlignToField(size_t source,const frc::Pose2d &pose);
+ private:
+  std::vector<std::unique_ptr<VisionIO>> sources_;
+  std::vector<VisionInputs> inputs_;
+  Consumer consumer_;
+};
+std::unique_ptr<VisionIO> MakeLimelightVisionIO(VisionConfig config,
+    std::function<frc::Rotation2d()> heading={});
+std::unique_ptr<VisionIO> MakePhotonVisionIO(VisionConfig config, frc::AprilTagFieldLayout layout);
+class Vision : public VisionSystem {
+ public:
+  Vision(VisionConfig config, Consumer consumer, std::function<frc::Rotation2d()> heading={});
+  bool Connected() const { return Inputs().connected; }
+  double TargetYawDegrees() const { return Inputs().targetYawDegrees; }
+};
+class PhotonVision : public VisionSystem {
+ public:
+  PhotonVision(VisionConfig config, frc::AprilTagFieldLayout layout, Consumer consumer);
+  bool Connected() const { return Inputs().connected; }
 };
 }

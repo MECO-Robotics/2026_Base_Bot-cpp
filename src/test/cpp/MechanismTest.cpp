@@ -381,3 +381,79 @@ TEST(MechanismControl, ExternalSchedulingAvoidsDuplicateTicksAndTelemetryDoesNot
   wheel.Control(units::second_t{.004},true);
   EXPECT_DOUBLE_EQ(observed->requestedVoltage,0);
 }
+
+TEST(MechanismAdapter, IoOwnsControllerAndUsesSuppliedFeedbackWithoutReadingAgain) {
+  class ObservedIO final : public base::MotorIO {
+   public:
+    int reads=0; double volts=0;
+    base::MotorInputs Read() override { ++reads; return {}; }
+    void SetVoltage(double voltage) override { volts=voltage; }
+    void SetBrake(bool) override {}
+  } io;
+  base::Gains gains; gains.p=2; gains.i=1; gains.v=.3; gains.a=.2;
+  EXPECT_FALSE(io.ConfigureControl({gains,2,base::Gravity::Constant,false,false}));
+  base::MotorInputs sample; sample.connected=true; sample.velocity=.25;
+  base::NativeControlRequest setpoint{base::NativeControlRequest::Kind::Velocity,1,1,1,1,.5};
+  auto result=io.Control({setpoint,0},sample,0,units::second_t{.01});
+  ASSERT_TRUE(result.ok); ASSERT_TRUE(result.voltage);
+  EXPECT_NEAR(io.volts,1+.005+.3+.1,1e-12);
+  EXPECT_EQ(io.reads,0); // Replay-substituted sample is the only controller input.
+  io.Control({setpoint,0},sample,0,units::second_t{.004});
+  EXPECT_NEAR(io.volts,1+.007+.3+.1,1e-12);
+  io.ResetControl();
+  io.Control({setpoint,0},sample,0,units::second_t{.004});
+  EXPECT_NEAR(io.volts,1+.002+.3+.1,1e-12);
+}
+
+TEST(MechanismAdapter, NativeRequestFailureLatchesUntilDisabledReconfiguration) {
+  class FaultIO final : public base::MotorIO {
+   public:
+    int requests=0; bool fail=true; double volts=0;
+    base::MotorInputs Read() override { base::MotorInputs input; input.connected=true; return input; }
+    void SetVoltage(double voltage) override { volts=voltage; }
+    void SetBrake(bool) override {}
+    bool ConfigureNative(const base::Gains&,double,base::Gravity,bool) override { return true; }
+    bool SetNative(const base::NativeControlRequest&) override { ++requests; return !fail; }
+  };
+  HAL_Initialize(500,0);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  auto io=std::make_unique<FaultIO>(); auto* observed=io.get();
+  base::Flywheel wheel("AdapterRequestFault",std::move(io),base::Gains{});
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  wheel.SetVelocity(1); wheel.Periodic();
+  EXPECT_EQ(observed->requests,1); EXPECT_DOUBLE_EQ(observed->volts,0);
+  observed->fail=false;
+  wheel.SetVelocity(1); wheel.Periodic();
+  EXPECT_EQ(observed->requests,1);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  wheel.SetGains(base::Gains{});
+  frc::sim::DriverStationSim::SetEnabled(true);
+  frc::sim::DriverStationSim::NotifyNewData();
+  wheel.SetVelocity(1); wheel.Periodic();
+  EXPECT_EQ(observed->requests,2);
+  frc::sim::DriverStationSim::SetEnabled(false);
+  frc::sim::DriverStationSim::NotifyNewData();
+  // Drain this test's asynchronous snapshots before NT static teardown.
+  base::telemetry::Flush();
+}
+
+TEST(MechanismAdapter, NativeAndEmulatedSourcesRetainTheirReplayBoundary) {
+  base::InjectedMotorIO io;
+  base::Gains gains; gains.p=2;
+  EXPECT_FALSE(io.ConfigureControl({gains,1,base::Gravity::Constant,false,false}));
+  base::MotorInputs input; input.connected=true;
+  base::NativeControlRequest request{base::NativeControlRequest::Kind::Velocity,1,1,1,1,0};
+  io.UseRecordedControl(false);
+  auto emulated=io.Control({request,0},input,0,units::second_t{.02});
+  ASSERT_TRUE(emulated.voltage); EXPECT_DOUBLE_EQ(*emulated.voltage,2);
+  io.UseRecordedControl(true);
+  auto native=io.Control({request,0},input,0,units::second_t{.02});
+  EXPECT_TRUE(native.ok); EXPECT_FALSE(native.voltage);
+  ASSERT_TRUE(io.nativeRequest); EXPECT_DOUBLE_EQ(io.nativeRequest->target,1);
+  io.UseRecordedControl(false);
+  emulated=io.Control({request,0},input,0,units::second_t{.02});
+  ASSERT_TRUE(emulated.voltage); EXPECT_FALSE(io.nativeRequest);
+}

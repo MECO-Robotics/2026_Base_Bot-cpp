@@ -1,4 +1,5 @@
 #include "base/Drive.h"
+#include "base/PortableSwerve.h"
 #include "base/DriveWheelRadius.h"
 #include "base/Replay.h"
 #include "base/Telemetry.h"
@@ -53,6 +54,7 @@ frc2::CommandPtr Drive::CharacterizeWheelRadius() {
   },[this,state]{
     try {
       const auto sample=replay::ProcessInputs("Drive/WheelRadius",[this]{
+        if(portable_){const auto s=portable_->State();wpi::json angles=wpi::json::array();for(const auto& p:s.positions)angles.push_back(p.distance.value()/config_.wheelRadius);return wpi::json{{"timestamp",s.timestamp},{"healthy",s.healthy},{"rawYaw",s.rawYaw},{"angles",angles}};}
         const auto feedback=native_->GetState();
         const double age=(ctre::phoenix6::utils::GetCurrentTime()-feedback.Timestamp).value();
         wpi::json angles=wpi::json::array();

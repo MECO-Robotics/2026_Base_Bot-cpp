@@ -1,4 +1,9 @@
 #include "base/Vision.h"
+#include <networktables/DoubleArrayTopic.h>
+#include <networktables/DoubleTopic.h>
+#include <networktables/NetworkTable.h>
+#include <photon/PhotonCamera.h>
+#include <photon/PhotonPoseEstimator.h>
 #include "base/Replay.h"
 #include "base/Telemetry.h"
 #include <cmath>
@@ -10,6 +15,29 @@
 #include <networktables/NetworkTableInstance.h>
 namespace base
 {
+  class LimelightIO final : public VisionIO {
+   public:
+    LimelightIO(VisionConfig config, std::function<frc::Rotation2d()> heading);
+    void UpdateInputs(VisionInputs &) override;
+   private:
+    std::pair<bool,double> Status() const;
+    VisionConfig config_;
+    std::function<frc::Rotation2d()> heading_;
+    std::shared_ptr<nt::NetworkTable> table_;
+    nt::DoubleArraySubscriber poses_;
+    nt::DoubleSubscriber heartbeat_,targetYaw_;
+    std::shared_ptr<nt::DoubleArrayPublisher> orientation_,cameraPose_;
+  };
+  class PhotonIO final : public VisionIO {
+   public:
+    PhotonIO(VisionConfig config, frc::AprilTagFieldLayout layout);
+    void UpdateInputs(VisionInputs &) override;
+   private:
+    bool Connected();
+    VisionConfig config_;
+    std::unique_ptr<photon::PhotonCamera> camera_;
+    std::unique_ptr<photon::PhotonPoseEstimator> estimator_;
+  };
   namespace {
     void Validate(const VisionConfig &c) {
       if(c.name.empty()||c.minTagCount<1||c.minAllowedTagCount<1)
@@ -42,9 +70,9 @@ namespace base
                frc::Rotation2d{units::radian_t{p.at(2).get<double>()}}},units::second_t{o.at("timestamp").get<double>()},deviations};
     }
   }
-  Vision::Vision(VisionConfig config, std::function<void(const VisionObservation &)> consumer,
+  LimelightIO::LimelightIO(VisionConfig config,
                  std::function<frc::Rotation2d()> heading)
-      : config_(std::move(config)), consumer_(std::move(consumer)), heading_(std::move(heading))
+      : config_(std::move(config)), heading_(std::move(heading))
   {
     Validate(config_);
     if (config_.megatag2 && !heading_)
@@ -62,7 +90,7 @@ namespace base
                                           units::degree_t{t.Rotation().Z()}.value()};
     telemetry::Post("VisionConfig/"+config_.name,[publisher=cameraPose_,cameraPose]{publisher->Set(cameraPose);});
   }
-  std::pair<bool,double> Vision::Status() const {
+  std::pair<bool,double> LimelightIO::Status() const {
     const auto status=replay::ProcessInputs("Vision/"+config_.name+"/Status",[this] {
       const auto changed=heartbeat_.GetLastChange();
       const auto yaw=targetYaw_.Get();
@@ -71,11 +99,9 @@ namespace base
     });
     return {status.at("connected").get<bool>(),status.at("yaw").is_null()?std::numeric_limits<double>::quiet_NaN():status.at("yaw").get<double>()};
   }
-  bool Vision::Connected() const { return Status().first; }
-  double Vision::TargetYawDegrees() const { return Status().second; }
-  void Vision::Periodic()
+  void LimelightIO::UpdateInputs(VisionInputs &inputs)
   {
-    (void)Status();
+    const auto status=Status(); inputs.connected=status.first; inputs.targetYawDegrees=status.second;
     if (config_.megatag2) {
       const auto orientation=std::array<double,6>{heading_().Degrees().value(),0,0,0,0,0};
       replay::RecordOutput("Vision/"+config_.name+"/Orientation",orientation);
@@ -118,27 +144,26 @@ namespace base
     }
     return accepted;
     });
-    for(const auto &observation:observations) if(consumer_) consumer_(Decode(observation));
+    for(const auto &observation:observations) inputs.observations.push_back(Decode(observation));
   }
 }
 
 namespace base
 {
-  PhotonVision::PhotonVision(VisionConfig config, frc::AprilTagFieldLayout layout,
-                             std::function<void(const VisionObservation &)> consumer)
-      : config_(std::move(config)), consumer_(std::move(consumer)) {
+  PhotonIO::PhotonIO(VisionConfig config, frc::AprilTagFieldLayout layout)
+      : config_(std::move(config)) {
     Validate(config_);
     if(!replay::Active()) {
       camera_=std::make_unique<photon::PhotonCamera>(config_.name);
       estimator_=std::make_unique<photon::PhotonPoseEstimator>(std::move(layout),config_.robotToCamera);
     }
   }
-  bool PhotonVision::Connected() {
+  bool PhotonIO::Connected() {
     return replay::ProcessInputs("PhotonVision/"+config_.name+"/Connected",[this]{return wpi::json(camera_->IsConnected());}).get<bool>();
   }
-  void PhotonVision::Periodic()
+  void PhotonIO::UpdateInputs(VisionInputs &inputs)
   {
-    (void)Connected();
+    inputs.connected=Connected();
     const auto observations=replay::ProcessInputs("PhotonVision/"+config_.name+"/Observations",[this] {
     auto accepted=wpi::json::array();
     for (const auto &result : camera_->GetAllUnreadResults())
@@ -182,6 +207,40 @@ namespace base
     }
     return accepted;
     });
-    for(const auto &observation:observations) if(consumer_) consumer_(Decode(observation));
+    for(const auto &observation:observations) inputs.observations.push_back(Decode(observation));
   }
+}
+
+namespace base {
+VisionSystem::VisionSystem(std::vector<std::unique_ptr<VisionIO>> sources, Consumer consumer)
+    :sources_(std::move(sources)),inputs_(sources_.size()),consumer_(std::move(consumer)) {
+  for(const auto &source:sources_) if(!source) throw std::invalid_argument("Null vision IO");
+}
+VisionSystem::VisionSystem(std::unique_ptr<VisionIO> source, Consumer consumer)
+    :consumer_(std::move(consumer)) {
+  if(!source) throw std::invalid_argument("Null vision IO");
+  sources_.push_back(std::move(source)); inputs_.resize(1);
+}
+bool VisionSystem::AlignToField(size_t source,const frc::Pose2d &pose) {
+  const bool accepted=sources_.at(source)->AlignToField(pose);
+  if(accepted) inputs_.at(source).aligned=true;
+  return accepted;
+}
+void VisionSystem::Periodic() {
+  for(size_t i=0;i<sources_.size();++i) {
+    auto &input=inputs_[i]; input.observations.clear();
+    sources_[i]->UpdateInputs(input);
+    if(consumer_) for(const auto &observation:input.observations) consumer_(observation);
+  }
+}
+std::unique_ptr<VisionIO> MakeLimelightVisionIO(VisionConfig config,std::function<frc::Rotation2d()> heading) {
+  return std::make_unique<LimelightIO>(std::move(config),std::move(heading));
+}
+std::unique_ptr<VisionIO> MakePhotonVisionIO(VisionConfig config,frc::AprilTagFieldLayout layout) {
+  return std::make_unique<PhotonIO>(std::move(config),std::move(layout));
+}
+Vision::Vision(VisionConfig config,Consumer consumer,std::function<frc::Rotation2d()> heading)
+    :VisionSystem(MakeLimelightVisionIO(std::move(config),std::move(heading)),std::move(consumer)) {}
+PhotonVision::PhotonVision(VisionConfig config,frc::AprilTagFieldLayout layout,Consumer consumer)
+    :VisionSystem(MakePhotonVisionIO(std::move(config),std::move(layout)),std::move(consumer)) {}
 }

@@ -27,10 +27,13 @@ namespace base
     if (ids.empty() || ids.size() != reversed.size() || gearRatio <= 0 || currentLimit <= 0)
       throw std::invalid_argument("Invalid motor configuration");
     Finite(gearRatio);
-    if (phoenix.enabled && (phoenix.remoteSensorId < 0 || phoenix.remoteSensorId > 62 ||
+    if ((phoenix.remoteSensorId < 0 || phoenix.remoteSensorId > 62 ||
         !std::isfinite(phoenix.rotorToSensorRatio) || phoenix.rotorToSensorRatio <= 0 ||
         !std::isfinite(phoenix.sensorToMechanismRatio) || phoenix.sensorToMechanismRatio <= 0))
       throw std::invalid_argument("Invalid Phoenix feedback configuration");
+    if (!std::isfinite(spark.sensorToMechanismRatio) || spark.sensorToMechanismRatio<=0 ||
+        !std::isfinite(spark.zeroOffset) || spark.zeroOffset<0 || spark.zeroOffset>=1 ||
+        (spark.feedback!=SparkControlConfig::Feedback::PrimaryEncoder && spark.feedback!=SparkControlConfig::Feedback::AbsoluteEncoder)) throw std::invalid_argument("Invalid Spark feedback configuration");
     std::set<int> seen;
     for (int id : ids)
       if (id < 0 || id > 62 || !seen.insert(id).second)
@@ -68,35 +71,54 @@ namespace base
       throw std::invalid_argument("Invalid mechanism IO or units");
     gains_.Validate(joint_);
     calibration_.Validate();
-    native_=io_->ConfigureNative(gains_, units_, gravity_, joint_);
+    native_=io_->ConfigureControl({gains_,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)});
     if (native_ && externalEncoder_)
       throw std::invalid_argument("Native control requires the motor adapter feedback, not an external encoder callback");
+    asynchronousConfiguration_=io_->UsesAsyncConfiguration();
     SetName(name);
   }
   void Mechanism::SetGains(Gains gains)
   {
     gains.Validate(joint_);
+    if (configurationIntent_) throw std::logic_error("Motor configuration awaits a control-tick acknowledgement");
+    if (inputs_.configuration==MotorConfigurationState::Fault &&
+        inputs_.configurationFailure!=MotorConfigurationFailure::Gains)
+      throw std::logic_error("Retry the failed neutral configuration first");
     if (native_ && frc::DriverStation::IsEnabled())
       throw std::logic_error("Native gain configuration requires disabled state");
     if (native_) {
-      Stop(); nativeFault_=true;
-      if(!io_->ConfigureNative(gains, units_, gravity_, joint_))
-        throw std::runtime_error("Native controller reconfiguration lost capability");
+      Stop();
+      const bool previousFault=nativeFault_;
+      nativeFault_=true;
+      try {
+        if(!io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)}))
+          throw std::runtime_error("Native controller reconfiguration lost capability");
+      } catch (...) {
+        // A rejected overlapping submission does not change the accepted job.
+        if(asynchronousConfiguration_) nativeFault_=previousFault;
+        throw;
+      }
       nativeFault_=false;
     }
+    if (!native_) io_->ConfigureControl({gains,units_,gravity_,joint_,static_cast<bool>(externalEncoder_)});
+    configurationIntent_=native_ && asynchronousConfiguration_;
     gains_ = gains;
     maxVelocity_ = gains.maxVelocity;
     maxAcceleration_ = gains.maxAcceleration;
   }
+  bool Mechanism::AcceptIntent() {
+    if (configurationIntent_ || inputs_.configuration!=MotorConfigurationState::Ready) { Stop(); return false; }
+    return true;
+  }
   void Mechanism::SetVelocity(double velocity)
   {
     Finite(velocity);
+    if (!AcceptIntent()) return;
     unprofiled_=false;
     if (control_ != ControlMode::Velocity)
     {
       profiledVelocity_ = Velocity();
-      integral_ = 0;
-      previousError_ = 0;
+      io_->ResetControl();
     }
     maxAcceleration_ = gains_.maxAcceleration;
     target_ = joint_ ? std::clamp(velocity, -gains_.maxVelocity, gains_.maxVelocity) : velocity;
@@ -107,6 +129,7 @@ namespace base
   void Mechanism::SetPositionUnprofiled(double position) { SetPosition(position); motionMagic_=false; unprofiled_=true; }
   void Mechanism::SetPositionDynamic(double position, double maxVelocity, double maxAcceleration)
   {
+    if (!AcceptIntent()) return;
     const bool enterSoftwareProfile=native_ && (motionMagic_ || unprofiled_);
     Finite(position);
     Finite(maxVelocity);
@@ -118,8 +141,7 @@ namespace base
     {
       profiledPosition_ = physicalPosition_;
       profiledVelocity_ = Velocity();
-      integral_ = 0;
-      previousError_ = 0;
+      io_->ResetControl();
     }
     target_ = std::clamp(position + zeroOffset_, gains_.minimum, gains_.maximum);
     maxVelocity_ = maxVelocity;
@@ -130,6 +152,7 @@ namespace base
   void Mechanism::SetVoltage(double volts)
   {
     Finite(volts);
+    if (!AcceptIntent()) return;
     voltage_ = std::clamp(volts, -12., 12.);
     control_ = ControlMode::Voltage;
     replay::RecordOutput("Mechanism/" + GetName() + "/Request", {{"kind","voltage"},{"value",voltage_}});
@@ -137,12 +160,23 @@ namespace base
   void Mechanism::Stop()
   {
     control_ = ControlMode::Stopped;
-    integral_ = 0;
-    previousError_ = 0;
+    io_->ResetControl();
     ApplyVoltage(0);
   }
   void Mechanism::SetBrake(bool enabled) {
+    if (configurationIntent_) throw std::logic_error("Motor configuration awaits a control-tick acknowledgement");
+    if(inputs_.configuration==MotorConfigurationState::Fault &&
+       inputs_.configurationFailure!=(enabled?MotorConfigurationFailure::Brake:MotorConfigurationFailure::Coast))
+      throw std::logic_error("Retry the failed configuration operation and neutral target");
+    if(native_ && (brake_!=enabled || inputs_.configuration==MotorConfigurationState::Fault) &&
+       frc::DriverStation::IsEnabled())
+      throw std::logic_error("Neutral mode configuration requires disabled state");
+    const bool configuring=native_ && asynchronousConfiguration_ &&
+        (brake_!=enabled || inputs_.configuration==MotorConfigurationState::Fault);
+    if(configuring) Stop();
     io_->SetBrake(enabled);
+    if(configuring) configurationIntent_=true;
+    brake_=enabled;
     replay::RecordOutput("Mechanism/" + GetName() + "/Brake", enabled);
   }
   void Mechanism::ApplyVoltage(double volts) {
@@ -172,7 +206,7 @@ namespace base
     target_ = physicalPosition_;
     profiledPosition_ = physicalPosition_;
     profiledVelocity_ = 0;
-    integral_ = 0;
+    io_->ResetControl();
     SetBrake(true);
     Stop();
     if (joint_)
@@ -199,11 +233,25 @@ namespace base
       return wpi::json{{"position",Number(value.position)},{"velocity",Number(value.velocity)},
           {"voltage",Number(value.voltage)},{"supplyVoltage",Number(value.supplyVoltage)},
           {"current",Number(value.current)},{"connected",value.connected},{"nativeControl",native_},
+          {"configuration",static_cast<int>(value.configuration)},
+          {"configurationFailure",static_cast<int>(value.configurationFailure)},
+          {"asynchronousConfiguration",asynchronousConfiguration_},
           {"externalEncoder",externalEncoder_?Number(externalEncoder_()):wpi::json(nullptr)}};
     });
-    if(replay::Active() && !input.value("nativeControl",false)) native_=false;
+    if(replay::Active()) {
+      native_=input.value("nativeControl",false);
+      asynchronousConfiguration_=input.value("asynchronousConfiguration",false);
+      io_->UseRecordedControl(native_);
+    }
+    const int configuration=input.value("configuration",0);
+    if(configuration<0 || configuration>2) { Stop(); throw std::runtime_error("Invalid recorded motor configuration state"); }
+    const int failure=input.value("configurationFailure",0);
+    if(failure<0 || failure>3) { Stop(); throw std::runtime_error("Invalid recorded motor configuration failure"); }
     inputs_={Number(input.at("position")),Number(input.at("velocity")),Number(input.at("voltage")),
-             Number(input.at("supplyVoltage")),Number(input.at("current")),input.at("connected").get<bool>()};
+             Number(input.at("supplyVoltage")),Number(input.at("current")),input.at("connected").get<bool>(),
+             static_cast<MotorConfigurationState>(configuration),static_cast<MotorConfigurationFailure>(failure)};
+    configurationIntent_=inputs_.configuration==MotorConfigurationState::Pending;
+    if (inputs_.configuration!=MotorConfigurationState::Ready) { Stop(); return; }
     if (!inputs_.connected || nativeFault_)
     {
       Stop();
@@ -229,8 +277,7 @@ namespace base
     }
     if (!enabled || frc::DriverStation::IsDisabled())
     {
-      integral_ = 0;
-      previousError_ = 0;
+      io_->ResetControl();
       profiledPosition_ = physicalPosition_;
       profiledVelocity_ = Velocity();
       ApplyVoltage(0);
@@ -262,21 +309,9 @@ namespace base
       else
         profiledVelocity_ += std::clamp(target_ - profiledVelocity_, -maxAcceleration_ * dt, maxAcceleration_ * dt);
       profileAcceleration=(profiledVelocity_-previousVelocity)/dt;
-      double error = control_ == ControlMode::Position ? profiledPosition_ - physicalPosition_ : profiledVelocity_ - Velocity();
-      integral_ = std::clamp(integral_ + error * dt, -12., 12.);
-      volts = gains_.p * error + gains_.i * integral_ + gains_.d * (error - previousError_) / dt;
-      previousError_ = error;
-      volts += gains_.v * profiledVelocity_ + gains_.a * (profiledVelocity_ - previousVelocity) / dt;
-      if (std::abs(profiledVelocity_) > 1e-9)
-        volts += std::copysign(gains_.s, profiledVelocity_);
-      if (joint_)
-      {
-        double angle = physicalPosition_ * 2 * std::numbers::pi;
-        volts += gains_.gravity * (gravity_ == Gravity::Constant ? 1 : gravity_ == Gravity::Cosine ? std::cos(angle)
-                                                                                                   : std::sin(angle));
-      }
+
     }
-    if (native_ && (control_ == ControlMode::Position || control_ == ControlMode::Velocity))
+    if (control_ == ControlMode::Position || control_ == ControlMode::Velocity)
     {
       const bool outward=joint_ && control_==ControlMode::Velocity &&
           ((physicalPosition_<=gains_.minimum && target_<0) || (physicalPosition_>=gains_.maximum && target_>0));
@@ -286,10 +321,12 @@ namespace base
           control_==ControlMode::Velocity ? profiledVelocity_ : motionMagic_ || unprofiled_ ? target_ : profiledPosition_,
           maxVelocity_,maxAcceleration_,unprofiled_?0:profiledVelocity_,unprofiled_?0:profileAcceleration};
       if (!std::isfinite(request.target) || !std::isfinite(request.velocity) || !std::isfinite(request.acceleration)) { Stop(); return; }
-      replay::RecordOutput("Mechanism/"+GetName()+"/NativeRequest", {{"kind",static_cast<int>(request.kind)},
+      if (native_) replay::RecordOutput("Mechanism/"+GetName()+"/NativeRequest", {{"kind",static_cast<int>(request.kind)},
           {"target",request.target},{"maxVelocity",request.maxVelocity},{"maxAcceleration",request.maxAcceleration},
           {"velocity",request.velocity},{"acceleration",request.acceleration}});
-      if (!io_->SetNative(request)) { Stop(); }
+      const auto result=io_->Control({request,profiledPosition_},inputs_,physicalPosition_,timestep);
+      if (result.voltage) replay::RecordOutput("Mechanism/"+GetName()+"/AppliedVoltageRequest",*result.voltage);
+      if (!result.ok) { nativeFault_=native_; Stop(); }
       return;
     }
     if (!std::isfinite(volts))

@@ -1,4 +1,5 @@
 #include "base/QuestNav.h"
+#include <networktables/RawTopic.h>
 #include "base/Replay.h"
 #include <cmath>
 #include <stdexcept>
@@ -7,6 +8,22 @@
 #include <frc/geometry/proto/Pose3dProto.h>
 #include <networktables/NetworkTableInstance.h>
 namespace base {
+class QuestNavIO final : public VisionIO {
+ public:
+  explicit QuestNavIO(QuestNavConfig config);
+  void UpdateInputs(VisionInputs &) override;
+  bool AlignToField(const frc::Pose2d &) override;
+ private:
+  bool Tracking() const { return connected_&&tracking_; }
+  QuestNavConfig config_;
+  nt::RawSubscriber frames_;
+  std::optional<frc::Pose3d> rawRobot_;
+  frc::Pose3d rawAnchor_,fieldAnchor_;
+  int64_t lastReceive_{},lastTimestamp_{};
+  double lastAppTimestamp_{};
+  uint64_t lastFrame_{};
+  bool haveFrame_{},connected_{},tracking_{},aligned_{};
+};
 namespace {
 struct Frame {uint64_t count{};double uptime{};bool tracking{};frc::Pose3d pose;};
 bool Finite(const frc::Pose3d &pose) {
@@ -53,20 +70,19 @@ wpi::json Pose(const frc::Pose3d &p) {
 }
 
 }
-QuestNav::QuestNav(QuestNavConfig config,std::function<void(const VisionObservation&)> consumer)
-    :config_(std::move(config)),consumer_(std::move(consumer)) {
+QuestNavIO::QuestNavIO(QuestNavConfig config)
+    :config_(std::move(config)) {
   for(double v:{config_.fieldLength,config_.fieldWidth,config_.maxZ,config_.freshnessSeconds,
       config_.stdDevs[0],config_.stdDevs[1],config_.stdDevs[2]})
     if(!std::isfinite(v)||v<=0)throw std::invalid_argument("Invalid QuestNav configuration");
   if(config_.name.empty()||!Finite(frc::Pose3d{}.TransformBy(config_.robotToQuest)))
     throw std::invalid_argument("Invalid QuestNav mount/name");
-  SetName(config_.name);
   if(replay::Active())return;
   nt::PubSubOptions options;
-  options.periodic=kSubscriptionPeriod;options.sendAll=true;options.keepDuplicates=true;options.pollStorage=64;
-  frames_=nt::NetworkTableInstance::GetDefault().GetTable(config_.name)->GetRawTopic("frameData").Subscribe(kFrameType,{},options);
+  options.periodic=QuestNav::kSubscriptionPeriod;options.sendAll=true;options.keepDuplicates=true;options.pollStorage=64;
+  frames_=nt::NetworkTableInstance::GetDefault().GetTable(config_.name)->GetRawTopic("frameData").Subscribe(QuestNav::kFrameType,{},options);
 }
-void QuestNav::Periodic() {
+void QuestNavIO::UpdateInputs(VisionInputs &inputs) {
   const auto input=replay::ProcessInputs("QuestNav/"+config_.name+"/Frames",[this] {
     auto queue=wpi::json::array();
     for(const auto &sample:frames_.ReadQueue()) {
@@ -98,12 +114,13 @@ void QuestNav::Periodic() {
     if(!aligned_)continue;
     auto field=fieldAnchor_.TransformBy(frc::Transform3d{rawAnchor_,*rawRobot_});
     if(!Finite(field)||field.X().value()<0||field.X().value()>config_.fieldLength||field.Y().value()<0||field.Y().value()>config_.fieldWidth||std::abs(field.Z().value())>config_.maxZ)continue;
-    if(consumer_)consumer_({field.ToPose2d(),units::second_t{time*1e-6},config_.stdDevs});
+    inputs.observations.push_back({field.ToPose2d(),units::second_t{time*1e-6},config_.stdDevs});
   }
   connected_=haveFrame_&&now>=lastReceive_&&now-lastReceive_<fresh;
   if(!connected_){tracking_=false;aligned_=false;}
+  inputs.connected=connected_; inputs.tracking=tracking_; inputs.aligned=aligned_;
 }
-bool QuestNav::AlignToField(const frc::Pose2d &robotPose) {
+bool QuestNavIO::AlignToField(const frc::Pose2d &robotPose) {
   const frc::Pose3d desired{robotPose};
   if(!Finite(desired))throw std::invalid_argument("Nonfinite QuestNav field alignment");
   const bool accepted=Tracking()&&rawRobot_.has_value();
@@ -111,5 +128,16 @@ bool QuestNav::AlignToField(const frc::Pose2d &robotPose) {
   if(!accepted)return false;
   rawAnchor_=*rawRobot_;fieldAnchor_=desired;aligned_=true;
   return true;
+}
+}
+
+namespace base {
+std::unique_ptr<VisionIO> MakeQuestNavVisionIO(QuestNavConfig config) {
+  return std::make_unique<QuestNavIO>(std::move(config));
+}
+QuestNav::QuestNav(QuestNavConfig config, Consumer consumer)
+    :VisionSystem(MakeQuestNavVisionIO(config),std::move(consumer)) { SetName(config.name); }
+bool QuestNav::AlignToField(const frc::Pose2d &pose) {
+  return VisionSystem::AlignToField(0,pose);
 }
 }

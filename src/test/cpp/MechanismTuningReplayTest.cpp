@@ -26,12 +26,25 @@ TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState)
     auto io=std::make_unique<base::InjectedMotorIO>();
     base::PositionJoint joint("ReplayTune",std::move(io),{});
     base::MechanismTuning tuning(joint);
+    base::Flywheel retryWheel("RetryProbe",std::make_unique<base::InjectedMotorIO>(),{});
     base::replay::RunReplay([]{},[&]{
+      joint.Periodic();
       tuning.Periodic();
+      retryWheel.Periodic();
+      EXPECT_THROW(retryWheel.SetGains({}),std::logic_error);
+      EXPECT_THROW(retryWheel.SetBrake(true),std::logic_error);
+      if(base::replay::FrameIndex()==1) {
+        EXPECT_THROW(retryWheel.SetBrake(false),std::logic_error);
+      } else {
+        retryWheel.SetBrake(false);
+        EXPECT_THROW(retryWheel.SetBrake(false),std::logic_error);
+        EXPECT_THROW(retryWheel.SetGains({}),std::logic_error);
+      }
       EXPECT_DOUBLE_EQ(joint.GetGains().p,5);
       EXPECT_EQ(tuning.LastStatus(),base::replay::FrameIndex()==0?"accepted":
           base::replay::FrameIndex()==1?"rejected: gains require disabled and unowned mechanism":
-          "rejected: stale revision");
+          "applied");
+      if(base::replay::FrameIndex()==2) EXPECT_EQ(tuning.LastRevision(),2u);
     });
     base::telemetry::Shutdown(); base::replay::ShutdownRecording();
     base::replay::FlushOutput(); frc::DataLogManager::Stop(); return;
@@ -54,6 +67,13 @@ TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState)
           {"dsAttached",true},{"fmsAttached",false},{"alliance","blue"},{"location",1},{"joysticks",sticks}}},
         {"inputs",{{"/Tuning/ReplayTune/Requests",{{"requests",wpi::json::array({request.dump()})}}}}},
         {"outputs",{{"/Tuning/ReplayTune/Status",{{"status","wrong original output"}}}}}};
+      frame["inputs"]["Mechanism/RetryProbe"]={{"position",0},{"velocity",0},{"voltage",0},{"supplyVoltage",12},{"current",0},
+          {"connected",false},{"externalEncoder",nullptr},{"nativeControl",true},{"asynchronousConfiguration",true},
+          {"configuration",2},{"configurationFailure",3}};
+      frame["inputs"]["Mechanism/ReplayTune"]={{"position",0},{"velocity",0},{"voltage",0},{"supplyVoltage",12},{"current",0},
+          {"connected",i!=1},{"externalEncoder",nullptr},{"nativeControl",true},{"asynchronousConfiguration",true},
+          {"configuration",i==1?1:0},{"configurationFailure",0}};
+      if(i==2) frame["inputs"]["/Tuning/ReplayTune/Requests"]["requests"]=wpi::json::array();
       entry.Append(frame.dump(),100000+i*20000);
     }
     log.Flush();
@@ -72,7 +92,12 @@ TEST(MechanismTuningReplay, ReexecutesRawTransactionsAgainstRecordedEnableState)
     std::string_view value;
     if(names[record.GetEntry()]!="Replay/Frames" || !record.GetString(&value)) continue;
     auto frame=wpi::json::parse(value);
-    EXPECT_NE(frame["outputs"]["/Tuning/ReplayTune/Status"]["status"],"wrong original output"); ++frames;
+    EXPECT_NE(frame["outputs"]["/Tuning/ReplayTune/Status"]["status"],"wrong original output");
+    if(frames==2) {
+      EXPECT_EQ(frame["outputs"]["/Tuning/ReplayTune/Status"]["status"],"applied");
+      EXPECT_EQ(frame["outputs"]["/Tuning/ReplayTune/Status"]["revision"],1);
+    }
+    ++frames;
   }
   EXPECT_EQ(frames,3); std::filesystem::remove_all(dir);
 }

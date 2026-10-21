@@ -1,3 +1,4 @@
+#include <networktables/RawTopic.h>
 #include "base/QuestNav.h"
 #include "QuestNavFixtures.h"
 using namespace questfixture;

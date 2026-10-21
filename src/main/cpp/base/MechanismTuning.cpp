@@ -27,9 +27,9 @@ MechanismTuning::MechanismTuning(Mechanism& mechanism) : mechanism_(mechanism),
     publisher_=std::make_shared<nt::StringPublisher>(nt.GetStringTopic(path_+"/Status").Publish());
   }
 }
-void MechanismTuning::Status(std::string status) {
+void MechanismTuning::Status(std::string status, std::optional<uint64_t> revision) {
   status_=std::move(status);
-  const auto output=wpi::json{{"revision",revision_},{"status",status_}};
+  const auto output=wpi::json{{"revision",revision.value_or(revision_)},{"status",status_}};
   replay::RecordOutput(path_+"/Status",output);
   if(publisher_) telemetry::Post(path_,[publisher=publisher_,output]{ publisher->Set(output.dump()); });
 }
@@ -66,11 +66,17 @@ void MechanismTuning::Process(const std::string& request) {
     if(setpoint && (!tuning_ || !frc::DriverStation::IsTestEnabled())) {
       Status("rejected: setpoint requires TestCommand in enabled Test mode"); return;
     }
-    if(gains) mechanism_.SetGains(*gains);
+    if(gains) { mechanism_.SetGains(*gains); configuring_=true; configurationRevision_=revision_; }
     pending_=setpoint; Status("accepted");
   } catch(const std::exception&) { Status("rejected: invalid transaction"); }
 }
 void MechanismTuning::Periodic() {
+  if(configuring_) {
+    const auto state=mechanism_.ConfigurationState();
+    Status(state==MotorConfigurationState::Pending ? "pending" :
+           state==MotorConfigurationState::Fault ? "fault" : "applied",configurationRevision_);
+    configuring_=state==MotorConfigurationState::Pending;
+  }
   const auto input=replay::ProcessInputs(path_+"/Requests",[this] {
     wpi::json requests=wpi::json::array();
     for(auto&& sample:subscriber_.ReadQueue()) requests.push_back(sample.value);

@@ -6,8 +6,8 @@ it on hardware. The command slews at 0.25 rad/s² to 0.5 rad/s, allows one secon
 for steering to settle, then measures one full turn; a 35-second timeout bounds
 motion. Completion, interruption, and invalid feedback stop the chassis.
 
-The calculation uses raw gyro heading, signed wrapped increments, and native
-Phoenix module distances divided by the configured radius to recover coupling-
+The calculation uses raw gyro heading, signed wrapped increments, and measured
+module distances from either backend divided by the configured radius to recover coupling-
 corrected wheel angles. Each module uses its own distance from the chassis origin.
 This supports asymmetric module locations and avoids accumulating absolute gyro
 noise. It does not change configuration. Traction, geometry, gearing, and gyro
