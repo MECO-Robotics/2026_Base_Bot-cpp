@@ -122,6 +122,7 @@ class Mechanism : public frc2::SubsystemBase {
   void SetBrake(bool enabled);
   void SetGains(Gains gains);
   const Gains& GetGains() const { return gains_; }
+  bool IsPositionControlled() const { return joint_; }
   bool AtSetpoint() const;
   bool VelocityControlActive() const { return control_==Control::Velocity; }
   double VelocitySetpoint() const { return target_; }
