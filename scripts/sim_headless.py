@@ -54,6 +54,7 @@ def main():
     parser.add_argument('--replay-report', type=Path, default=Path('artifacts/replay-comparison.json'))
     parser.add_argument('--replay-timeout', type=float, default=120)
     parser.add_argument('--backend', choices=['phoenix', 'jolt-planar', 'jolt-3d'])
+    parser.add_argument('--drive-backend', choices=['phoenix', 'rev'])
     args = parser.parse_args()
     if platform.system() not in ('Windows', 'Linux'):
         parser.error('Full robot simulation requires Windows or Linux with Phoenix; '
@@ -63,9 +64,20 @@ def main():
     if args.replay_log:
         from sim_replay import load_recording
         recording = load_recording(args.replay_log)
+    if recording:
+        source_backend = next((frame['inputs']['Drive'].get('backend', 'phoenix')
+                               for frame in recording['frames'] if 'Drive' in frame['inputs']), 'phoenix')
+        if source_backend not in ('phoenix', 'rev'):
+            parser.error('Unsupported recorded drivetrain backend')
+        if args.drive_backend and args.drive_backend != source_backend:
+            parser.error('--drive-backend conflicts with the recorded drivetrain source')
+        args.drive_backend = source_backend
+    args.drive_backend = args.drive_backend or 'phoenix'
     args.backend = args.backend or 'jolt-3d'
     if args.backend not in ('phoenix', 'jolt-planar', 'jolt-3d'):
         parser.error('Unsupported recorded backend; select --backend explicitly')
+    if not recording and args.drive_backend == 'rev' and args.backend == 'phoenix':
+        parser.error('REV simulation requires --backend jolt-planar or jolt-3d')
     import math
     if not math.isfinite(args.replay_timeout) or args.replay_timeout <= 0:
         parser.error('--replay-timeout must be positive and finite')
@@ -120,6 +132,7 @@ def main():
                                               capture_output=True, text=True, check=False)
                 print(dependencies.stdout + dependencies.stderr, flush=True)
         environment = os.environ.copy()
+        environment['FRC_DRIVE_BACKEND'] = args.drive_backend
         if recording:
             # Replay owns its clock and recorded IO; load no HAL websocket or physics.
             environment.pop('HALSIM_EXTENSIONS', None)

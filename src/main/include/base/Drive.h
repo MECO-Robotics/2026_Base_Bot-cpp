@@ -16,6 +16,12 @@
 #include <pathplanner/lib/util/DriveFeedforwards.h>
 namespace pathplanner { class PathFollowingController; }
 namespace base {
+class PortableSwerve;
+struct SwerveIO;
+enum class DriveBackend { Phoenix, SparkMaxNavX };
+// REV PID coefficients use duty cycle per physical unit with 12 V compensation.
+// Velocity feedforward is volts per m/s; steer position uses radians.
+struct SparkSwerveGains { double driveP=.12, driveD=0, driveKS=.1, driveKV=2.5; double steerP=.7, steerD=.01; };
 struct ModuleConfig {
   int drive, steer, encoder;
   double offsetTurns, xMeters, yMeters;
@@ -51,10 +57,13 @@ struct DriveConfig {
   std::array<ModuleConfig, 4> modules{{
     {31,41,21,0,.33655,.33655}, {32,42,22,0,.33655,-.33655},
     {33,43,23,0,-.33655,.33655}, {34,44,24,0,-.33655,-.33655}}};
+  DriveBackend backend=DriveBackend::Phoenix;
+  SparkSwerveGains spark{};
 };
 class Drive : public frc2::SubsystemBase {
  public:
   explicit Drive(DriveConfig config = {});
+  Drive(DriveConfig config, SwerveIO io); // injected portable hardware contract
   ~Drive() override;
   void Periodic() override;
   void SimulationPeriodic() override;
@@ -92,6 +101,7 @@ class Drive : public frc2::SubsystemBase {
   std::function<void(const frc::Pose2d&)> poseResetCallback_;
   frc::ChassisSpeeds requestedSpeeds_{};
   std::unique_ptr<NativeDrive> native_;
+  std::unique_ptr<PortableSwerve> portable_;
   // AutoBuilder stores process-global callbacks; they must not own PID
   // sendables beyond the robot/SendableRegistry lifetime.
   std::shared_ptr<pathplanner::PathFollowingController> autoController_;

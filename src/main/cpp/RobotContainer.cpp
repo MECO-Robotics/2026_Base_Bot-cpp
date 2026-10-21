@@ -48,7 +48,19 @@ class RobotContainer::AutoChooser : public frc::SendableChooser<frc2::Command*> 
  private:
   std::map<std::string,frc2::CommandPtr> commands_;
 };
-RobotContainer::RobotContainer()
+namespace {
+base::DriveConfig ContainerDriveConfig() {
+  base::DriveConfig config;
+#ifndef __FRC_ROBORIO__
+  if(const char* backend=std::getenv("FRC_DRIVE_BACKEND")) {
+    if(std::string_view{backend}=="rev")config.backend=base::DriveBackend::SparkMaxNavX;
+    else if(std::string_view{backend}!="phoenix")throw std::invalid_argument("FRC_DRIVE_BACKEND must be phoenix or rev");
+  }
+#endif
+  return config;
+}
+}
+RobotContainer::RobotContainer():drive_(ContainerDriveConfig())
 {
 #ifndef __FRC_ROBORIO__
   if (drive_.SimulationTruth()) {
