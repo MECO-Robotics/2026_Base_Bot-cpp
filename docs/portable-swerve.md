@@ -21,16 +21,25 @@ per metre/second. Real closed-loop requests execute on each Spark using
 `SetSetpoint`, absolute steering feedback and continuous position wrapping.
 PathPlanner wheel forces are projected onto each optimized wheel heading and
 converted to additional winding-drop voltage, without duplicating velocity FF.
+The adapter accepts integer current limits from 1 to 200 A and rejects unsupported
+values before device construction; choose motor-safe limits for the actual robot.
 Illustrative gains and physical constants require robot-specific tuning.
 
 A 100 Hz default sampling thread performs nonblocking cached reads and command
 writes. A fixed 64-sample queue feeds WPILib kinematics and pose estimation on the
 robot thread. This is software timestamped acquisition, not hardware-coherent
-Phoenix odometry. Configuration transactions run only during construction;
+Phoenix odometry. Module liveness is based on REV cached-read status/errors;
+unlike NavX, module feedback has no independent source-timestamp watchdog.
+Configuration transactions run only during construction;
 periodic CAN timeout is zero. NavX disconnect, calibration, frozen timestamp,
 module read/status faults, disabled state and requests older than 100 ms stop
 outputs and invalidate the request. Recovery requires a fresh command. Robot-side request publication and snapshots
-use a separate short mutex, never held across vendor calls. Stop and
+use a separate short mutex, never held across vendor calls. Device-reset warnings
+are cleared after installing checked status-frame periods and before applying
+full startup configuration, with a disabled-only
+250 ms bounded readback to establish the cleared cache baseline; a subsequent sticky reset
+warning latches unhealthy until robot-code restart, since nonpersistent device
+configuration may have been lost. No enabled reconfiguration is attempted. Stop and
 join precede device destruction. No telemetry is published by the sampler.
 
 Jolt uses vendor-free simulated module/gyro adapters, NEO electrical parameters,
@@ -46,3 +55,8 @@ replay reconstructs requests and optimized module targets without constructing
 vendor devices or physics. It does not rerun the estimator from raw hardware
 batches or emulate vendor firmware. Vision pose resets remain estimator operations;
 `ResetSimulation` explicitly places the physical robot and synchronizes sensors.
+
+Injected `Drive(config, SwerveIO)` requires `SparkMaxNavX` configuration. Ordinary
+`ResetPose` uses the latest acquired sensor baseline and rejects acquisitions
+that crossed the reset; it does not move physics or defer the baseline to a later
+sample.

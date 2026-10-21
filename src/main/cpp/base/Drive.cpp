@@ -212,6 +212,8 @@ namespace base
         simulation.suspensionTravel,simulation.suspensionStiffness,simulation.suspensionDamping}) positive(v);
     for(double v:{spark.driveP,spark.driveD,spark.driveKS,spark.driveKV,spark.steerP,spark.steerD,odometryHz,autoTranslationKP,autoRotationKP,cof,driveKP,driveKD,driveKS,driveKV,steerKP,steerKD,steerKS,steerKV}) nonnegative(v);
     for(double v:{couplingRatio,simulation.centerOfMassX,simulation.centerOfMassY,simulation.centerOfMassZ}) finite(v);
+    if(backend==DriveBackend::SparkMaxNavX)for(double current:{driveCurrent,steerCurrent})
+      if(current<1||current>200||std::floor(current)!=current)throw std::invalid_argument("Spark swerve current limits must be integer amperes in [1,200]");
     // Talons share a device type; CANcoders and Pigeon have separate type IDs.
     std::set<int> motors,encoders;
     auto id=[](int v){if(v<0||v>62)throw std::invalid_argument("DriveConfig CAN IDs must be in [0,62]");};
@@ -281,7 +283,7 @@ namespace base
     SetName("Drive");
 
   }
-  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(!replay::Active())portable_=std::make_unique<PortableSwerve>(config_,std::move(io),false);}
+  Drive::Drive(DriveConfig config,SwerveIO io):config_(std::move(config)) {if(config_.backend!=DriveBackend::SparkMaxNavX)throw std::invalid_argument("Injected portable Drive requires SparkMaxNavX backend");config_.Validate();SetName("Drive");telemetry_=std::make_shared<Telemetry>();if(!replay::Active())portable_=std::make_unique<PortableSwerve>(config_,std::move(io),false);}
   Drive::~Drive() = default;
   Drive::Inputs Drive::ReadInputs() const {
     auto j=replay::ProcessInputs("Drive",[this] {
@@ -393,7 +395,14 @@ namespace base
   {
     requestedSpeeds_ = speeds;
     if(native_)native_->SetControl(s::requests::ApplyRobotSpeeds{}.WithSpeeds(speeds).WithDriveRequestType(s::impl::DriveRequestType::Velocity).WithWheelForceFeedforwardsX(ff.robotRelativeForcesX).WithWheelForceFeedforwardsY(ff.robotRelativeForcesY));
-    else if(portable_){std::array<double,4> x{},y{};for(size_t i=0;i<4;++i){x[i]=ff.robotRelativeForcesX[i].value();y[i]=ff.robotRelativeForcesY[i].value();}portable_->Velocity(speeds,x,y);}
+    else if(portable_){
+      std::array<double,4> x{},y{};
+      if(!ff.robotRelativeForcesX.empty()||!ff.robotRelativeForcesY.empty()){
+        if(ff.robotRelativeForcesX.size()!=4||ff.robotRelativeForcesY.size()!=4){Stop();throw std::invalid_argument("Swerve force feedforwards require four module values");}
+        for(size_t i=0;i<4;++i){x[i]=ff.robotRelativeForcesX[i].value();y[i]=ff.robotRelativeForcesY[i].value();}
+      }
+      portable_->Velocity(speeds,x,y);
+    }
     else RunVelocity(speeds);
     wpi::json x=wpi::json::array(),y=wpi::json::array();
     for(auto v:ff.robotRelativeForcesX)x.push_back(v.value());

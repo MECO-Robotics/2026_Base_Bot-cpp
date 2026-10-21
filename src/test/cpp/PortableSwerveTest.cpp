@@ -4,12 +4,15 @@
 #include <hal/HAL.h>
 #include <gtest/gtest.h>
 #include <limits>
+#include <future>
+#include <functional>
 namespace {
 class Module final : public base::SwerveModuleIO {
  public:
   base::SwerveModuleInputs input{0,0,0,0,0,true};
+  std::function<void()> beforeRead;
   bool stopped=true;double force{};frc::SwerveModuleState target{};
-  base::SwerveModuleInputs Read()override{return input;}
+  base::SwerveModuleInputs Read()override{if(beforeRead)beforeRead();return input;}
   void Set(const frc::SwerveModuleState& s,double ff)override{stopped=false;target=s;force=ff;}
   void SetVoltage(double v)override{stopped=v==0;}
   void Stop()override{stopped=true;}
@@ -49,6 +52,8 @@ TEST(PortableSwerve, WheelForceAddsOnlyProjectedTorqueVoltage) {
   // NEO stall torque 2.6 N m at 12 V; no velocity back EMF in this term.
   EXPECT_NEAR(rig.modules[0]->force,10*c.wheelRadius/c.driveRatio*12/2.6,1e-6);
   EXPECT_NEAR(rig.modules[0]->target.speed.value(),2,1e-10);
+  std::array<double,4> huge;huge.fill(std::numeric_limits<double>::max());
+  EXPECT_THROW(drive.Velocity({units::meters_per_second_t{1},units::meters_per_second_t{1},units::radians_per_second_t{0}},huge,huge),std::invalid_argument);
 }
 
 TEST(PortableSwerve, ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibration) {
@@ -58,4 +63,29 @@ TEST(PortableSwerve, ConfigurationRejectsUnsupportedBusAndInvalidAbsoluteCalibra
   config.bus="canivore";EXPECT_THROW(config.Validate(),std::invalid_argument);
   config.bus="rio";config.modules[0].offsetTurns=1;EXPECT_THROW(config.Validate(),std::invalid_argument);
   config.modules[0].offsetTurns=.75;EXPECT_NO_THROW(config.Validate());
+  config.driveCurrent=1e300;EXPECT_THROW(config.Validate(),std::invalid_argument);
+  config.driveCurrent=40.5;EXPECT_THROW(config.Validate(),std::invalid_argument);
+}
+
+TEST(PortableSwerve, BlockedDeviceReadDoesNotBlockCommandsOrCrossEstimatorReset) {
+  HAL_Initialize(500,0);base::DriveConfig config;config.backend=base::DriveBackend::SparkMaxNavX;
+  Rig rig;base::PortableSwerve drive(config,std::move(rig.io),false);
+  const double now=frc::RobotController::GetFPGATime()*1e-6;
+  drive.Sample(now-.02,false);drive.Update();
+  for(auto* module:rig.modules)module->input.distance=1;
+  std::promise<void> reading,release;auto started=reading.get_future();auto released=release.get_future().share();
+  rig.modules[0]->beforeRead=[&]{reading.set_value();released.wait();};
+  auto sample=std::async(std::launch::async,[&]{drive.Sample(now,true);});
+  EXPECT_EQ(started.wait_for(std::chrono::seconds(1)),std::future_status::ready);
+  // These calls run while the device read is held. They must not acquire its IO lock.
+  auto publication=std::async(std::launch::async,[&]{
+    drive.Velocity({units::meters_per_second_t{1},units::meters_per_second_t{0},units::radians_per_second_t{0}});
+    drive.ResetPose({units::meter_t{5},units::meter_t{0},frc::Rotation2d{}});
+  });
+  const auto ready=publication.wait_for(std::chrono::milliseconds(100));
+  release.set_value();publication.get();sample.get();
+  EXPECT_EQ(ready,std::future_status::ready);rig.modules[0]->beforeRead={};
+  drive.Update();EXPECT_NEAR(drive.State().pose.X().value(),5,1e-10);
+  EXPECT_FALSE(rig.modules[0]->stopped); // newest request survived the blocked read
+  drive.Sample(now+.01,true);EXPECT_FALSE(rig.modules[0]->stopped);
 }
