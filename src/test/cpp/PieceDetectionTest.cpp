@@ -1,0 +1,21 @@
+#include "base/PieceDetection.h"
+#include <gtest/gtest.h>
+#include <hal/HAL.h>
+#include <frc/RobotController.h>
+#include <frc/simulation/SimHooks.h>
+using namespace units::literals;
+TEST(PieceDetection, MountFieldTransformFreshnessAndNoTarget) {
+  HAL_Initialize(500,0);
+  frc::sim::PauseTiming();frc::sim::StepTimingAsync(.1_s);
+  base::PieceDetectionConfig config;
+  config.robotToCamera={frc::Translation3d{1_m,0_m,1_m},frc::Rotation3d{0_rad,0_rad,90_deg}};
+  std::optional<base::PieceRay> ray=base::PieceRay{units::second_t{frc::RobotController::GetFPGATime()*1e-6},0,-45};
+  base::PhotonPieceDetection detection(config,[]{return frc::Pose3d{2_m,3_m,0_m,frc::Rotation3d{0_rad,0_rad,90_deg}};},[&]{return ray;});
+  detection.Periodic();ASSERT_TRUE(detection.Target());
+  EXPECT_NEAR(detection.Target()->X().value(),1,1e-9);
+  EXPECT_NEAR(detection.Target()->Y().value(),4,1e-9);
+  ray->pitchDegrees=0;detection.Periodic();EXPECT_FALSE(detection.Target());
+  ray->pitchDegrees=-45;frc::sim::StepTimingAsync(.2_s);detection.Periodic();EXPECT_FALSE(detection.Target());
+  ray.reset();detection.Periodic();EXPECT_FALSE(detection.Target());
+  frc::sim::ResumeTiming();
+}
