@@ -59,7 +59,11 @@ absolute encoder with its own sensor/output ratio, zero offset, and direction.
 The configured sensor must be physically in phase with positive motor effort.
 
 REV PID output is duty cycle: public voltage-domain PID gains are divided by the
-12 V nominal compensation voltage and multiplied by the physical scale. REV's
+12 V nominal compensation voltage and multiplied by the physical scale.
+[REV PID units](https://docs.revrobotics.com/revlib/spark/closed-loop/units) use
+milliseconds: the adapter additionally divides integral gain by 1000 and
+multiplies derivative gain by 1000 to preserve the public seconds-based contract.
+All final converted gains must be finite. REV's
 new feedforward gains already use volts; they are not duty-normalized. Native
 MAXMotion constraints use converted encoder velocity units. Basic position mode
 receives trajectory velocity/acceleration as arbitrary voltage feedforward.

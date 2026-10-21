@@ -30,6 +30,15 @@ namespace base
       return warningStatus && motor.GetLastError()==rev::REVLibError::kOk &&
              faults.rawBits==0 && !resetLatched;
     }
+    void ConfigureSparkPid(rev::spark::ClosedLoopConfig& settings, const Gains& gains,
+                           double scale) {
+      const double p=gains.p*scale/12;
+      const double i=gains.i*scale/12/1000;
+      const double d=gains.d*scale/12*1000;
+      for(double value:{p,i,d})
+        if(!std::isfinite(value)) throw std::invalid_argument("Spark PID conversion overflow");
+      settings.Pid(p,i,d);
+    }
     void ConfigureSparkGravity(rev::spark::FeedForwardConfig& settings, double volts,
                                double scale, Gravity gravity, bool joint) {
       // Each setter selects a mode and overwrites the shared gravity parameter.
@@ -288,15 +297,15 @@ namespace base
         if (frc::DriverStation::IsEnabled()) throw std::logic_error("Motor configuration requires disabled state");
         if(!CheckConfigured()) { StopAll(); throw std::runtime_error("Spark reset requires robot restart and full configuration"); }
         scale_=scale; gains_=gains; gravity_=gravity; joint_=joint;
-        for (double value:{gains.p*scale/12,gains.i*scale/12,gains.d*scale/12,
-                           gains.v*scale,gains.a*scale,gains.minimum/scale,gains.maximum/scale,
+        for (double value:{gains.v*scale,gains.a*scale,gains.minimum/scale,gains.maximum/scale,
                            gains.maxVelocity/scale,gains.maxAcceleration/scale})
           if(!std::isfinite(value)) throw std::invalid_argument("Spark control conversion overflow");
         rev::spark::SparkMaxConfig settings;
         // Encoder values are output rotations and rotations/s, not rotor RPM.
         // REV PID output is duty cycle. Nominal voltage compensation maps the
-        // public voltage gains to duty gains; feedforward's API already uses volts.
-        settings.closedLoop.Pid(gains.p*scale/12,gains.i*scale/12,gains.d*scale/12);
+        // public voltage gains to duty gains. REV integral/derivative use ms;
+        // feedforward's API already uses volts and acceleration uses seconds.
+        detail::ConfigureSparkPid(settings.closedLoop,gains,scale);
         settings.closedLoop.feedForward.kS(gains.s).kV(gains.v*scale).kA(gains.a*scale);
         detail::ConfigureSparkGravity(settings.closedLoop.feedForward,gains.gravity,scale,gravity,joint);
         settings.closedLoop.maxMotion.CruiseVelocity(gains.maxVelocity/scale)

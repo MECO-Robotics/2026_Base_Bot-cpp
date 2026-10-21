@@ -7,6 +7,7 @@
 #include <frc/simulation/SimDeviceSim.h>
 #include <hal/HAL.h>
 #include <gtest/gtest.h>
+#include <limits>
 
 TEST(SparkAdapter, DefaultRealAdapterUsesOnboardPhysicalSetpoints) {
   HAL_Initialize(500,0);
@@ -75,4 +76,27 @@ TEST(SparkAdapter, ResetOnEitherDeviceLatchesUnhealthyAfterWarningClears) {
   faults.SetStickyWarnings(rev::spark::SparkBase::Warnings{0});
   EXPECT_FALSE(base::detail::SparkDeviceConfigured(follower,resetLatched));
   EXPECT_FALSE(base::detail::SparkDeviceConfigured(leader,resetLatched));
+}
+
+TEST(SparkAdapter, PidMillisecondsPreservePhysicalVoltage) {
+  HAL_Initialize(500,0);
+  rev::spark::SparkMax motor{55,rev::spark::SparkLowLevel::MotorType::kBrushless};
+  rev::spark::SparkMaxConfig config;
+  base::Gains gains; gains.p=2; gains.i=3; gains.d=.4;
+  const double scale=.5; // Metres per output rotation.
+  base::detail::ConfigureSparkPid(config.closedLoop,gains,scale);
+  ASSERT_EQ(motor.Configure(config,rev::ResetMode::kNoResetSafeParameters,
+                            rev::PersistMode::kNoPersistParameters),rev::REVLibError::kOk);
+  auto& pid=motor.configAccessor.closedLoop;
+  const double error=.4, previousError=.1, dt=.02;
+  // Reconstruct a physical voltage using the actual REV configuration, with
+  // error in output rotations and integration/derivative time in milliseconds.
+  const double firmwareVolts=12*(pid.GetP()*error/scale+
+      pid.GetI()*error/scale*(dt*1000)+
+      pid.GetD()*(error-previousError)/scale/(dt*1000));
+  const double physicalVolts=gains.p*error+gains.i*error*dt+
+      gains.d*(error-previousError)/dt;
+  EXPECT_NEAR(firmwareVolts,physicalVolts,1e-5); // Vendor configuration stores floats.
+  gains.d=std::numeric_limits<double>::max();
+  EXPECT_THROW(base::detail::ConfigureSparkPid(config.closedLoop,gains,scale),std::invalid_argument);
 }
