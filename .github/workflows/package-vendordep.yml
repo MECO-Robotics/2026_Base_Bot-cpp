@@ -2,7 +2,7 @@ name: Package MECO Base vendordep
 
 on:
   push:
-    branches: [main, 'codex/**']
+    branches: [main]
     paths:
       - '.github/workflows/package-vendordep.yml'
       - 'build.gradle'
@@ -39,10 +39,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: vendordep-${{ github.event.pull_request.head.ref || github.ref_name }}
-  cancel-in-progress: true
 
 jobs:
   build-linux:
