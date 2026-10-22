@@ -4,18 +4,24 @@ Desktop practice defaults to `jolt-3d`, including the headless launcher. Set
 `FRC_SIM_PHYSICS=jolt-planar` (or headless `--backend jolt-planar`) for planar
 automation. Unset or empty `FRC_SIM_PHYSICS` selects 3D.
 
-See the [practice quick start](../README.md#jolt-practice-simulation) for build,
-backend selection, controller bindings, AdvantageScope, and headless commands.
-All defaults demonstrate software behavior; replace them with measured robot
-parameters before using the model to assess a physical design.
+Use the [repository quick start](../README.md#quickstart) to build and launch
+the robot simulator. This guide covers model setup and limits; see
+[AdvantageScope topics](advantagescope.md) for telemetry paths. Defaults
+demonstrate software behavior; use measured robot parameters for design studies.
 
 ## macOS model workflow
 
 The standalone `simulation/` CMake project supports native Apple Silicon and Intel
-Mac builds. Use the [portable model commands](../README.md#jolt-practice-simulation)
-after installing Xcode Command Line Tools, CMake, Ninja, and Python 3. No WPILib,
-Java, vendordep libraries, or Gradle are needed for these numerical tests and
-benchmarks. CI runs all three model suites in Debug/Release on each Mac architecture
+Mac builds. After installing Xcode Command Line Tools, CMake, Ninja, and Python 3, run:
+
+```sh
+cmake -S simulation -B build/jolt-release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/jolt-release --parallel 2
+ctest --test-dir build/jolt-release --output-on-failure
+```
+
+These portable model checks need no WPILib, Java, vendor libraries, or Gradle.
+CI runs all three model suites in Debug/Release on each Mac architecture
 and records Release benchmark qualification against a 4 ms p99 budget. Mac CI
 uses `--report-only`: budget misses remain visible in artifacts and job summaries
 but do not override functional test results. The Intel hosted runner exceeded

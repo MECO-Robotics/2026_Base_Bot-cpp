@@ -35,13 +35,8 @@ using KeyIndex = std::map<std::string, size_t, std::less<>>;
 struct Frame
 {
     int64_t timestampUs{};
-    // Keys use AdvantageKit's LogTable convention: the leading slash is removed.
-    // This is the effective LogTable state for the cycle: fields omitted from a
-    // later cycle carry forward. ReplayOutputs* entries are omitted, matching
-    // AdvantageKit's WPILOGReader.
-    // Every cycle shares the completed key-to-slot index. Its contiguous state
-    // vector carries values forward by sharing immutable records; keys first
-    // observed later may have no slot value in earlier, shorter vectors.
+    // Keys omit the leading slash. Fields carry forward; ReplayOutputs entries are omitted to match
+    // AdvantageKit's reader. Cycles share a key index and immutable values; late keys lack earlier slots.
     std::shared_ptr<const KeyIndex> keyIndex;
     std::vector<std::shared_ptr<const Record>> records;
 

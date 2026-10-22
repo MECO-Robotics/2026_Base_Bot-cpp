@@ -194,10 +194,8 @@ class SparkMotorIO final : public MotorIO
             if (!std::isfinite(value))
                 throw std::invalid_argument("Spark control conversion overflow");
         rev::spark::SparkMaxConfig settings;
-        // Encoder values are output rotations and rotations/s, not rotor RPM.
-        // REV PID output is duty cycle. Nominal voltage compensation maps the
-        // public voltage gains to duty gains. REV integral/derivative use ms;
-        // feedforward's API already uses volts and acceleration uses seconds.
+        // Encoders report output rotations; PID outputs duty cycle. Nominal voltage compensation maps
+        // voltage gains to duty gains. REV I/D use ms; feedforward uses volts and seconds.
         detail::ConfigureSparkPid(settings.closedLoop, gains, scale);
         settings.closedLoop.feedForward.kS(gains.s).kV(gains.v * scale).kA(gains.a * scale);
         detail::ConfigureSparkGravity(settings.closedLoop.feedForward, gains.gravity, scale, gravity, joint);

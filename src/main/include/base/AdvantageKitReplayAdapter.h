@@ -11,15 +11,9 @@
 namespace base::akit
 {
 
-// Converts the logged state needed by this base repository's default Drive
-// input contract from AdvantageKit 26.0.2 into native Replay/Frames records.
-// It maps DriverStation state/joysticks/alliance, DriveState/Pose, Speeds,
-// ModuleStates, and the logged autonomous chooser input. Other Java subsystem
-// IO and vendor-device inputs are not covered. Missing required DS or drive
-// fields, unexpected record schemas, and malformed struct payloads throw
-// std::runtime_error; the adapter never falls back to live robot reads.
-// If the Java log has no Auto Choices dashboard input, selection is "None",
-// matching the C++ base chooser's no-autonomous default.
+// Maps AdvantageKit 26.0.2 DriverStation, drive, and auto-choice inputs to native replay frames.
+// Other subsystem IO and vendor-device inputs are not covered. Missing fields, unknown schemas,
+// or malformed structs throw; replay never falls back to live reads. Missing auto choice maps to "None".
 std::vector<wpi::json> ConvertJavaAdvantageKitFrames(const std::vector<Frame> &frames,
                                                      std::string driveBackend = "phoenix");
 

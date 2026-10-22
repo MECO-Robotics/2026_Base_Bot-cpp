@@ -1,0 +1,183 @@
+name: Package MECO Base vendordep
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish this package to GitHub Pages after review
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-platform:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux
+          - os: windows-2022
+            platform: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - uses: lukka/get-cmake@latest
+      - name: Build roboRIO and Linux archives
+        if: matrix.platform == 'linux'
+        run: >-
+          ./gradlew
+          frcBaseLinuxathenaDebugStaticLibrary
+          frcBaseLinuxathenaReleaseStaticLibrary
+          frcBaseLinuxx86-64DebugStaticLibrary
+          frcBaseLinuxx86-64ReleaseStaticLibrary
+          buildJoltDebug buildJoltRelease --max-workers=2
+      - name: Build Windows archives
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: >-
+          ./gradlew
+          frcBaseWindowsx86-64DebugStaticLibrary
+          frcBaseWindowsx86-64ReleaseStaticLibrary
+          buildJoltDebug buildJoltRelease
+          -Ptoolchain-optional-roboRio --max-workers=2
+      - name: Prepare pinned Studica artifacts
+        if: matrix.platform == 'linux'
+        run: python scripts/prepare_vendor_cache.py --output build/vendor-cache
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'linux'
+        with:
+          name: studica-windows-maven-2026.0.0
+          path: build/vendor-cache/
+          if-no-files-found: error
+      - uses: actions/download-artifact@v4
+        if: matrix.platform == 'windows'
+        with:
+          name: studica-windows-maven-2026.0.0
+          path: build/vendor-cache/
+      - name: Verify pinned Studica artifacts
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          python scripts/prepare_vendor_cache.py --output build/vendor-cache --verify-only
+          python - <<'PYTHON'
+          import os, pathlib
+          cache = pathlib.Path('build/vendor-cache').resolve()
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'FRC_VENDOR_CACHE={cache}\n')
+          PYTHON
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vendor-platform-${{ matrix.platform }}
+          path: |
+            build/libs/frcBase/static/
+            build/jolt/
+          if-no-files-found: error
+
+  assemble-repository:
+    needs: build-platform
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: vendor-platform-*
+          path: build/
+          merge-multiple: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Assemble Maven repository
+        run: ./gradlew packageVendorMaven --max-workers=2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: meco-base-vendordep-${{ github.sha }}
+          path: build/vendor-maven/
+          if-no-files-found: error
+
+  consumer-smoke:
+    needs: assemble-repository
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: roborio
+          - os: ubuntu-24.04
+            target: desktop
+          - os: windows-2022
+            target: desktop
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - uses: actions/download-artifact@v4
+        if: runner.os == 'Windows'
+        with:
+          name: studica-windows-maven-2026.0.0
+          path: build/vendor-cache/
+      - name: Verify pinned Studica artifacts
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          python scripts/prepare_vendor_cache.py --output build/vendor-cache --verify-only
+          python - <<'PYTHON'
+          import os, pathlib
+          cache = pathlib.Path('build/vendor-cache').resolve()
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'FRC_VENDOR_CACHE={cache}\n')
+          PYTHON
+      - name: Install roboRIO toolchain
+        if: matrix.target == 'roborio'
+        run: ./gradlew installRoboRioToolchain
+      - uses: actions/download-artifact@v4
+        with:
+          name: meco-base-vendordep-${{ github.sha }}
+          path: build/vendor-maven/
+      - name: Link clean consumer
+        shell: bash
+        run: >-
+          python scripts/vendor_consumer_smoke.py
+          --target ${{ matrix.target }}
+          --maven-repo build/vendor-maven/maven
+
+  publish-pages:
+    if: inputs.publish
+    needs: consumer-smoke
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: meco-base-vendordep-${{ github.sha }}
+          path: build/vendor-maven/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/vendor-maven/
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

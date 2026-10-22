@@ -1,7 +1,7 @@
 # AdvantageScope
 
 Use NT4 on localhost port 5810 for the owned desktop simulator, or open recorded
-WPILOG files. [Practice setup](../README.md#jolt-practice-simulation) and
+WPILOG files. [Simulator build and launch](../README.md#quickstart) and
 [code replay](replay.md) describe the current launch and recording workflows.
 
 | Canonical topic | Type / use |

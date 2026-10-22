@@ -73,10 +73,8 @@ namespace
 {
 void AwaitPhoenixSimulationTransport(const DriveConfig &config)
 {
-    // Status frames can arrive before configuration transactions work. Probe
-    // the actual first drive device with the same Apply/Refresh transport used
-    // by native module construction, rather than relying on status freshness.
-    // This temporary handle is destroyed before NativeDrive owns its devices.
+    // Probe with the native Apply/Refresh transport; status can precede configuration readiness.
+    // Destroy this temporary handle before NativeDrive constructs its devices.
     p::hardware::TalonFX probe{config.modules[0].drive, p::CANBus{config.bus}};
     probe.GetSimState().SetSupplyVoltage(12_V);
     p::configs::MotorOutputConfigs requested;

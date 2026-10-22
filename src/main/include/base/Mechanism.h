@@ -256,10 +256,9 @@ class Mechanism : public frc2::SubsystemBase
               double unitsPerOutputRotation = 1, Gravity gravity = Gravity::Constant,
               std::function<double()> externalEncoder = {}, EncoderCalibration calibration = {});
     void Periodic() override;
-    // Same-owner-thread API: control, setters, getters and telemetry must not race.
-    // Explicit control tick (0 < dt <= 100 ms) for offline multirate harnesses.
-    // Never enables a disabled DS. External scheduling suppresses default control
-    // only; the world remains the sole physics owner.
+    // Control, accessors, and telemetry must share one thread. Offline ticks require 0 < dt <= 100 ms.
+    // Never enables a disabled DS; external scheduling only suppresses default control.
+    // The shared world remains the sole physics owner.
     void Control(units::second_t dt, bool enabled = true);
     void UseExternalScheduling(bool enabled = true)
     {
