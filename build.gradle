@@ -354,7 +354,7 @@ def registerDriveTargetModule = { String platform, String variant ->
     def mainCompileName = "compileFrcUserProgram${capitalizedPlatform}${variant}ExecutableFrcUserProgramCpp"
     def compileCommandsName = "${mainCompileName}CompileCommands"
     def compileDatabase = layout.buildDirectory.file(
-        "TargetedCompileCommands/${platform}${variant.toLowerCase()}/compile_commands.json")
+        "BinaryCompileCommands/${compileCommandsName}/compile_commands.json")
     def moduleDir = layout.buildDirectory.dir("named-modules/${platform}/${variant.toLowerCase()}")
     def interfaceFile = moduleDir.map { it.file(platform.startsWith('windows') ? 'meco.base.drive_target.ifc' : 'meco.base.drive_target.gcm') }
     def interfaceObject = moduleDir.map { it.file(platform.startsWith('windows') ? 'meco.base.drive_target.obj' : 'meco.base.drive_target.o') }
