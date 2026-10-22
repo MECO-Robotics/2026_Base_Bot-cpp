@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <utility>
 #include <vector>
 #ifndef __FRC_ROBORIO__
 #include <frc/simulation/DriverStationSim.h>
@@ -318,7 +319,7 @@ uint64_t FrameIndex(){return index;}
 void BeginFrame(){
   if(framed)return;
   if(!initialized)InitializeFromEnvironment();
-  if(active){if(cursor>=source.size())Fail("frame beyond EOF");frame=source.at(cursor);frame["outputs"]=Json::object();index=frame.at("sequence").get<uint64_t>();}
+  if(active){if(cursor>=source.size())Fail("frame beyond EOF");frame=std::move(source.at(cursor));frame["outputs"]=Json::object();index=frame.at("sequence").get<uint64_t>();}
   else frame={{"schemaVersion",1},{"sequence",index},{"timestampUs",frc::RobotController::GetFPGATime()},{"ds",CaptureDS()},{"inputs",Json::object()},{"outputs",Json::object()}};
   framed=true;
 }
