@@ -3,7 +3,8 @@
 #include <functional>
 #include <string_view>
 #include <wpi/json.h>
-namespace base::replay {
+namespace base::replay
+{
 // Initialize before constructing IO/subsystems. Desktop FRC_REPLAY_LOG enables
 // input substitution; output logging remains active in live operation.
 void InitializeFromEnvironment();
@@ -21,6 +22,5 @@ void FlushOutput();
 void ShutdownRecording();
 // Runs existing robot callbacks once per recorded timestamp, installing HAL DS
 // data and FPGA time first. Returns only after EOF; no physics is constructed.
-void RunReplay(const std::function<void()> &robotInit,
-               const std::function<void()> &loop);
-}
+void RunReplay(const std::function<void()> &robotInit, const std::function<void()> &loop);
+} // namespace base::replay

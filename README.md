@@ -38,6 +38,14 @@ changing dependencies or compiler flags. To use WPILib's toolchain selector
 instead, set `C_Cpp.default.configurationProvider` to
 `wpilibsuite.vscode-wpilib` in workspace settings.
 
+## Source layout
+
+Base implementations are grouped under `src/main/cpp/base/{drive,mechanism,vision,logging,telemetry}`. Public headers remain under `src/main/include/base`.
+
+## C++ formatting
+
+C++ formatting follows [`.clang-format`](.clang-format) (Microsoft style, 120 columns). VS Code uses this file. Format with `clang-format -i <files>`.
+
 ## Verified simulation check
 
 The [finalization merge notes](docs/finalization-merge.md) record the latest integration checks. The preceding [parity audit](docs/parity-audit-2026-10-21.md) records its desktop/roboRIO build, 52-test baseline, headless practice, replay and numerical evidence. These checks establish software behavior, not physical calibration or hardware acceptance.
