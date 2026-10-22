@@ -191,8 +191,8 @@ model {
                 def moduleVariant = binary.buildType.name.equalsIgnoreCase('debug') ? 'debug' : 'release'
                 def moduleDirectory = file("build/named-modules/${modulePlatform}/${moduleVariant}")
                 if (modulePlatform.startsWith('windows')) {
-                    binary.cppCompiler.args '/DMECO_USE_NAMED_MODULES=1', '/reference',
-                        new File(moduleDirectory, 'meco.base.drive_target.ifc').absolutePath
+                    binary.cppCompiler.args '/DMECO_USE_NAMED_MODULES=1',
+                        "/ifcSearchDir${moduleDirectory.absolutePath}"
                 } else {
                     binary.cppCompiler.args '-DMECO_USE_NAMED_MODULES=1', '-fmodules-ts',
                         "-fmodule-mapper=${new File(moduleDirectory, 'module-mapper.txt').absolutePath}"
@@ -389,7 +389,8 @@ def registerDriveTargetModule = { String platform, String variant ->
             for (int i = 0; i < args.size(); ++i) {
                 def arg = args[i]
                 if (arg == '/reference' || arg == '-fmodules-ts' || arg.startsWith('-fmodule-mapper=') ||
-                    arg == '/DMECO_USE_NAMED_MODULES=1' || arg == '-DMECO_USE_NAMED_MODULES=1') {
+                    arg.startsWith('/ifcSearchDir') || arg == '/DMECO_USE_NAMED_MODULES=1' ||
+                    arg == '-DMECO_USE_NAMED_MODULES=1') {
                     if (arg == '/reference') ++i
                     continue
                 }
