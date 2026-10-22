@@ -11,10 +11,10 @@ static void Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrd
   std::vector<int> values;std::vector<int64_t> timestamps;
   std::thread::id worker;
   int faults=0;
-  base::FrameRecorder recorder([&](std::string_view encoded,int64_t timestamp) {
+  base::FrameRecorder recorder([&](const wpi::json& snapshot,int64_t timestamp) {
     worker=std::this_thread::get_id();
     if(values.empty()){entered.set_value();released.wait();}
-    values.push_back(wpi::json::parse(encoded).at("value").get<int>());
+    values.push_back(snapshot.at("value").get<int>());
     timestamps.push_back(timestamp);
   },[&](auto stats){EXPECT_GT(stats.rejected,0u);++faults;},2);
   EXPECT_TRUE(recorder.Submit({{"value",1}},100));
@@ -35,7 +35,7 @@ static void Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrd
   const auto stats=recorder.Statistics();
   EXPECT_EQ(stats.written,3u);EXPECT_EQ(stats.rejected,2u);EXPECT_EQ(stats.failed,0u);
 }
-static void Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidatesRecordingWithoutEscapingWorker() {
+static void Case_FrameRecorderTest_FrameRecorder_SinkFailureInvalidatesRecordingWithoutEscapingWorker() {
   int faults=0;
   base::FrameRecorder recorder([](auto,int64_t){throw std::runtime_error("disk adapter failure");},
       [&](auto stats){EXPECT_EQ(stats.failed,1u);++faults;});
@@ -49,6 +49,6 @@ TEST(FrameRecorder, SlowSinkPreservesSnapshotsInOrderAndReportsOverflow) {
   Case_FrameRecorderTest_FrameRecorder_SlowSinkPreservesSnapshotsInOrderAndReportsOverflow();
 }
 
-TEST(FrameRecorder, SerializationFailureInvalidatesRecordingWithoutEscapingWorker) {
-  Case_FrameRecorderTest_FrameRecorder_SerializationFailureInvalidatesRecordingWithoutEscapingWorker();
+TEST(FrameRecorder, SinkFailureInvalidatesRecordingWithoutEscapingWorker) {
+  Case_FrameRecorderTest_FrameRecorder_SinkFailureInvalidatesRecordingWithoutEscapingWorker();
 }

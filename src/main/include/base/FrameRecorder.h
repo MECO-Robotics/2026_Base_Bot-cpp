@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <string_view>
 #include <wpi/json.h>
 namespace base {
 // Ordered recording, separate from coalescing live telemetry. The producer moves
@@ -11,7 +10,9 @@ namespace base {
 class FrameRecorder {
  public:
   struct Stats { uint64_t written{}, rejected{}, failed{}; size_t highWater{}; };
-  using Sink=std::function<void(std::string_view,int64_t)>;
+  // The snapshot is owned by the worker and remains valid for the duration of
+  // the synchronous sink call. Sinks serialize only at their final boundary.
+  using Sink=std::function<void(const wpi::json&,int64_t)>;
   using FaultSink=std::function<void(Stats)>;
   FrameRecorder(Sink sink,FaultSink fault,size_t capacity=256);
   ~FrameRecorder();

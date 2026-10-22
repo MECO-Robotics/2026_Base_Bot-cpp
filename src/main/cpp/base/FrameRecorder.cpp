@@ -58,7 +58,7 @@ class FrameRecorder::Impl {
       }
       if(write) {
         try {
-          const auto encoded=item.snapshot.dump();sink_(encoded,item.timestamp);
+          sink_(item.snapshot,item.timestamp);
           std::scoped_lock lock(mutex_);++stats_.written;
         } catch(...) {std::scoped_lock lock(mutex_);++stats_.failed;}
       }

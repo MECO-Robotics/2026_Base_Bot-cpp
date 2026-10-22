@@ -2,37 +2,58 @@
 #include "base/Replay.h"
 #include "base/Telemetry.h"
 #include "base/AdvantageScope.h"
-#include <frc/DataLogManager.h>
+#include "base/AdvantageKitLog.h"
 #include <frc/DriverStation.h>
 #include <frc/RobotController.h>
 #include <frc2/command/CommandScheduler.h>
+#include <iostream>
+#include <exception>
 #ifndef __FRC_ROBORIO__
 #include "base/sim/SimulationWorld.h"
 #include <frc/simulation/BatterySim.h>
 #include <frc/simulation/RoboRioSim.h>
 #endif
+namespace {
+void StopAdvantageKitLogSafely() noexcept {
+  try {
+    base::logging::StopAdvantageKitLog();
+  } catch (const std::exception& error) {
+    std::cerr << "[Logging] Failed to finalize AdvantageKit log: " << error.what() << '\n';
+  } catch (...) {
+    std::cerr << "[Logging] Failed to finalize AdvantageKit log with an unknown error\n";
+  }
+}
+}
 Robot::Robot() : replayInitialized_((base::replay::InitializeFromEnvironment(),true))
 {
 
-  // Record canonical NT values and their struct schemas once for log playback.
-  frc::DataLogManager::LogNetworkTables(true);
+  // Attach canonical NT values/schemas and Driver Station samples to the
+  // AdvantageKit-compatible primary WPILOG.
+  base::logging::StartRobotDataLogSources();
   base::PublishTelemetryMetadata("2026_Base_Bot-cpp");
-  frc::DriverStation::StartDataLog(frc::DataLogManager::GetLog());
   frc::RobotController::SetBrownoutVoltage(units::volt_t{6});
 }
-Robot::~Robot() { base::telemetry::Shutdown();base::replay::ShutdownRecording(); }
+Robot::~Robot() {
+  base::telemetry::Shutdown();
+  base::replay::ShutdownRecording();
+  base::logging::StopNetworkTablesDataLog();
+  StopAdvantageKitLogSafely();
+}
 void Robot::StartCompetition() {
   if(!base::replay::Active()){
     frc::TimedRobot::StartCompetition();
     base::telemetry::Shutdown();
     base::replay::ShutdownRecording();
+    base::logging::StopNetworkTablesDataLog();
+    StopAdvantageKitLogSafely();
     return;
   }
   base::replay::RunReplay([this]{RobotInit();},[this]{LoopFunc();});
   base::telemetry::Shutdown();
   base::replay::ShutdownRecording();
   base::replay::FlushOutput();
-  frc::DataLogManager::Stop();
+  base::logging::StopNetworkTablesDataLog();
+  StopAdvantageKitLogSafely();
 }
 void Robot::RobotPeriodic() {
   base::replay::BeginFrame();

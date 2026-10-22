@@ -1,7 +1,10 @@
 #include "base/Replay.h"
 #include "base/FrameRecorder.h"
+#include "base/AdvantageKitLog.h"
+#include "base/AdvantageKitLogReader.h"
+#include "base/AdvantageKitReplayAdapter.h"
 #include <atomic>
-#include <frc/DataLogManager.h>
+#include <algorithm>
 #include <frc/DriverStation.h>
 #include <frc/RobotController.h>
 #include <wpi/DataLog.h>
@@ -14,10 +17,13 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <limits>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <chrono>
+#include <vector>
 #ifndef __FRC_ROBORIO__
 #include <frc/simulation/DriverStationSim.h>
 #include <frc/simulation/SimHooks.h>
@@ -39,10 +45,113 @@ std::atomic<size_t> pendingReplayBytes{0};
 Json frame;
 std::filesystem::path outputPath;
 std::vector<Json> source;
-std::shared_ptr<wpi::log::StringLogEntry> frames,metadata,recordingFault;
+std::shared_ptr<wpi::log::StringLogEntry> frames,metadata,recordingFault,recordingStatus,inputSnapshot,outputSnapshot;
 std::unique_ptr<FrameRecorder> recorder;
 FrameRecorder::Stats finalRecordingStats;
+std::map<std::string,std::pair<int,std::string>> typedEntries;
 [[noreturn]] void Fail(const std::string &message){throw std::runtime_error("Replay: "+message);}
+std::string EscapePathSegment(std::string_view value) {
+  std::string escaped;
+  escaped.reserve(value.size());
+  for (char c : value) {
+    if (c == '~') escaped += "~0";
+    else if (c == '/') escaped += "~1";
+    else escaped += c;
+  }
+  return escaped;
+}
+int TypedEntry(const std::string &name, std::string_view type) {
+  auto found = typedEntries.find(name);
+  if (found != typedEntries.end()) {
+    if (found->second.second != type) Fail("replay field changed WPILOG type: " + name);
+    return found->second.first;
+  }
+  const int id = base::logging::GetLog().Start(name, type, base::logging::kAdvantageKitMetadata);
+  if (id == 0) Fail("failed to start typed WPILOG entry: " + name);
+  typedEntries.emplace(name, std::make_pair(id, std::string(type)));
+  return id;
+}
+void AppendTypedJson(std::string_view path, const Json &value, int64_t timestamp) {
+  auto &log = base::logging::GetLog();
+  if (value.is_object()) {
+    for (auto it = value.begin(); it != value.end(); ++it) {
+      const auto child = std::string(path) + "/" + EscapePathSegment(it.key());
+      AppendTypedJson(child, it.value(), timestamp);
+    }
+    return;
+  }
+  if (value.is_array()) {
+    const auto &array = value;
+    const auto lengthPath = std::string(path) + "/length";
+    if (array.empty()) {
+      const int id = TypedEntry(lengthPath, "int64");
+      log.AppendInteger(id, 0, timestamp);
+      return;
+    }
+    const bool booleans = std::all_of(array.begin(), array.end(), [](const Json &item) { return item.is_boolean(); });
+    const bool strings = std::all_of(array.begin(), array.end(), [](const Json &item) { return item.is_string(); });
+    const bool integers = std::all_of(array.begin(), array.end(), [](const Json &item) { return item.is_number_integer(); });
+    const bool numbers = std::all_of(array.begin(), array.end(), [](const Json &item) { return item.is_number(); });
+    if (booleans) {
+      std::vector<int> values; values.reserve(array.size());
+      for (const auto &item : array) values.push_back(item.get<bool>() ? 1 : 0);
+      const int id = TypedEntry(std::string(path), "boolean[]");
+      log.AppendBooleanArray(id, values, timestamp);
+      return;
+    }
+    if (strings) {
+      std::vector<std::string> values; values.reserve(array.size());
+      for (const auto &item : array) values.push_back(item.get<std::string>());
+      const int id = TypedEntry(std::string(path), "string[]");
+      log.AppendStringArray(id, values, timestamp);
+      return;
+    }
+    if (integers) {
+      bool fitSigned = true;
+      std::vector<int64_t> values; values.reserve(array.size());
+      for (const auto &item : array) {
+        if (item.is_number_unsigned() && item.get<uint64_t>() > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) { fitSigned = false; break; }
+        values.push_back(item.get<int64_t>());
+      }
+      if (fitSigned) {
+        const int id = TypedEntry(std::string(path), "int64[]");
+        log.AppendIntegerArray(id, values, timestamp);
+        return;
+      }
+    }
+    if (numbers) {
+      std::vector<double> values; values.reserve(array.size());
+      for (const auto &item : array) values.push_back(item.get<double>());
+      const int id = TypedEntry(std::string(path), "double[]");
+      log.AppendDoubleArray(id, values, timestamp);
+      return;
+    }
+    const int lengthId = TypedEntry(lengthPath, "int64");
+    log.AppendInteger(lengthId, static_cast<int64_t>(array.size()), timestamp);
+    for (size_t i = 0; i < array.size(); ++i) {
+      AppendTypedJson(std::string(path) + "/" + std::to_string(i), array[i], timestamp);
+    }
+    return;
+  }
+  if (value.is_boolean()) {
+    const int id = TypedEntry(std::string(path), "boolean");
+    log.AppendBoolean(id, value.get<bool>(), timestamp);
+  } else if (value.is_number_integer()) {
+    if (value.is_number_unsigned() && value.get<uint64_t>() > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
+      const int id = TypedEntry(std::string(path), "string");
+      log.AppendString(id, value.dump(), timestamp);
+    } else {
+      const int id = TypedEntry(std::string(path), "int64");
+      log.AppendInteger(id, value.get<int64_t>(), timestamp);
+    }
+  } else if (value.is_number()) {
+    const int id = TypedEntry(std::string(path), "double");
+    log.AppendDouble(id, value.get<double>(), timestamp);
+  } else if (value.is_string()) {
+    const int id = TypedEntry(std::string(path), "string");
+    log.AppendString(id, value.get<std::string>(), timestamp);
+  }
+}
 void Validate(const Json &j) {
   if(j.is_number_float()&&!std::isfinite(j.get<double>()))Fail("nonfinite number");
   if(j.is_structured())for(const auto &v:j)Validate(v);
@@ -101,24 +210,66 @@ void InitializeFromEnvironment() {
     auto buffer=wpi::MemoryBuffer::GetFile(input);if(!buffer)Fail("cannot read source log");
     uint64_t hash=14695981039346656037ull;for(unsigned char c:(*buffer)->GetBuffer()){hash^=c;hash*=1099511628211ull;}
     wpi::log::DataLogReader reader(std::move(*buffer));if(!reader.IsValid())Fail("invalid WPILOG");
-    std::map<int,std::string> entries;int64_t last=-1;uint64_t sequence=0;Json recordingStatus;
-    for(const auto &record:reader){
-      if(record.IsStart()){wpi::log::StartRecordData start;if(record.GetStartData(&start))entries[start.entry]=std::string(start.name);continue;}
-      const auto &name=entries[record.GetEntry()];std::string_view value;
-      if(name=="Replay/RecordingFault")Fail("source recording reported overflow or serialization failure");
-      if(name=="Replay/RecordingStatus"&&record.GetString(&value))recordingStatus=Json::parse(value);
-      if(name=="Replay/Metadata"&&record.GetString(&value))provenance["sourceMetadata"]=Json::parse(value);
-      if(name!="Replay/Frames"||!record.GetString(&value))continue;
-      Json f=Json::parse(value);Validate(f);
+    int64_t lastSourceTimestamp=-1;
+    auto appendFrame=[&](Json f,uint64_t expectedSequence,int64_t &last){
+      Validate(f);
       if(f.at("schemaVersion")!=1)Fail("unsupported frame schema");
       const auto time=f.at("timestampUs").get<int64_t>();if(time<0||time<=last)Fail("frame timestamps must strictly increase");last=time;
-      if(f.at("sequence").get<uint64_t>()!=sequence++)Fail("frame sequence is not contiguous");
+      if(f.at("sequence").get<uint64_t>()!=expectedSequence)Fail("frame sequence is not contiguous");
       if(!f.at("inputs").is_object()||!f.at("outputs").is_object()||!f.at("ds").is_object())Fail("invalid frame structure");
       source.push_back(std::move(f));
+    };
+    if(reader.GetExtraHeader()==base::logging::kAdvantageKitHeader){
+      const auto akFrames=base::akit::ReadLog(reader);
+      bool hasNativeFrames=false;Json recordingStatus;
+      for(const auto &cycle:akFrames){
+        if(const auto *fault=cycle.Find("Replay/RecordingFault")){
+          if(const auto *text=std::get_if<std::string>(&fault->value)){
+            const auto status=Json::parse(*text);
+            if(status.value("rejected",0)>0||status.value("failed",0)>0)
+              Fail("source recording reported overflow or serialization failure");
+          }
+        }
+        if(const auto *status=cycle.Find("Replay/RecordingStatus"))
+          if(const auto *text=std::get_if<std::string>(&status->value))recordingStatus=Json::parse(*text);
+        if(const auto *meta=cycle.Find("Replay/Metadata"))
+          if(const auto *text=std::get_if<std::string>(&meta->value))provenance["sourceMetadata"]=Json::parse(*text);
+        if(const auto *payload=cycle.Find("Replay/Frames")){
+          const auto *text=std::get_if<std::string>(&payload->value);
+          if(!text)Fail("AdvantageKit Replay/Frames entry is not a string");
+          auto nativeFrame=Json::parse(*text);
+          if(nativeFrame.at("timestampUs").get<int64_t>()!=cycle.timestampUs)
+            Fail("AdvantageKit Replay/Frames timestamp does not match its /Timestamp cycle");
+          appendFrame(std::move(nativeFrame),source.size(),lastSourceTimestamp);
+          hasNativeFrames=true;
+        }
+      }
+      if(!hasNativeFrames){
+        const char *backendEnv=std::getenv("FRC_DRIVE_BACKEND");
+        const std::string backend=backendEnv&&*backendEnv?backendEnv:"phoenix";
+        try{
+          for(size_t i=0;i<akFrames.size();++i)
+            appendFrame(base::akit::ConvertJavaAdvantageKitFrame(akFrames[i],i,backend),source.size(),lastSourceTimestamp);
+        }catch(const std::exception &error){Fail(std::string("cannot map AdvantageKit log to base replay inputs: ")+error.what());}
+      }
+      if(!recordingStatus.is_null()&&(recordingStatus.value("rejected",0)!=0||recordingStatus.value("failed",0)!=0||recordingStatus.value("written",static_cast<int64_t>(source.size()))!=source.size()))
+        Fail("source recording status reports failed or missing frames");
+    }else{
+      std::map<int,std::string> entries;int64_t last=-1;uint64_t sequence=0;Json recordingStatus;
+      for(const auto &record:reader){
+        if(record.IsStart()){wpi::log::StartRecordData start;if(record.GetStartData(&start))entries[start.entry]=std::string(start.name);continue;}
+        const auto &name=entries[record.GetEntry()];std::string_view value;
+        if(name=="Replay/RecordingFault"||name=="/Replay/RecordingFault")Fail("source recording reported overflow or serialization failure");
+        if((name=="Replay/RecordingStatus"||name=="/Replay/RecordingStatus")&&record.GetString(&value))recordingStatus=Json::parse(value);
+        if((name=="Replay/Metadata"||name=="/Replay/Metadata")&&record.GetString(&value))provenance["sourceMetadata"]=Json::parse(value);
+        if(name!="/Replay/Frames"&&name!="Replay/Frames")continue;
+        if(!record.GetString(&value))continue;
+        appendFrame(Json::parse(value),sequence++,last);
+      }
+      if(!recordingStatus.is_null()&&(recordingStatus.at("rejected")!=0||recordingStatus.at("failed")!=0||recordingStatus.at("written")!=source.size()))
+        Fail("source recording status reports failed or missing frames");
     }
     if(source.empty())Fail("source has no replay input frames");
-    if(!recordingStatus.is_null()&&(recordingStatus.at("rejected")!=0||recordingStatus.at("failed")!=0||recordingStatus.at("written")!=source.size()))
-      Fail("source recording status reports failed or missing frames");
     provenance["sourceFile"]=std::filesystem::absolute(input).string();provenance["sourceFileHashFnv1a64"]=std::to_string(hash);
     if(const char *sha=std::getenv("FRC_REPLAY_SOURCE_SHA256")) {
       const std::string digest(sha);
@@ -129,20 +280,37 @@ void InitializeFromEnvironment() {
     auto path=std::filesystem::absolute(output);outputPath=path;
     if(std::filesystem::exists(path))Fail("output already exists; refusing overwrite");
     std::filesystem::create_directories(path.parent_path());
-    frc::DataLogManager::Start(path.parent_path().string(),path.filename().string(),.01);
+    base::logging::StartAdvantageKitLog(path.parent_path().string(),path.filename().string(),.01);
     std::cout<<"[Replay] Loaded "<<source.size()<<" input frames; new outputs: "<<path<<std::endl;
 #endif
-  } else frc::DataLogManager::Start();
-  auto &log=frc::DataLogManager::GetLog();
-  frames=std::make_shared<wpi::log::StringLogEntry>(log,"Replay/Frames");
-  recordingFault=std::make_shared<wpi::log::StringLogEntry>(log,"Replay/RecordingFault");
-  recorder=std::make_unique<FrameRecorder>([entry=frames](std::string_view payload,int64_t timestamp) {
+  } else {
+#ifdef __FRC_ROBORIO__
+    base::logging::StartAdvantageKitLog("/home/lvuser/logs");
+#else
+    base::logging::StartAdvantageKitLog("logs");
+#endif
+  }
+  auto &log=base::logging::GetLog();
+  frames=std::make_shared<wpi::log::StringLogEntry>(log,"/Replay/Frames",base::logging::kAdvantageKitMetadata);
+  recordingFault=std::make_shared<wpi::log::StringLogEntry>(log,"/Replay/RecordingFault",base::logging::kAdvantageKitMetadata);
+  recordingStatus=std::make_shared<wpi::log::StringLogEntry>(log,"/Replay/RecordingStatus",base::logging::kAdvantageKitMetadata);
+  inputSnapshot=std::make_shared<wpi::log::StringLogEntry>(log,"/Replay/Inputs",base::logging::kAdvantageKitMetadata);
+  outputSnapshot=std::make_shared<wpi::log::StringLogEntry>(log,"/Replay/Outputs",base::logging::kAdvantageKitMetadata);
+  recorder=std::make_unique<FrameRecorder>([entry=frames,inputEntry=inputSnapshot,outputEntry=outputSnapshot](const Json& record,int64_t timestamp) {
+    base::logging::AppendTimestamp(timestamp);
+    for (auto it=record.at("inputs").begin();it!=record.at("inputs").end();++it)
+      AppendTypedJson("/ReplayInputs/"+it.key(),it.value(),timestamp);
+    for (auto it=record.at("outputs").begin();it!=record.at("outputs").end();++it)
+      AppendTypedJson("/ReplayOutputs/"+it.key(),it.value(),timestamp);
+    inputEntry->Append(record.at("inputs").dump(),timestamp);
+    outputEntry->Append(record.at("outputs").dump(),timestamp);
+    const auto payload=record.dump();
     entry->Append(payload,timestamp);
     if(active)pendingReplayBytes.fetch_add(payload.size(),std::memory_order_relaxed);
   },[entry=recordingFault](FrameRecorder::Stats status) {
     entry->Append(Json{{"rejected",status.rejected},{"failed",status.failed}}.dump());
   });
-  metadata=std::make_shared<wpi::log::StringLogEntry>(log,"Replay/Metadata");metadata->Append(provenance.dump());
+  metadata=std::make_shared<wpi::log::StringLogEntry>(log,"/Replay/Metadata",base::logging::kAdvantageKitMetadata);metadata->Append(provenance.dump());
 }
 bool Active(){return active;}
 bool FrameActive(){return framed;}
@@ -164,8 +332,16 @@ void RecordOutput(std::string_view key,const Json &value){if(!framed)return;Vali
 void EndFrame(){
   if(!framed)return;
   const auto timestamp=frame.at("timestampUs").get<int64_t>();
+  // Keep the per-cycle replay envelope available in structured WPILOG entries
+  // for AdvantageScope and standard WPILib log inspection. Replay/Frames
+  // remains the authoritative input schema used by the desktop runner.
   recorder->Submit(std::move(frame),timestamp);
   framed=false;if(active)++cursor;else ++index;
+  if(!active && index%50==0) {
+    const auto stats=recorder->Statistics();
+    recordingStatus->Append(Json{{"written",stats.written},{"rejected",stats.rejected},
+        {"failed",stats.failed},{"highWater",stats.highWater}}.dump(),timestamp);
+  }
 }
 namespace {
 void PersistMarker(std::string_view entryName){
@@ -173,8 +349,8 @@ void PersistMarker(std::string_view entryName){
   const auto status=recorder?recorder->Statistics():finalRecordingStats;
   if(status.rejected||status.failed)Fail("recording worker rejected or failed a frame");
   const std::string marker="replay-persisted-"+std::to_string(cursor)+"-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
-  wpi::log::StringLogEntry completion(frc::DataLogManager::GetLog(),entryName);completion.Append(marker);
-  frc::DataLogManager::GetLog().Flush(); // Nonblocking background-writer request.
+  wpi::log::StringLogEntry completion(base::logging::GetLog(),"/"+std::string(entryName),base::logging::kAdvantageKitMetadata);completion.Append(marker);
+  base::logging::GetLog().Flush(); // Nonblocking background-writer request.
   const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(5);
   do {
     std::ifstream file(outputPath,std::ios::binary);
@@ -190,11 +366,10 @@ void ShutdownRecording(){
   recorder->Stop();
   const auto status=recorder->Statistics();
   finalRecordingStats=status;
-  wpi::log::StringLogEntry summary(frc::DataLogManager::GetLog(),"Replay/RecordingStatus");
-  summary.Append(Json{{"written",status.written},{"rejected",status.rejected},
+  recordingStatus->Append(Json{{"written",status.written},{"rejected",status.rejected},
       {"failed",status.failed},{"highWater",status.highWater}}.dump());
   recorder.reset();
-  frc::DataLogManager::GetLog().Flush();
+  base::logging::GetLog().Flush();
 }
 void RunReplay(const std::function<void()> &robotInit,const std::function<void()> &loop){
 #ifndef __FRC_ROBORIO__
