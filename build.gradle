@@ -192,7 +192,7 @@ model {
                 def moduleDirectory = file("build/named-modules/${modulePlatform}/${moduleVariant}")
                 if (modulePlatform.startsWith('windows')) {
                     binary.cppCompiler.args '/DMECO_USE_NAMED_MODULES=1', '/reference',
-                        "meco.base.drive_target=${new File(moduleDirectory, 'meco.base.drive_target.ifc').absolutePath}"
+                        new File(moduleDirectory, 'meco.base.drive_target.ifc').absolutePath
                 } else {
                     binary.cppCompiler.args '-DMECO_USE_NAMED_MODULES=1', '-fmodules-ts',
                         "-fmodule-mapper=${new File(moduleDirectory, 'module-mapper.txt').absolutePath}"
@@ -395,7 +395,11 @@ def registerDriveTargetModule = { String platform, String variant ->
                 }
                 if (arg.startsWith('/reference:')) continue
                 if (arg == '-o' && i + 1 < args.size()) {
-                    command.addAll([arg, object.absolutePath])
+                    if (platform.startsWith('windows')) {
+                        command.addAll(['/Fo', object.absolutePath])
+                    } else {
+                        command.addAll([arg, object.absolutePath])
+                    }
                     ++i
                 } else if (arg.equalsIgnoreCase('/Fo') && i + 1 < args.size()) {
                     command.addAll([arg, object.absolutePath])
