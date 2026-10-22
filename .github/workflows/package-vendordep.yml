@@ -56,9 +56,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: ilammy/msvc-dev-cmd@v1
         if: runner.os == 'Windows'
       - uses: lukka/get-cmake@latest
+      - name: Install roboRIO toolchain
+        if: matrix.platform == 'linux'
+        run: ./gradlew installRoboRioToolchain
       - name: Build roboRIO and Linux archives
         if: matrix.platform == 'linux'
         run: >-
