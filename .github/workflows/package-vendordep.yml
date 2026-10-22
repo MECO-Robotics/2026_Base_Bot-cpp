@@ -1,6 +1,34 @@
 name: Package MECO Base vendordep
 
 on:
+  push:
+    branches: [main, 'codex/**']
+    paths:
+      - '.github/workflows/package-vendordep.yml'
+      - 'build.gradle'
+      - 'vendor/**'
+      - 'scripts/prepare_vendor_cache.py'
+      - 'scripts/vendor-cache-sha256.json'
+      - 'scripts/vendor_consumer_smoke.py'
+      - 'src/main/cpp/base/**'
+      - 'src/main/cpp/modules/**'
+      - 'src/main/include/base/**'
+      - 'simulation/**'
+      - 'vendordeps/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/package-vendordep.yml'
+      - 'build.gradle'
+      - 'vendor/**'
+      - 'scripts/prepare_vendor_cache.py'
+      - 'scripts/vendor-cache-sha256.json'
+      - 'scripts/vendor_consumer_smoke.py'
+      - 'src/main/cpp/base/**'
+      - 'src/main/cpp/modules/**'
+      - 'src/main/include/base/**'
+      - 'simulation/**'
+      - 'vendordeps/**'
   workflow_dispatch:
     inputs:
       publish:
