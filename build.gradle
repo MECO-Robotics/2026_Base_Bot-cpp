@@ -396,13 +396,13 @@ def registerDriveTargetModule = { String platform, String variant ->
                 if (arg.startsWith('/reference:')) continue
                 if (arg == '-o' && i + 1 < args.size()) {
                     if (platform.startsWith('windows')) {
-                        command.addAll(['/Fo', object.absolutePath])
+                        command << "/Fo${object.absolutePath}"
                     } else {
                         command.addAll([arg, object.absolutePath])
                     }
                     ++i
                 } else if (arg.equalsIgnoreCase('/Fo') && i + 1 < args.size()) {
-                    command.addAll([arg, object.absolutePath])
+                    command << "/Fo${object.absolutePath}"
                     ++i
                 } else if (arg.toLowerCase().startsWith('/fo')) {
                     command << "/Fo${object.absolutePath}"
