@@ -34,6 +34,8 @@ def load_recording(path):
         if record.isControl():
             continue
         name, kind = entries.get(record.getEntry(), ('', ''))
+        if name.startswith('/'):
+            name = name[1:]
         if name == 'Replay/RecordingFault':
             raise ValueError('Recording reported overflow or serialization failure')
         if name not in ('Replay/Frames', 'Replay/Metadata', 'Replay/Complete', 'Replay/RecordingStatus'):
