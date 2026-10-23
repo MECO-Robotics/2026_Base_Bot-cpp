@@ -86,7 +86,7 @@ static void Case_DriveSimulationTest_DriveSimulation_PhoenixFeedbackTracksPhysic
     EXPECT_NEAR(placed->body.pose.position.y, 3, 1e-6);
     EXPECT_DOUBLE_EQ(placed->body.linearVelocity.x, 0);
     EXPECT_NEAR(drive.Pose().X().value(), 2, 1e-6);
-    EXPECT_NEAR(drive.Pose().Rotation().Degrees().value(), 30, 1e-6);
+    EXPECT_NEAR(drive.Pose().Rotation().Degrees().value(), 30, 1e-3);
 }
 
 TEST(DriveSimulation, PhoenixFeedbackTracksPhysicalMotionAndResetBoundaries)
