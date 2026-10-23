@@ -39,8 +39,9 @@ nativeUtils.platformConfigs.all {{
 }}
 model {{ components {{ frcUserProgram(NativeExecutableSpec) {{
     targetPlatform {platform}
-    sources.cpp {{ source {{ srcDir 'src/main/cpp'; include '**/*.cpp' }} }}
-    lib library: 'mecoBase', linkage: 'static'
+    sources.cpp {{
+        source {{ srcDir 'src/main/cpp'; include '**/*.cpp' }}
+    }}
     wpi.cpp.vendor.cpp(it)
     wpi.cpp.deps.wpilib(it)
 }} }} }}
