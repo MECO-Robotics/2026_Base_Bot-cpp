@@ -13,8 +13,7 @@ frc2::CommandPtr Drive::Characterize(bool dynamic, frc2::sysid::Direction direct
 {
     if (native_)
         for (size_t i = 0; i < 4; ++i)
-            native_->GetModule(i).GetDriveMotor().GetMotorVoltage().SetUpdateFrequency(units::hertz_t{50},
-                                                                                       units::second_t{0});
+            native_->GetModule(i).GetDriveMotor().GetMotorVoltage().SetUpdateFrequency(units::hertz_t{50});
     auto apply = [this](units::volt_t volts) {
         requestedSpeeds_ = {};
         replay::RecordOutput("Drive/CharacterizationVoltage", volts.value());

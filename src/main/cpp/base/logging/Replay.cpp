@@ -57,6 +57,17 @@ std::map<std::string, std::pair<int, std::string>> typedEntries;
 {
     throw std::runtime_error("Replay: " + message);
 }
+bool InvalidRecordingStatus(const Json &status, size_t frameCount)
+{
+    if (status.is_null())
+        return false;
+    if (status.value("rejected", 0) != 0 || status.value("failed", 0) != 0)
+        return true;
+    const auto written = status.value("written", static_cast<int64_t>(frameCount));
+    if (written < 0 || static_cast<uint64_t>(written) > frameCount)
+        return true;
+    return status.value("final", false) && static_cast<uint64_t>(written) != frameCount;
+}
 std::string EscapePathSegment(std::string_view value)
 {
     std::string escaped;
@@ -386,9 +397,7 @@ void InitializeFromEnvironment()
                     Fail(std::string("cannot map AdvantageKit log to base replay inputs: ") + error.what());
                 }
             }
-            if (!recordingStatus.is_null() &&
-                (recordingStatus.value("rejected", 0) != 0 || recordingStatus.value("failed", 0) != 0 ||
-                 recordingStatus.value("written", static_cast<int64_t>(source.size())) != source.size()))
+            if (InvalidRecordingStatus(recordingStatus, source.size()))
                 Fail("source recording status reports failed or missing frames");
         }
         else
@@ -420,9 +429,7 @@ void InitializeFromEnvironment()
                     continue;
                 appendFrame(Json::parse(value), sequence++, last);
             }
-            if (!recordingStatus.is_null() &&
-                (recordingStatus.at("rejected") != 0 || recordingStatus.at("failed") != 0 ||
-                 recordingStatus.at("written") != source.size()))
+            if (InvalidRecordingStatus(recordingStatus, source.size()))
                 Fail("source recording status reports failed or missing frames");
         }
         if (source.empty())
@@ -622,8 +629,8 @@ void ShutdownRecording()
         {"written", status.written},
         {"rejected", status.rejected},
         {"failed", status.failed},
-        {"highWater",
-         status.highWater}}.dump());
+        {"highWater", status.highWater},
+        {"final", true}}.dump());
     recorder.reset();
     base::logging::GetLog().Flush();
 }
