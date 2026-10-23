@@ -138,7 +138,7 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Assemble Maven repository
-        run: ./gradlew packageVendorMaven --max-workers=2
+        run: ./gradlew packageVendorMaven -Ptoolchain-optional-roboRio --max-workers=2
       - uses: actions/upload-artifact@v4
         with:
           name: meco-base-vendordep-${{ github.sha }}
