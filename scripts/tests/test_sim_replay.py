@@ -68,9 +68,11 @@ class ReplayLogPathTest(unittest.TestCase):
         fake_log.DataLogReader = lambda _: Reader(records)
         fake_wpiutil = types.ModuleType('wpiutil')
         fake_wpiutil.log = fake_log
-        with tempfile.NamedTemporaryFile() as path, patch.dict(
-                sys.modules, {'wpiutil': fake_wpiutil, 'wpiutil.log': fake_log}):
-            recording = sim_replay.load_recording(path.name)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'recording.wpilog'
+            path.write_bytes(b'test log')
+            with patch.dict(sys.modules, {'wpiutil': fake_wpiutil, 'wpiutil.log': fake_log}):
+                recording = sim_replay.load_recording(path)
 
         self.assertEqual(len(recording['frames']), 1)
         self.assertEqual(recording['metadata']['schemaVersion'], 1)
