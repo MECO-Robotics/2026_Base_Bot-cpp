@@ -1,0 +1,450 @@
+{
+  "fileName": "MecoBase.json",
+  "name": "MECO Base",
+  "version": "2026.1.0",
+  "uuid": "e7b42af3-247c-42bb-84f6-769ec1c64422",
+  "frcYear": "2026",
+  "mavenUrls": [
+    "https://3015rangerrobotics.github.io/pathplannerlib/repo",
+    "https://dev.studica.com/maven/release/2026/",
+    "https://maven.ctr-electronics.com/release/",
+    "https://maven.photonvision.org/repository/internal",
+    "https://maven.photonvision.org/repository/snapshots",
+    "https://maven.revrobotics.com/",
+    "https://meco-robotics.github.io/2026_Base_Bot-cpp/maven"
+  ],
+  "jsonUrl": "https://raw.githubusercontent.com/MECO-Robotics/2026_Base_Bot-cpp/main/vendor/MecoBase.json",
+  "javaDependencies": [],
+  "jniDependencies": [],
+  "cppDependencies": [
+    {
+      "groupId": "com.mecorobotics.frc",
+      "artifactId": "meco-base-cpp",
+      "version": "2026.1.0",
+      "libName": "mecoBase",
+      "headerClassifier": "headers",
+      "sourcesClassifier": "sources",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "linuxathena",
+        "linuxx86-64",
+        "windowsx86-64"
+      ]
+    },
+    {
+      "groupId": "com.mecorobotics.frc",
+      "artifactId": "frc-jolt-cpp",
+      "version": "2026.1.0",
+      "libName": "frc_jolt",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "linuxx86-64",
+        "windowsx86-64"
+      ]
+    },
+    {
+      "groupId": "com.mecorobotics.frc",
+      "artifactId": "jolt-cpp",
+      "version": "2026.1.0",
+      "libName": "Jolt",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "linuxx86-64",
+        "windowsx86-64"
+      ]
+    },
+    {
+      "groupId": "edu.wpi.first.wpilibNewCommands",
+      "artifactId": "wpilibNewCommands-cpp",
+      "version": "wpilib",
+      "libName": "wpilibNewCommands",
+      "headerClassifier": "headers",
+      "sourcesClassifier": "sources",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "linuxathena",
+        "linuxarm32",
+        "linuxarm64",
+        "windowsx86-64",
+        "windowsx86",
+        "linuxx86-64",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.revrobotics.frc",
+      "artifactId": "REVLib-cpp",
+      "version": "2026.0.5",
+      "libName": "REVLib",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.revrobotics.frc",
+      "artifactId": "REVLib-driver",
+      "version": "2026.0.5",
+      "libName": "REVLibDriver",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.revrobotics.frc",
+      "artifactId": "RevLibBackendDriver",
+      "version": "2026.0.5",
+      "libName": "BackendDriver",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.revrobotics.frc",
+      "artifactId": "RevLibWpiBackendDriver",
+      "version": "2026.0.5",
+      "libName": "REVLibWpi",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "org.photonvision",
+      "artifactId": "photonlib-cpp",
+      "version": "v2026.3.2",
+      "libName": "photonlib",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxathena",
+        "linuxx86-64",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "org.photonvision",
+      "artifactId": "photontargeting-cpp",
+      "version": "v2026.3.2",
+      "libName": "photontargeting",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxathena",
+        "linuxx86-64",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.pathplanner.lib",
+      "artifactId": "PathplannerLib-cpp",
+      "version": "2026.1.2",
+      "libName": "PathplannerLib",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "osxuniversal",
+        "linuxathena",
+        "linuxarm32",
+        "linuxarm64"
+      ]
+    },
+    {
+      "groupId": "com.ctre.phoenix6",
+      "artifactId": "wpiapi-cpp",
+      "version": "26.1.2",
+      "libName": "CTRE_Phoenix6_WPI",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "linuxathena"
+      ],
+      "simMode": "hwsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6",
+      "artifactId": "tools",
+      "version": "26.1.2",
+      "libName": "CTRE_PhoenixTools",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "linuxathena"
+      ],
+      "simMode": "hwsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "wpiapi-cpp-sim",
+      "version": "26.1.2",
+      "libName": "CTRE_Phoenix6_WPISim",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "tools-sim",
+      "version": "26.1.2",
+      "libName": "CTRE_PhoenixTools_Sim",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simTalonSRX",
+      "version": "26.1.2",
+      "libName": "CTRE_SimTalonSRX",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simVictorSPX",
+      "version": "26.1.2",
+      "libName": "CTRE_SimVictorSPX",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simPigeonIMU",
+      "version": "26.1.2",
+      "libName": "CTRE_SimPigeonIMU",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProTalonFX",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProTalonFX",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProTalonFXS",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProTalonFXS",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProCANcoder",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProCANcoder",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProPigeon2",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProPigeon2",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProCANrange",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProCANrange",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProCANdi",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProCANdi",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.ctre.phoenix6.sim",
+      "artifactId": "simProCANdle",
+      "version": "26.1.2",
+      "libName": "CTRE_SimProCANdle",
+      "headerClassifier": "headers",
+      "sharedLibrary": true,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxx86-64",
+        "linuxarm64",
+        "osxuniversal"
+      ],
+      "simMode": "swsim"
+    },
+    {
+      "groupId": "com.studica.frc",
+      "artifactId": "Studica-cpp",
+      "version": "2026.0.0",
+      "libName": "Studica",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    },
+    {
+      "groupId": "com.studica.frc",
+      "artifactId": "Studica-driver",
+      "version": "2026.0.0",
+      "libName": "StudicaDriver",
+      "headerClassifier": "headers",
+      "sharedLibrary": false,
+      "skipInvalidPlatforms": true,
+      "binaryPlatforms": [
+        "windowsx86-64",
+        "linuxarm64",
+        "linuxx86-64",
+        "linuxathena",
+        "linuxarm32",
+        "osxuniversal"
+      ]
+    }
+  ]
+}

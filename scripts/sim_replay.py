@@ -34,6 +34,8 @@ def load_recording(path):
         if record.isControl():
             continue
         name, kind = entries.get(record.getEntry(), ('', ''))
+        if name.startswith('/'):
+            name = name[1:]
         if name == 'Replay/RecordingFault':
             raise ValueError('Recording reported overflow or serialization failure')
         if name not in ('Replay/Frames', 'Replay/Metadata', 'Replay/Complete', 'Replay/RecordingStatus'):
@@ -65,8 +67,16 @@ def load_recording(path):
         frames.append(value)
     if not frames or not isinstance(metadata, dict) or metadata.get('schemaVersion') != 1:
         raise ValueError('Log lacks schema-versioned sensor input frames and metadata; legacy controller logs cannot be replayed')
-    if recording_status is not None and recording_status.get('written') != len(frames):
-        raise ValueError('Persisted frame count does not match recorder completion status')
+    if recording_status is not None:
+        written = recording_status.get('written')
+        final = recording_status.get('final', False)
+        if type(written) is not int or written < 0:
+            raise ValueError('Recorder status has an invalid written-frame count')
+        if (final or complete) and written != len(frames):
+            raise ValueError(
+                f"Persisted frame count {len(frames)} does not match final recorder status "
+                f"({written} frames written)"
+            )
     return {'frames': frames, 'metadata': metadata, 'complete': complete, 'recordingStatus': recording_status,
             'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
 

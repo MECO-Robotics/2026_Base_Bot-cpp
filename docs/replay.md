@@ -1,14 +1,40 @@
 # Code replay and traceability
 
 The framework records one versioned `Replay/Frames` JSON record per robot cycle
-in the normal WPILOG. Desktop replay reads those input frames, installs recorded
-Driver Station state and FPGA timestamps, and reruns the existing robot mode
-callbacks, scheduler, commands, and IO-owned mechanism controller emulation. It does not
-feed recorded actuator outputs back to the code. New outputs go to a new WPILOG.
+in the primary WPILOG. The file uses the AdvantageKit WPILOG header and also
+contains timestamped typed `ReplayInputs` and `ReplayOutputs` entries for
+AdvantageScope and other WPILOG readers. Desktop replay reads native
+`Replay/Frames`, installs recorded Driver Station state and FPGA timestamps,
+and reruns the existing robot mode callbacks, scheduler, commands, and IO-owned
+mechanism controller emulation. It does not feed recorded actuator outputs
+back to the code. New outputs go to a new WPILOG.
+
+Desktop replay also accepts Java AdvantageKit 26.0.2 logs for the base robot's
+default Drive and Driver Station boundary. It maps `DriveState/Pose`,
+`DriveState/Speeds`, `DriveState/ModuleStates`, logged Driver Station state and
+joystick values, and the optional `NetworkInputs/SmartDashboard/Auto Choices`
+selection. The Java log does not identify the C++ drivetrain backend, so set
+`FRC_DRIVE_BACKEND=phoenix` or `FRC_DRIVE_BACKEND=rev` when that differs from
+the default Phoenix backend. Other Java mechanism, vision, and device IO schemas
+are not mapped; a robot that requires those inputs fails replay rather than
+reading live devices. AdvantageKit's Java reader can open the C++ output and
+recover its typed input entries; its replay reader intentionally filters
+`ReplayOutputs`, which remain present in the raw WPILOG.
+
 AdvantageScope can open either log for normal playback; code replay is a separate
-operation. WPILib stores NT topics under `NT:` in WPILOG, so a logged module
-source appears as `NT:/AdvantageScope/Drive/ModuleStates`; live NT uses
-`/AdvantageScope/Drive/ModuleStates`. Select the corresponding source in each view. Java AdvantageKit log files are not this framework's input format.
+operation. WPILib NT topics are stored with an `NT:` prefix in WPILOG, so a
+logged module source appears as `NT:/AdvantageScope/Drive/ModuleStates`; live
+NT uses `/AdvantageScope/Drive/ModuleStates`. Select the corresponding source
+in each view.
+
+Each recorded cycle also exposes timestamp-aligned JSON snapshots at
+`Replay/Inputs` and `Replay/Outputs` for direct inspection in WPILOG viewers.
+These duplicate the frame's input and recomputed output maps; `Replay/Frames`
+remains the authoritative replay source. `Replay/RecordingStatus` is sampled
+once per second and finalized at orderly shutdown, with accepted/rejected/failed
+counts and queue high-water mark. Periodic snapshots may lead or trail persisted
+frames because status and frame records are not synchronized with the lower-
+priority writer; readers require an exact count from finalized status records.
 
 ## Run a replay
 
@@ -23,8 +49,11 @@ python scripts/sim_headless.py --replay-log logs/source.wpilog \
 ```
 
 On Windows use `gradlew.bat`. This workflow supports Linux and Windows robot
-executables. It requires a newly recorded log containing `Replay/Frames`; an old
-NT-only log cannot reconstruct missing sensor inputs. Output files must be new:
+executables. The headless comparison helper requires a native log containing
+`Replay/Frames`. A Java AdvantageKit log can be passed to the robot executable
+directly with `FRC_REPLAY_LOG` and `FRC_REPLAY_OUTPUT`; Java logs need the exact
+typed fields listed above. An old NT-only log without those fields cannot
+reconstruct missing sensor inputs. Output files must be new:
 the tool refuses to overwrite an existing log. The process exits at end of input,
 without loading the HAL websocket extension or running physics. Offline replay
 waits between small frame batches for the background writer, preventing a fast
@@ -102,8 +131,9 @@ recording invalid, emits `Replay/RecordingFault`, and rejects subsequent frames;
 controls continue running. Both replay readers reject a fault-marked source.
 `Replay/RecordingStatus` records counts and queue high-water at orderly shutdown.
 Abrupt process termination can still lose buffered tail records. Shutdown drains
-and joins the recorder before stopping DataLogManager. Offline replay applies
-writer backpressure between batches; this never runs in live periodic callbacks.
+and joins the recorder before stopping the AdvantageKit-compatible WPILOG
+writer. Offline replay applies writer backpressure between batches; this never
+runs in live periodic callbacks.
 
 Scheduler/commands, sensor capture, mechanism control, and fixed-step physics keep
 one owner on the robot thread. Moving these stateful stages to independent

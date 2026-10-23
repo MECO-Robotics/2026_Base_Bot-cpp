@@ -1,0 +1,21 @@
+// Adds the acceptance probe as an external test source to the existing 2026 Java
+// robot's GradleRIO runtime without modifying that repository.
+allprojects { project ->
+  project.afterEvaluate {
+    if (project == project.rootProject && project.plugins.hasPlugin('java')) {
+      def probe = new File(System.getProperty('akit.acceptance.source'))
+      if (!probe.isFile()) {
+        throw new GradleException("Acceptance source not found: ${probe}")
+      }
+      project.sourceSets.test.java.srcDir(probe.parentFile)
+      project.tasks.named('test') {
+        ['akit.acceptance.input', 'akit.acceptance.javaOutput', 'akit.acceptance.output'].each { key ->
+          def value = System.getProperty(key)
+          if (value != null) systemProperty key, value
+        }
+        systemProperty 'akit.acceptance.keys', System.getProperty('akit.acceptance.keys', '')
+        systemProperty 'akit.acceptance.backend', System.getProperty('akit.acceptance.backend', 'phoenix')
+      }
+    }
+  }
+}
