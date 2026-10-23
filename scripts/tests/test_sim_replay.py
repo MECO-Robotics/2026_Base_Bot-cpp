@@ -106,6 +106,23 @@ class ReplayLogPathTest(unittest.TestCase):
         self.assertEqual(len(recording['frames']), 2)
         self.assertEqual(recording['recordingStatus']['written'], 1)
 
+    def test_accepts_periodic_status_ahead_of_persisted_live_frames(self):
+        frame = {'schemaVersion': 1, 'sequence': 0, 'timestampUs': 100000,
+                 'inputs': {}, 'outputs': {}, 'ds': {}}
+        records = [
+            LogRecord(1, '/Replay/Metadata', 'string'),
+            LogRecord(2, '/Replay/Frames', 'string'),
+            LogRecord(3, '/Replay/RecordingStatus', 'string'),
+            LogRecord(1, value=json.dumps({'schemaVersion': 1})),
+            LogRecord(2, value=json.dumps(frame)),
+            LogRecord(3, value=json.dumps({'written': 2, 'rejected': 0, 'failed': 0})),
+        ]
+
+        recording = self._load_records(records)
+
+        self.assertEqual(len(recording['frames']), 1)
+        self.assertEqual(recording['recordingStatus']['written'], 2)
+
     def test_rejects_final_status_that_disagrees_with_persisted_frames(self):
         frame = {'schemaVersion': 1, 'sequence': 0, 'timestampUs': 100000,
                  'inputs': {}, 'outputs': {}, 'ds': {}}

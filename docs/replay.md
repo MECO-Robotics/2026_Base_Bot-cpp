@@ -32,9 +32,9 @@ Each recorded cycle also exposes timestamp-aligned JSON snapshots at
 These duplicate the frame's input and recomputed output maps; `Replay/Frames`
 remains the authoritative replay source. `Replay/RecordingStatus` is sampled
 once per second and finalized at orderly shutdown, with accepted/rejected/failed
-counts and queue high-water mark. Periodic snapshots may trail persisted frames
-when a live log ends abruptly; readers require an exact count from finalized
-status records.
+counts and queue high-water mark. Periodic snapshots may lead or trail persisted
+frames because status and frame records are not synchronized with the lower-
+priority writer; readers require an exact count from finalized status records.
 
 ## Run a replay
 

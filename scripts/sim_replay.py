@@ -70,7 +70,7 @@ def load_recording(path):
     if recording_status is not None:
         written = recording_status.get('written')
         final = recording_status.get('final', False)
-        if type(written) is not int or written < 0 or written > len(frames):
+        if type(written) is not int or written < 0:
             raise ValueError('Recorder status has an invalid written-frame count')
         if (final or complete) and written != len(frames):
             raise ValueError(

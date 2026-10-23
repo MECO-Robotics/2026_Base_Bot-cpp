@@ -46,6 +46,8 @@ uint64_t index = 0;
 size_t cursor = 0;
 std::atomic<size_t> pendingReplayBytes{0};
 Json frame;
+Json provenance;
+bool metadataWritten = false;
 std::filesystem::path outputPath;
 std::vector<Json> source;
 std::shared_ptr<wpi::log::StringLogEntry> frames, metadata, recordingFault, recordingStatus, inputSnapshot,
@@ -64,7 +66,7 @@ bool InvalidRecordingStatus(const Json &status, size_t frameCount)
     if (status.value("rejected", 0) != 0 || status.value("failed", 0) != 0)
         return true;
     const auto written = status.value("written", static_cast<int64_t>(frameCount));
-    if (written < 0 || static_cast<uint64_t>(written) > frameCount)
+    if (written < 0)
         return true;
     return status.value("final", false) && static_cast<uint64_t>(written) != frameCount;
 }
@@ -304,11 +306,11 @@ void InitializeFromEnvironment()
     initialized = true;
     const char *input = std::getenv("FRC_REPLAY_LOG");
     active = input && *input;
-    Json provenance = {{"schemaVersion", 1},
-                       {"buildRevision", FRC_BUILD_REVISION},
-                       {"buildDirty", std::string_view(FRC_BUILD_DIRTY) == "true"},
-                       {"buildSourceHash", FRC_BUILD_SOURCE_HASH},
-                       {"mode", active ? "replay" : "live"}};
+    provenance = {{"schemaVersion", 1},
+                  {"buildRevision", FRC_BUILD_REVISION},
+                  {"buildDirty", std::string_view(FRC_BUILD_DIRTY) == "true"},
+                  {"buildSourceHash", FRC_BUILD_SOURCE_HASH},
+                  {"mode", active ? "replay" : "live"}};
     if (active)
     {
         // RobotBase may start the default NT server before our member initialization.
@@ -464,6 +466,8 @@ void InitializeFromEnvironment()
 #endif
     }
     auto &log = base::logging::GetLog();
+    metadata =
+        std::make_shared<wpi::log::StringLogEntry>(log, "/Replay/Metadata", base::logging::kAdvantageKitMetadata);
     frames = std::make_shared<wpi::log::StringLogEntry>(log, "/Replay/Frames", base::logging::kAdvantageKitMetadata);
     recordingFault =
         std::make_shared<wpi::log::StringLogEntry>(log, "/Replay/RecordingFault", base::logging::kAdvantageKitMetadata);
@@ -474,9 +478,14 @@ void InitializeFromEnvironment()
     outputSnapshot =
         std::make_shared<wpi::log::StringLogEntry>(log, "/Replay/Outputs", base::logging::kAdvantageKitMetadata);
     recorder = std::make_unique<FrameRecorder>(
-        [entry = frames, inputEntry = inputSnapshot, outputEntry = outputSnapshot](const Json &record,
-                                                                                   int64_t timestamp) {
+        [entry = frames, metadataEntry = metadata, inputEntry = inputSnapshot, outputEntry = outputSnapshot,
+         metadataPayload = provenance.dump()](const Json &record, int64_t timestamp) mutable {
             base::logging::AppendTimestamp(timestamp);
+            if (!metadataWritten)
+            {
+                metadataEntry->Append(metadataPayload, timestamp);
+                metadataWritten = true;
+            }
             for (auto it = record.at("inputs").begin(); it != record.at("inputs").end(); ++it)
                 AppendTypedJson("/ReplayInputs/" + it.key(), it.value(), timestamp);
             for (auto it = record.at("outputs").begin(); it != record.at("outputs").end(); ++it)
@@ -491,9 +500,6 @@ void InitializeFromEnvironment()
         [entry = recordingFault](FrameRecorder::Stats status) {
             entry->Append(Json{{"rejected", status.rejected}, {"failed", status.failed}}.dump());
         });
-    metadata =
-        std::make_shared<wpi::log::StringLogEntry>(log, "/Replay/Metadata", base::logging::kAdvantageKitMetadata);
-    metadata->Append(provenance.dump());
 }
 bool Active()
 {
