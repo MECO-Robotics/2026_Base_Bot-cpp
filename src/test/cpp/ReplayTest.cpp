@@ -226,7 +226,9 @@ static void Case_ReplayTest_Replay_RecomputesFromInputsWithoutConstructingNative
             continue;
         }
         std::string_view value;
-        if (names[record.GetEntry()] != "Replay/Frames" || !record.GetString(&value))
+        if (names[record.GetEntry()] != "/Replay/Frames" && names[record.GetEntry()] != "Replay/Frames")
+            continue;
+        if (!record.GetString(&value))
             continue;
         auto replayed = wpi::json::parse(value);
         ++count;

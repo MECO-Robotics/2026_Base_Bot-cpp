@@ -146,7 +146,7 @@ Case_DriveWheelRadiusCommandTest_DriveWheelRadiusCommand_OwnsDriveStopsOnInterru
                 names[start.entry] = std::string(start.name);
             continue;
         }
-        if (names[record.GetEntry()] != "Replay/Frames")
+        if (names[record.GetEntry()] != "/Replay/Frames" && names[record.GetEntry()] != "Replay/Frames")
             continue;
         std::string_view text;
         if (!record.GetString(&text))

@@ -118,12 +118,37 @@ static void Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecord
     Environment("FRC_REPLAY_OUTPUT", oldOutput);
     Environment("FRC_DRIVE_SYSID_CHILD", "");
     ASSERT_EQ(result, 0);
+    auto sourceBuffer = wpi::MemoryBuffer::GetFile(source.string());
+    ASSERT_TRUE(sourceBuffer);
+    wpi::log::DataLogReader sourceReader(std::move(*sourceBuffer));
+    bool measuredVoltage = false, measuredPosition = false, measuredVelocity = false;
+    for (const auto &record : sourceReader)
+    {
+        if (record.IsStart())
+            continue;
+        std::string_view text;
+        if (!record.GetString(&text))
+            continue;
+        const auto frame = wpi::json::parse(text);
+        if (!frame.contains("inputs") || !frame["inputs"].contains("Drive/Characterization"))
+            continue;
+        const auto &module = frame["inputs"]["Drive/Characterization"]["modules"][0];
+        ASSERT_EQ(module.size(), 3);
+        EXPECT_DOUBLE_EQ(module[0].get<double>(), 2.5);
+        EXPECT_DOUBLE_EQ(module[1].get<double>(), 1.25);
+        EXPECT_DOUBLE_EQ(module[2].get<double>(), .75);
+        measuredVoltage = measuredPosition = measuredVelocity = true;
+        break;
+    }
+    EXPECT_TRUE(measuredVoltage);
+    EXPECT_TRUE(measuredPosition);
+    EXPECT_TRUE(measuredVelocity);
+
     auto buffer = wpi::MemoryBuffer::GetFile(output.string());
     ASSERT_TRUE(buffer);
     wpi::log::DataLogReader reader(std::move(*buffer));
     std::map<int, std::string> names;
     int frames = 0;
-    bool measuredVoltage = false, measuredPosition = false, measuredVelocity = false;
     for (const auto &record : reader)
     {
         if (record.IsStart())
@@ -134,7 +159,7 @@ static void Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecord
             continue;
         }
         auto name = names[record.GetEntry()];
-        if (name == "Replay/Frames")
+        if (name == "/Replay/Frames" || name == "Replay/Frames")
         {
             std::string_view text;
             if (record.GetString(&text))
@@ -148,30 +173,8 @@ static void Case_DriveCharacterizationTest_DriveCharacterization_OwnsDriveRecord
                 ++frames;
             }
         }
-        double value;
-        if (record.GetDouble(&value))
-        {
-            if (name.find("voltage-drive-0") != std::string::npos)
-            {
-                EXPECT_DOUBLE_EQ(value, 2.5);
-                measuredVoltage = true;
-            }
-            if (name.find("position-drive-0") != std::string::npos)
-            {
-                EXPECT_DOUBLE_EQ(value, 1.25);
-                measuredPosition = true;
-            }
-            if (name.find("velocity-drive-0") != std::string::npos)
-            {
-                EXPECT_DOUBLE_EQ(value, .75);
-                measuredVelocity = true;
-            }
-        }
     }
     EXPECT_EQ(frames, 5);
-    EXPECT_TRUE(measuredVoltage);
-    EXPECT_TRUE(measuredPosition);
-    EXPECT_TRUE(measuredVelocity);
     std::filesystem::remove_all(directory);
 }
 
