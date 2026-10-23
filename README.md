@@ -31,10 +31,10 @@ support for the desktop and roboRIO platforms.
 
 The reusable code is being separated into the `frcBase` static library. The
 vendor descriptor and packaging workflow produce a Maven repository for the
-reusable API. A clean consumer has linked the staged Linux desktop and roboRIO
-artifacts. Windows artifacts are built and consumer-checked by the manual
-workflow. The repository is not publicly installable until that workflow
-publishes the Maven repository to GitHub Pages.
+reusable API. The workflow builds Linux desktop, roboRIO, and Windows artifacts,
+then links clean consumer projects against each target. The repository is not
+publicly installable until the workflow publishes the Maven repository to
+GitHub Pages.
 
 The workflow defaults to building and validating a downloadable package. Set
 its `publish` input only when the package is ready to publish. Then add
