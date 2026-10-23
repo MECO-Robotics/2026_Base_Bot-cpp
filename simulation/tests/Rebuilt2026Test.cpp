@@ -6,6 +6,7 @@
 #include <iostream>
 #include <source_location>
 #include <stdexcept>
+#include <string>
 using namespace base::sim;
 void Check(bool ok, std::source_location at = std::source_location::current())
 {
