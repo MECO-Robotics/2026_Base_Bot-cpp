@@ -29,20 +29,28 @@ support for the desktop and roboRIO platforms.
 
 ## Use as a vendor library
 
-The reusable code is being separated into the `frcBase` static library. The
-vendor descriptor and packaging workflow produce a Maven repository for the
-reusable API. The workflow builds Linux desktop, roboRIO, and Windows artifacts,
-then links clean consumer projects against each target. The repository is not
-publicly installable until the workflow publishes the Maven repository to
-GitHub Pages.
+The reusable code is packaged as the `frcBase` static library. The vendordep
+workflow builds the Linux desktop, roboRIO, and Windows artifacts, assembles a
+Maven repository, and links clean consumer projects against roboRIO and desktop
+targets before optional publication to GitHub Pages. The C++ vendordep includes
+public headers and implementation sources for IDE navigation.
 
 The workflow defaults to building and validating a downloadable package. Set
 its `publish` input only when the package is ready to publish. Then add
 `vendor/MecoBase.json` to a season robot with Manage Vendor Libraries.
 
-The intended consumer API uses headers such as `base/Drive.h` and
-`base/Mechanism.h`. Robot entry points such as `RobotContainer` remain owned by
-the season robot.
+Install `vendor/MecoBase.json` with WPILib's Manage Vendor Libraries after the
+versioned Maven repository has been published. The integrated robot library
+supports roboRIO and Linux/Windows simulation. macOS supports the standalone
+Jolt simulation models; the integrated robot library uses Phoenix and REV
+native dependencies that are not available on macOS.
+
+The consumer API uses headers such as `base/Drive.h` and `base/Mechanism.h`.
+Robot entry points such as `RobotContainer` remain owned by the season robot.
+Update the vendordep and Maven artifact version together for releases. Dispatch
+the package workflow with its `publish` input enabled only for a reviewed,
+versioned release; ordinary pushes and pull requests build and validate without
+publishing.
 
 `deploy` sends code to the configured roboRIO. Check the robot configuration
 and get mentor approval before deploying or moving hardware.

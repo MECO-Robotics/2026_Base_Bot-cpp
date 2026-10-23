@@ -23,6 +23,7 @@
       "version": "2026.1.0",
       "libName": "mecoBase",
       "headerClassifier": "headers",
+      "sourcesClassifier": "sources",
       "sharedLibrary": false,
       "skipInvalidPlatforms": true,
       "binaryPlatforms": [

@@ -24,7 +24,9 @@ def main():
         shutil.copy2(repo / "settings.gradle", project / "settings.gradle")
         (project / "src/main/cpp/Robot.cpp").write_text(
             '#include "base/Drive.h"\n'
-            "int main() { base::DriveConfig{}.Validate(); return 0; }\n",
+            '#include "base/Mechanism.h"\n'
+            "int main() { base::DriveConfig{}.Validate(); base::Gains{}.Validate(false); "
+            "return 0; }\n",
             encoding="utf-8",
         )
         platform = "wpi.platforms.roborio" if args.target == "roborio" else "wpi.platforms.desktop"
@@ -38,6 +40,7 @@ nativeUtils.platformConfigs.all {{
 model {{ components {{ frcUserProgram(NativeExecutableSpec) {{
     targetPlatform {platform}
     sources.cpp {{ source {{ srcDir 'src/main/cpp'; include '**/*.cpp' }} }}
+    lib library: 'mecoBase', linkage: 'static'
     wpi.cpp.vendor.cpp(it)
     wpi.cpp.deps.wpilib(it)
 }} }} }}

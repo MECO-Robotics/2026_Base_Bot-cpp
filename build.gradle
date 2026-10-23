@@ -250,6 +250,7 @@ tasks.register('packageVendorMaven') {
         def mavenRoot = new File(root, 'maven')
         def artifacts = [
             [id: 'meco-base-cpp', lib: 'mecoBase', headers: true,
+             sources: true,
              files: [
                  linuxathena: file("build/libs/frcBase/static/linuxathena"),
                  linuxx86_64: file("build/libs/frcBase/static/linuxx86-64"),
@@ -304,6 +305,13 @@ tasks.register('packageVendorMaven') {
                         exclude(name: 'base/detail/**')
                     }
                     zipfileset(dir: file('simulation/include')) { include(name: 'base/sim/**') }
+                }
+            }
+            if (artifact.sources) {
+                ant.zip(destfile: new File(dir, "${artifact.id}-${vendorVersion}-sources.zip")) {
+                    zipfileset(dir: file('src/main/cpp/base')) { include(name: '**/*.cpp') }
+                    zipfileset(dir: file('src/main/cpp/modules')) { include(name: '**/*.cpp') }
+                    zipfileset(dir: file('src/main/cpp/modules')) { include(name: '**/*.cppm') }
                 }
             }
         }
