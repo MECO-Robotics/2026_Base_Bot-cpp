@@ -162,5 +162,6 @@ jobs:
           name: robot-${{ matrix.os }}
           path: |
             artifacts/
+            logs/
             build/test-results/
             build/reports/

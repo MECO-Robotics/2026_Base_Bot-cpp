@@ -68,7 +68,10 @@ def load_recording(path):
     if not frames or not isinstance(metadata, dict) or metadata.get('schemaVersion') != 1:
         raise ValueError('Log lacks schema-versioned sensor input frames and metadata; legacy controller logs cannot be replayed')
     if recording_status is not None and recording_status.get('written') != len(frames):
-        raise ValueError('Persisted frame count does not match recorder completion status')
+        raise ValueError(
+            f"Persisted frame count {len(frames)} does not match recorder completion status "
+            f"({recording_status.get('written')} frames written)"
+        )
     return {'frames': frames, 'metadata': metadata, 'complete': complete, 'recordingStatus': recording_status,
             'sha256': hashlib.sha256(path.read_bytes()).hexdigest()}
 
